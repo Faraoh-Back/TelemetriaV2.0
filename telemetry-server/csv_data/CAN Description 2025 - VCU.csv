@@ -1,0 +1,118 @@
+Status of the master control,s,4B,type,min,max,multiplier,unit,description,description
+,SystemEnable,bit(0-1),int,0,3,1,state,,"ativação do sistema, se está habilitado ou não"
+,Clamp15_CAN,bit(2-3),int,0,3,1,state,,"ativação do vlamp_15, é um sistema de segurança e ativação do sistema"
+,setp_DcLinkVoltage,byte(1),int,0,1020,0.25,V,"Original [0,1000]",Tensão CC do inversor
+,VoltagePrechargeDemand,byte(3),int,0,1020,0.25,V,"Original [0,1000]",Demanda de pre carga do inversor
+,,,,,,,,,
+Setpoints for motor A 0,0x18FF1180,8B,type,min,max,multiplier,unit,description,description
+,ctrlDCU A0,bit(0-1),int,0,3,1,state,,liga o inversor
+,setp_DcLinkTolerance A0,byte(1),int,0,1020,0.25,V,"Original [0,1000]",é o máximo e o mínimo valor de tolerância da tensão DC e com isso a gnt descobre o derating required
+,setp_MotPower A0,byte(2),int,0,255,1,%,"Original [0,250]",limite de potência do motor
+,setp_GenPower A0,byte(3),int,0,255,1,%,"Original [0,250]",limite de potência do gerador
+,setp_Speed A0,byte(4-5),int,-32000,33535,1,rpm,"Original [-32000,32255]",setpoint de velocidade no modo de velocidade
+,setp_Torque A0,byte(6-7),float,-6400,6707,5,Nm,"Original [-6400,6451]",setpoint de torque no modo de torque
+,,,,,,,,,
+Setpoints for motor B 0,0x18FF1280,8B,type,min,max,multiplier,unit,description,description
+,ctrlDCU B0,bit(0-1),int,0,3,1,state,,liga o inversor
+,setp_DcLinkTolerance B0,byte(1),int,0,1020,0.25,V,"Original [0,1000]",é o máximo e o mínimo valor de tolerância da tensão DC e com isso a gnt descobre o derating required
+,setp_MotPower B0,byte(2),int,0,255,1,%,"Original [0,250]",limite de potência do motor
+,setp_GenPower B0,byte(3),int,0,255,1,%,"Original [0,250]",limite de potência do gerador
+,setp_Speed B0,byte(4-5),int,-32000,33535,1,rpm,"Original [-32000,32255]",setpoint de velocidade no modo de velocidade
+,setp_Torque B0,byte(6-7),float,-6400,6707,5,Nm,"Original [-6400,6451]",setpoint de torque no modo de torque
+,,,,,,,,,
+Setpoints for motor A 13,0x18FFE180,8B,type,min,max,multiplier,unit,description,description
+,ctrlDCU A13,bit(0-1),int,0,3,1,state,,liga o inversor
+,setp_DcLinkTolerance A13,byte(1),int,0,1020,0.25,V,"Original [0,1000]",é o máximo e o mínimo valor de tolerância da tensão DC e com isso a gnt descobre o derating required
+,setp_MotPower A13,byte(2),int,0,255,1,%,"Original [0,250]",limite de potência do motor
+,setp_GenPower A13,byte(3),int,0,255,1,%,"Original [0,250]",limite de potência do gerador
+,setp_Speed A13,byte(4-5),int,-32000,33535,1,rpm,"Original [-32000,32255]",setpoint de velocidade no modo de velocidade
+,setp_Torque A13,byte(6-7),float,-6400,6707,5,Nm,"Original [-6400,6451]",setpoint de torque no modo de torque
+,,,,,,,,,
+Setpoints for motor B 13,0x18FFE280,8B,type,min,max,multiplier,unit,description,description
+,ctrlDCU B13,bit(0-1),int,0,3,1,state,,liga o inversor
+,setp_DcLinkTolerance B13,byte(1),int,0,1020,0.25,V,"Original [0,1000]",é o máximo e o mínimo valor de tolerância da tensão DC e com isso a gnt descobre o derating required
+,setp_MotPower B13,byte(2),int,0,255,1,%,"Original [0,250]",limite de potência do motor
+,setp_GenPower B13,byte(3),int,0,255,1,%,"Original [0,250]",limite de potência do gerador
+,setp_Speed B13,byte(4-5),int,-32000,33535,1,rpm,"Original [-32000,32255]",setpoint de velocidade no modo de velocidade
+,setp_Torque B13,byte(6-7),float,-6400,6707,5,Nm,"Original [-6400,6451]",setpoint de torque no modo de torque
+,,,,,,,,,
+Device status of the MOBILE 0,0x18FF00EA,8B,type,min,max,multiplier,unit,description,description
+,DeviceState M0,bit(0-1),int,0,3,1,state,,"0 iniciaçização completa, 1 inicialização ativa"
+,ErrorLamp M0,bit(2-3),int,0,3,1,state,,1 lâmpada de erro ativada
+,DEVICENUMBER M0,bit(4-7),int,0,3,1,state,,é o numero do inversor
+,Clamp15_Status M0,bit(8-9),int,0,3,1,state,,status do terminal de segurança
+,Precharged M0,bit(10-11),int,0,3,1,state,,pré carga ativa --> 0// pré carga --> completa
+,Status_ Bit_Flex_In_Out_Signal1 M0,bit(12-13),int,0,3,1,state,,não usamos
+,Status_ Bit_Flex_In_Out_Signal2 M0,bit(14-15),int,0,3,1,state,,não usamos
+,Error code M0,byte(2-3),int,0,65535,1,state,Original certo,é um erro que pra gnt é usificente se aparecer erro ou sem erro
+,act_DCBusVoltage M0,byte(4),int,0,1020,0.25,V,"Original [0,1000]",tensão dc atual
+,act_DCBusPower M0,byte(5-6),float,-160,167.675,200,kw,"Original [-160,161.275]",corrente atual
+,act_DeviceTemperature M0,byte(7),int,-40,215,1,°C,"Original [-40,215]",temperatura atual do inversor
+,,,,,,,,,
+Device status of the MOBILE 13,0x18FF00F7,8B,type,min,max,multiplier,unit,description,description
+,DeviceState M13,bit(0-1),int,0,3,1,state,,"0 iniciaçização completa, 1 inicialização ativa"
+,ErrorLamp M13,bit(2-3),int,0,3,1,state,,1 lâmpada de erro ativada
+,DEVICENUMBER M13,bit(4-7),int,0,3,1,state,,é o numero do inversor
+,Clamp15_Status M13,bit(8-9),int,0,3,1,state,,status do terminal de segurança
+,Precharged M13,bit(10-11),int,0,3,1,state,,pré carga ativa --> 0// pré carga --> completa
+,Status_ Bit_Flex_In_Out_Signal1 M13,bit(12-13),int,0,3,1,state,,não usamos
+,Status_ Bit_Flex_In_Out_Signal2 M13,bit(14-15),int,0,3,1,state,,não usamos
+,Error code  M13,byte(2-3),int,0,65535,1,state,REMOVER ESPAÇO DUPLO E REUPAR,é um erro que pra gnt é usificente se aparecer erro ou sem erro
+,act_DCBusVoltage M13,byte(4),int,0,1020,0.25,V,"Original [0,1000]",tensão dc atual
+,act_DCBusPower M13,byte(5-6),float,-160,167.675,200,kw,"Original [-160,161.275]",corrente atual
+,act_DeviceTemperature M13,byte(7),int,-40,215,1,°C,"Original [-40,215]",temperatura atual do inversor
+,,,,,,,,,
+Actual values from motor A 0,0x18FF01EA,8B,type,min,max,multiplier,unit,description,description
+,act_InverterStatus A0,bit(0-1),int,0,3,1,state,,0 a potência está desativa e 1 é a potência ativada
+,act_InverterReady A0,bit(2-3),int,0,3,1,state,,0 o inversor não está pronto para operar 1 é o inversor pronto para funcionar
+,act_ErrorStatus A0,bit(4-5),int,0,3,1,state,,"0 é sem erro, 1 é com erro e 2 é um warning"
+,act_Speed A0,byte(1-2),int,-32000,33535,1,rpm,"Original [-32000,32255]",velocidade atual
+,act_Torque A0,byte(3-4),float,-6400,6707,5,Nm,"Original [-6400,6451]",torque atual
+,act_Power A0,byte(5-6),float,-160,167.675,200,kw,"Original [-160,161.275]",potência atual de potência
+,act_MotorTemperature A0,byte(7),int,-40,215,1,°C,"Original [-40,215]",temperatura atual
+,,,,,,,,,
+Actual values from motor B 0,0x18FF02EA,8B,type,min,max,multiplier,unit,description,description
+,act_InverterStatus B0,bit(0-1),int,0,3,1,state,,0 a potência está desativa e 1 é a potência ativada
+,act_InverterReady B0,bit(2-3),int,0,3,1,state,,0 o inversor não está pronto para operar 1 é o inversor pronto para funcionar
+,act_ErrorStatus B0,bit(4-5),int,0,3,1,state,,"0 é sem erro, 1 é com erro e 2 é um warning"
+,act_Speed B0,byte(1-2),int,-32000,33535,1,rpm,"Original [-32000,32255]",velocidade atual
+,act_Torque B0,byte(3-4),float,-6400,6707,5,Nm,"Original [-6400,6451]",torque atual
+,act_Power B0,byte(5-6),float,-160,167.675,200,kw,"Original [-160,161.275]",potência atual de potência
+,act_MotorTemperature B0,byte(7),int,-40,215,1,°C,"Original [-40,215]",temperatura atual
+,,,,,,,,,
+Actual values from motor A 13,0x18FF01F7,8B,type,min,max,multiplier,unit,description,description
+,act_InverterStatus A13,bit(0-1),int,0,3,1,state,,0 a potência está desativa e 1 é a potência ativada
+,act_InverterReady A13,bit(2-3),int,0,3,1,state,,0 o inversor não está pronto para operar 1 é o inversor pronto para funcionar
+,act_ErrorStatus A13,bit(4-5),int,0,3,1,state,,"0 é sem erro, 1 é com erro e 2 é um warning"
+,act_Speed A13,byte(1-2),int,-32000,33535,1,rpm,"Original [-32000,32255]",velocidade atual
+,act_Torque A13,byte(3-4),float,-6400,6707,5,Nm,"Original [-6400,6451]",torque atual
+,act_Power A13,byte(5-6),float,-160,167.675,200,kw,"Original [-160,161.275]",potência atual de potência
+,act_MotorTemperature A13,byte(7),int,-40,215,1,°C,"Original [-40,210]",temperatura atual
+,,,,,,,,,
+Actual values from motor B 13,0x18FF02F7,8B,type,min,max,multiplier,unit,description,description
+,act_InverterStatus B13,bit(0-1),int,0,3,1,state,,0 a potência está desativa e 1 é a potência ativada
+,act_InverterReady B13,bit(2-3),int,0,3,1,state,,0 o inversor não está pronto para operar 1 é o inversor pronto para funcionar
+,act_ErrorStatus B13,bit(4-5),int,0,3,1,state,,"0 é sem erro, 1 é com erro e 2 é um warning"
+,act_Speed B13,byte(1-2),int,-32000,33535,1,rpm,"Original [-32000,32255]",velocidade atual
+,act_Torque B13,byte(3-4),float,-6400,6707,5,Nm,"Original [-6400,6451]",torque atual
+,act_Power B13,byte(5-6),float,-160,167.675,200,kw,"Original [-160,161.275]",potência atual de potência
+,act_MotorTemperature B13,byte(7),int,-40,215,1,°C,"Original [-40,215]",temperatura atual
+,,,,,,,,,
+VCU_DATA_OUT,0x18FF1515,8B,type,min,max,multiplier,unit,description,description
+,APPS_RANGE_ERROR,bit(0),bool,0,1,1,state,"0 no Error, 1 Error",
+,SAFETY_OK,bit(1),bool,0,1,1,state,"0 no Error, 1 Error",
+,BRAKE,bit(2-3),int,0,3,1,state,"1 noBrake, 2 Brake",
+,VCU_STATE,bit(8-10),int,0,5,1,state,,"0 é estado de low voltage, 1 é estado de high volltage, 2 é transição, 3 é pronto para pilotar"
+,APS_PERC,bit(16-31),float,0,100,100,%,"porcentagem pedal, precisão de 2 casas decimais ",valor do pedal de acelerador
+,,,,,,,,,
+SETPOINTS CONTROL MOBILE 13,0x18FF0EF7,8B,type,min,max,multiplier,unit,description,description
+,TORQUE 13A,bit(0-15),float,-6400,6707,5,Nm,-,torque do motor esquerda fronto
+,RPM 13A,bit(16-31),float,-32000,33535,1,RPM,,velocidade do motor esquerda frontal
+,TORQUE 13B,bit(32-47),float,-6400,6707,5,Nm,,torque do motor esquerda traseira
+,RPM 13B,bit(48-63),float,-32000,33535,1,RPM,,velocidade do motor esquerda traseira
+,,,,,,,,,
+SETPOINTS CONTROL MOBILE 0,0x18FF0DEA,8B,type,min,max,multiplier,unit,description,description
+,TORQUE 0A,bit(0-15),float,-6400,6707,5,Nm,-,torque do motor direita dianteiro
+,RPM 0A,bit(16-31),float,-32000,33535,1,RPM,,velocidade do motor direita dianteiro
+,TORQUE 0B,bit(32-47),float,-6400,6707,5,Nm,,torque do motor direita traseiro
+,RPM 0B,bit(48-63),float,-32000,33535,1,RPM,,velocidade do motor direita traseiro

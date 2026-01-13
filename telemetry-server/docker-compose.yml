@@ -1,0 +1,13 @@
+version: '3'
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: telemetria_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=eracing_secret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=telemetria
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data

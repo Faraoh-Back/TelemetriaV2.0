@@ -1,0 +1,7 @@
+flask==3.0.0
+flask-cors==4.0.0
+flask-socketio==5.3.5
+bcrypt==4.1.2
+pyjwt==2.8.0
+paho-mqtt==1.6.1
+python-socketcan==3.2.3

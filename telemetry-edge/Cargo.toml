@@ -1,0 +1,43 @@
+[package]
+name = "telemetry-edge"
+version = "2.0.0"
+edition = "2021"
+description = "Telemetria Edge — SocketCAN + Kvaser SDK Edition"
+
+# ─── Features ──────────────────────────────────────────────────
+# Para habilitar Kvaser real (requer SDK instalado):
+#   cargo build --release --features kvaser
+[features]
+default = []
+kvaser = ["dep:canlib"]
+
+# ─── Dependências ──────────────────────────────────────────────
+[dependencies]
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# CLI parsing (equivalente ao argparse do Python)
+clap = { version = "4", features = ["derive"] }
+
+# SocketCAN (Linux)
+socketcan = "3"
+
+# SQLite async
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls"] }
+
+# CSV para mapa de prioridades
+csv = "1"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt"] }
+
+# Kvaser canlib (opcional — só ativo com feature "kvaser")
+# Requer: libcanlib.so instalada no sistema
+# Download: https://www.kvaser.com/download/#?utm_source=software&utm_ean=7330130980013
+canlib = { version = "0.3", optional = true }
+
+[profile.release]
+opt-level = 3
+lto = true

@@ -25,7 +25,7 @@ mod decoder;
 // ==================== CONFIGURAÇÕES ====================
 const TCP_PORT: u16 = 8080;
 const WS_PORT: u16 = 8081;
-const PG_URL: &str = "postgres://postgres:eracing_secret@localhost/telemetria";
+const PG_URL: &str = "postgres://eracing:eracing_secret@localhost/telemetria";
 const SQLITE_PATH: &str = "sqlite:./data/historico.db";
 const CSV_DATA_PATH: &str = "./csv_data";
 const MAX_PG_CONNECTIONS: u32 = 20;

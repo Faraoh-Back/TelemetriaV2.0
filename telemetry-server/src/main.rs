@@ -1,276 +1,444 @@
-// [SERVIDOR] main.rs - VERSÃO MELHORADA
+// [SERVIDOR] main.rs - DUAL DB: TimescaleDB (tempo real) + SQLite (histórico)
+//
+// FLUXO:
+//   Edge (Jetson) ──Wi-Fi Unifi──→ Roteador ──Cabo──→ Servidor
+//   TCP :8080 recebe frames CAN binários
+//       ↓ decodifica via decoder.rs + CSV
+//       ├── TimescaleDB → tempo real (App Android via WebSocket :8081)
+//       └── SQLite      → histórico persistente
+//
+// PORTAS:
+//   8080 → TCP binário (edge → servidor)
+//   8081 → WebSocket JSON (servidor → app Android)
+
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::AsyncReadExt;
-use sqlx::postgres::PgPoolOptions;
 use tokio::sync::broadcast;
 use tracing::{info, warn, error};
 use serde::Serialize;
+use sqlx::postgres::PgPoolOptions;
+use sqlx::sqlite::SqlitePool;
+use std::path::Path;
 
 mod decoder;
 
 // ==================== CONFIGURAÇÕES ====================
-const SERVER_PORT: u16 = 8080;
-const DB_URL: &str = "postgres://postgres:eracing_secret@localhost/telemetria";
-const MAX_CONNECTIONS: u32 = 50;
+const TCP_PORT: u16 = 8080;
+const WS_PORT: u16 = 8081;
+const PG_URL: &str = "postgres://postgres:eracing_secret@localhost/telemetria";
+const SQLITE_PATH: &str = "sqlite:./data/historico.db";
 const CSV_DATA_PATH: &str = "./csv_data";
+const MAX_PG_CONNECTIONS: u32 = 20;
 
 // ==================== ESTRUTURAS ====================
 
 #[derive(Debug, Clone, Serialize)]
-struct ProcessedSignal {
-    timestamp: f64,
-    device_id: String,
-    can_id: u32,
-    signal_name: String,
-    value: f64,
-    unit: String,
+pub struct ProcessedSignal {
+    pub timestamp: f64,
+    pub device_id: String,
+    pub can_id: u32,
+    pub signal_name: String,
+    pub value: f64,
+    pub unit: String,
 }
 
-// ==================== INICIALIZAÇÃO DO BANCO ====================
+// ==================== INIT TIMESCALEDB ====================
 
-async fn init_database(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {
-    // Habilitar extensão TimescaleDB
+async fn init_timescale(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {
+    // Extensão TimescaleDB
     sqlx::query("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE")
         .execute(pool)
         .await?;
-    
-    // Criar tabela principal
-    sqlx::query(
-        r#"
+
+    // Tabela de tempo real
+    sqlx::query(r#"
         CREATE TABLE IF NOT EXISTS sensor_data (
-            time TIMESTAMPTZ NOT NULL,
-            device_id TEXT NOT NULL,
-            signal_name TEXT NOT NULL,
-            value DOUBLE PRECISION NOT NULL,
-            unit TEXT,
-            can_id INTEGER NOT NULL,
-            quality TEXT DEFAULT 'ok'
+            time        TIMESTAMPTZ      NOT NULL,
+            device_id   TEXT             NOT NULL,
+            signal_name TEXT             NOT NULL,
+            value       DOUBLE PRECISION NOT NULL,
+            unit        TEXT,
+            can_id      INTEGER          NOT NULL,
+            quality     TEXT             DEFAULT 'ok'
         );
-        "#
-    )
+    "#)
     .execute(pool)
     .await?;
-    
-    // Converter para hypertable (TimescaleDB)
+
+    // Hypertable para queries de série temporal eficientes
     sqlx::query(
         "SELECT create_hypertable('sensor_data', 'time', if_not_exists => TRUE)"
     )
     .execute(pool)
     .await
-    .ok(); // Ignora erro se já for hypertable
-    
-    // Criar índices
-    sqlx::query(
-        r#"
-        CREATE INDEX IF NOT EXISTS idx_device_signal 
-        ON sensor_data (device_id, signal_name, time DESC);
-        
+    .ok();
+
+    // Índices para o app Android consultar rápido
+    sqlx::query(r#"
+        CREATE INDEX IF NOT EXISTS idx_device_signal_time
+            ON sensor_data (device_id, signal_name, time DESC);
         CREATE INDEX IF NOT EXISTS idx_signal_time
-        ON sensor_data (signal_name, time DESC);
-        "#
-    )
+            ON sensor_data (signal_name, time DESC);
+    "#)
     .execute(pool)
     .await?;
-    
-    info!("✅ Banco TimescaleDB inicializado");
+
+    // Política de retenção: mantém só os últimos 7 dias no TimescaleDB
+    // (histórico longo fica no SQLite)
+    sqlx::query(r#"
+        SELECT add_retention_policy('sensor_data', INTERVAL '7 days', if_not_exists => TRUE)
+    "#)
+    .execute(pool)
+    .await
+    .ok(); // Só disponível em TimescaleDB licenciado — ignora se falhar
+
+    info!("✅ TimescaleDB inicializado (tempo real, retenção 7 dias)");
     Ok(())
 }
 
-// ==================== PROCESSAMENTO DE CLIENTE ====================
+// ==================== INIT SQLITE ====================
 
-async fn handle_client(
-    mut socket: TcpStream,
-    addr: std::net::SocketAddr,
-    pool: sqlx::PgPool,
-    decoder_map: decoder::DecoderMap,
-    tx: broadcast::Sender<String>,
-) {
-    info!("🚗 Novo carro conectado: {}", addr);
-    
-    let device_id = format!("car_{}", addr.port()); // Identificar carro pelo IP/porta
-    let mut frames_received = 0u64;
-    let mut last_log = std::time::Instant::now();
-    
-    loop {
-        // 1. Ler tamanho (4 bytes)
-        let mut len_buf = [0u8; 4];
-        if socket.read_exact(&mut len_buf).await.is_err() {
-            warn!("Carro desconectado: {}", addr);
-            break;
-        }
-        
-        let len = u32::from_le_bytes(len_buf) as usize;
-        
-        // Validação de segurança
-        if len > 1024 {
-            error!("Payload muito grande ({}), desconectando {}", len, addr);
-            break;
-        }
-        
-        // 2. Ler payload
-        let mut payload = vec![0u8; len];
-        if socket.read_exact(&mut payload).await.is_err() {
-            warn!("Erro ao ler payload de {}", addr);
-            break;
-        }
-        
-        // 3. Validar estrutura
-        if payload.len() < 20 {
-            warn!("Payload inválido de {}: {} bytes", addr, payload.len());
-            continue;
-        }
-        
-        // 4. Deserializar
-        let can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
-        let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
-        let data = &payload[12..20];
-        
-        frames_received += 1;
-        
-        // 5. Decodificar sinais
-        if let Some(signals) = decoder_map.get(&can_id) {
-            let mut processed_signals = Vec::new();
-            
-            for signal_config in signals {
-                let value = decoder::decode_signal(data, signal_config);
-                
-                let processed = ProcessedSignal {
-                    timestamp,
-                    device_id: device_id.clone(),
-                    can_id,
-                    signal_name: signal_config.signal_name.clone(),
-                    value,
-                    unit: signal_config.unit.clone(),
-                };
-                
-                processed_signals.push(processed);
-            }
-            
-            // 6. Salvar no banco (em lote)
-            if let Err(e) = save_signals_batch(&pool, &processed_signals).await {
-                error!("Erro ao salvar no banco: {:?}", e);
-            }
-            
-            // 7. Broadcast para clientes WebSocket
-            for signal in &processed_signals {
-                if let Ok(json) = serde_json::to_string(signal) {
-                    let _ = tx.send(json);
-                }
-            }
-        }
-        
-        // Log periódico de performance
-        if last_log.elapsed().as_secs() >= 10 {
-            info!(
-                "📊 {}: {} frames recebidos (taxa: {:.1} frames/s)",
-                addr,
-                frames_received,
-                frames_received as f64 / last_log.elapsed().as_secs_f64()
-            );
-            frames_received = 0;
-            last_log = std::time::Instant::now();
-        }
-    }
-    
-    info!("🔌 Carro desconectado: {} (total frames: {})", addr, frames_received);
+async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>> {
+    // Garante que o diretório existe
+    std::fs::create_dir_all("./data")?;
+
+    sqlx::query(r#"
+        CREATE TABLE IF NOT EXISTS historico (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp   REAL    NOT NULL,
+            device_id   TEXT    NOT NULL,
+            signal_name TEXT    NOT NULL,
+            value       REAL    NOT NULL,
+            unit        TEXT,
+            can_id      INTEGER NOT NULL,
+            created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_hist_timestamp
+            ON historico (timestamp DESC);
+        CREATE INDEX IF NOT EXISTS idx_hist_signal
+            ON historico (signal_name, timestamp DESC);
+        CREATE INDEX IF NOT EXISTS idx_hist_device
+            ON historico (device_id, timestamp DESC);
+    "#)
+    .execute(pool)
+    .await?;
+
+    // WAL mode para melhor performance de escrita concorrente
+    sqlx::query("PRAGMA journal_mode=WAL")
+        .execute(pool)
+        .await?;
+    sqlx::query("PRAGMA synchronous=NORMAL")
+        .execute(pool)
+        .await?;
+
+    info!("✅ SQLite inicializado (histórico persistente)");
+    Ok(())
 }
 
-// ==================== SALVAR EM LOTE ====================
+// ==================== SALVAR TIMESCALEDB ====================
 
-async fn save_signals_batch(
+async fn save_timescale(
     pool: &sqlx::PgPool,
     signals: &[ProcessedSignal],
 ) -> Result<(), Box<dyn std::error::Error>> {
     if signals.is_empty() {
         return Ok(());
     }
-    
-    // Usar COPY para inserção ultra-rápida no PostgreSQL
-    let mut copy_data = String::new();
-    
-    for signal in signals {
-        copy_data.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\n",
-            chrono::DateTime::from_timestamp(signal.timestamp as i64, 0)
-                .unwrap_or_default()
-                .to_rfc3339(),
-            signal.device_id,
-            signal.signal_name,
-            signal.value,
-            signal.unit,
-            signal.can_id
-        ));
-    }
-    
-    // Usar query normal (COPY requer mais configuração)
+
     let mut tx = pool.begin().await?;
-    
-    for signal in signals {
-        sqlx::query(
-            r#"
+
+    for s in signals {
+        sqlx::query(r#"
             INSERT INTO sensor_data (time, device_id, signal_name, value, unit, can_id)
             VALUES (to_timestamp($1), $2, $3, $4, $5, $6)
-            "#
-        )
-        .bind(signal.timestamp)
-        .bind(&signal.device_id)
-        .bind(&signal.signal_name)
-        .bind(signal.value)
-        .bind(&signal.unit)
-        .bind(signal.can_id as i32)
+        "#)
+        .bind(s.timestamp)
+        .bind(&s.device_id)
+        .bind(&s.signal_name)
+        .bind(s.value)
+        .bind(&s.unit)
+        .bind(s.can_id as i32)
         .execute(&mut *tx)
         .await?;
     }
-    
+
     tx.commit().await?;
     Ok(())
+}
+
+// ==================== SALVAR SQLITE ====================
+
+async fn save_sqlite(
+    pool: &SqlitePool,
+    signals: &[ProcessedSignal],
+) -> Result<(), Box<dyn std::error::Error>> {
+    if signals.is_empty() {
+        return Ok(());
+    }
+
+    let mut tx = pool.begin().await?;
+
+    for s in signals {
+        sqlx::query(r#"
+            INSERT INTO historico (timestamp, device_id, signal_name, value, unit, can_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        "#)
+        .bind(s.timestamp)
+        .bind(&s.device_id)
+        .bind(&s.signal_name)
+        .bind(s.value)
+        .bind(&s.unit)
+        .bind(s.can_id as i64)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    tx.commit().await?;
+    Ok(())
+}
+
+// ==================== HANDLER DE CLIENTE TCP ====================
+
+async fn handle_client(
+    mut socket: TcpStream,
+    addr: std::net::SocketAddr,
+    pg_pool: sqlx::PgPool,
+    sqlite_pool: SqlitePool,
+    decoder_map: decoder::DecoderMap,
+    ws_tx: broadcast::Sender<String>,
+) {
+    info!("🚗 Carro conectado: {}", addr);
+
+    // Identifica o carro pelo IP de origem (não pela porta — porta muda a cada reconexão)
+    let device_id = format!("car_{}", addr.ip().to_string().replace('.', "_"));
+
+    let mut frames_total: u64 = 0;
+    let mut frames_decoded: u64 = 0;
+    let mut last_log = std::time::Instant::now();
+
+    loop {
+        // ── 1. Ler tamanho do pacote (4 bytes little-endian) ──────────────
+        let mut len_buf = [0u8; 4];
+        match socket.read_exact(&mut len_buf).await {
+            Ok(_) => {}
+            Err(_) => {
+                warn!("🔌 Carro desconectado: {}", addr);
+                break;
+            }
+        }
+
+        let len = u32::from_le_bytes(len_buf) as usize;
+
+        // Proteção contra pacotes malformados
+        if len == 0 || len > 1024 {
+            error!("Pacote inválido (len={}) de {} — desconectando", len, addr);
+            break;
+        }
+
+        // ── 2. Ler payload ────────────────────────────────────────────────
+        let mut payload = vec![0u8; len];
+        match socket.read_exact(&mut payload).await {
+            Ok(_) => {}
+            Err(e) => {
+                warn!("Erro ao ler payload de {}: {}", addr, e);
+                break;
+            }
+        }
+
+        // Estrutura esperada: [can_id: 4B][timestamp: 8B][data: 8B] = 20 bytes
+        if payload.len() < 20 {
+            warn!("Payload curto ({} bytes) de {}", payload.len(), addr);
+            continue;
+        }
+
+        // ── 3. Deserializar frame ─────────────────────────────────────────
+        let can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
+        let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
+        let raw_data = &payload[12..20];
+
+        frames_total += 1;
+
+        // ── 4. Decodificar via CSV ────────────────────────────────────────
+        let signals_config = match decoder_map.get(&can_id) {
+            Some(s) => s,
+            None => continue, // CAN ID não está no CSV — ignora silenciosamente
+        };
+
+        let processed: Vec<ProcessedSignal> = signals_config
+            .iter()
+            .map(|cfg| {
+                let value = decoder::decode_signal(raw_data, cfg);
+                ProcessedSignal {
+                    timestamp,
+                    device_id: device_id.clone(),
+                    can_id,
+                    signal_name: cfg.signal_name.clone(),
+                    value,
+                    unit: cfg.unit.clone(),
+                }
+            })
+            .collect();
+
+        frames_decoded += processed.len() as u64;
+
+        // ── 5. Persistir em paralelo: TimescaleDB + SQLite ────────────────
+        let pg_pool_c = pg_pool.clone();
+        let sqlite_pool_c = sqlite_pool.clone();
+        let processed_c = processed.clone();
+
+        tokio::spawn(async move {
+            // TimescaleDB — tempo real
+            if let Err(e) = save_timescale(&pg_pool_c, &processed_c).await {
+                error!("❌ TimescaleDB insert error: {:?}", e);
+            }
+        });
+
+        tokio::spawn(async move {
+            // SQLite — histórico
+            if let Err(e) = save_sqlite(&sqlite_pool_c, &processed).await {
+                error!("❌ SQLite insert error: {:?}", e);
+            }
+        });
+
+        // ── 6. Broadcast WebSocket → App Android ─────────────────────────
+        for signal in &processed_c {
+            if let Ok(json) = serde_json::to_string(signal) {
+                // Se não houver listeners, send retorna Err — ignoramos
+                let _ = ws_tx.send(json);
+            }
+        }
+
+        // ── 7. Log de performance a cada 10s ─────────────────────────────
+        if last_log.elapsed().as_secs() >= 10 {
+            let elapsed = last_log.elapsed().as_secs_f64();
+            info!(
+                "📊 {} | frames: {} | sinais: {} | taxa: {:.0} frames/s",
+                device_id,
+                frames_total,
+                frames_decoded,
+                frames_total as f64 / elapsed
+            );
+            frames_total = 0;
+            frames_decoded = 0;
+            last_log = std::time::Instant::now();
+        }
+    }
+
+    info!("👋 {} desconectado", device_id);
+}
+
+// ==================== SERVIDOR WEBSOCKET SIMPLES ====================
+// Transmite JSON para o App Android em tempo real
+// Protocolo: cada mensagem é uma linha JSON terminada em \n
+
+async fn run_websocket_server(
+    mut ws_rx: broadcast::Receiver<String>,
+    port: u16,
+) {
+    let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
+        Ok(l) => {
+            info!("🌐 WebSocket server em 0.0.0.0:{}", port);
+            l
+        }
+        Err(e) => {
+            error!("❌ Falha ao abrir porta WebSocket {}: {}", port, e);
+            return;
+        }
+    };
+
+    // Aceita múltiplos clientes (app Android, dashboard, etc.)
+    loop {
+        match listener.accept().await {
+            Ok((mut stream, addr)) => {
+                info!("📱 App conectado: {}", addr);
+
+                // Cada cliente recebe uma cópia do receiver
+                let mut rx = ws_rx.resubscribe();
+
+                tokio::spawn(async move {
+                    use tokio::io::AsyncWriteExt;
+
+                    loop {
+                        match rx.recv().await {
+                            Ok(json) => {
+                                let msg = format!("{}\n", json);
+                                if stream.write_all(msg.as_bytes()).await.is_err() {
+                                    info!("📱 App desconectado: {}", addr);
+                                    break;
+                                }
+                            }
+                            Err(broadcast::error::RecvError::Lagged(n)) => {
+                                warn!("App {} atrasado, perdeu {} mensagens", addr, n);
+                            }
+                            Err(_) => break,
+                        }
+                    }
+                });
+            }
+            Err(e) => {
+                error!("Erro ao aceitar conexão WebSocket: {}", e);
+            }
+        }
+    }
 }
 
 // ==================== MAIN ====================
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Inicializar logging
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
-    
-    info!("🚀 Telemetry Server v2.0 iniciando...");
-    
-    // 1. Carregar decodificadores CAN
+
+    info!("🚀 Telemetry Server v2.0 — Dual DB Edition");
+    info!("   TimescaleDB → tempo real | SQLite → histórico");
+
+    // 1. Garantir que pasta de dados existe
+    std::fs::create_dir_all("./data")?;
+
+    // 2. Carregar mapa CAN do CSV
     let decoder_map = decoder::load_can_mappings(CSV_DATA_PATH)?;
-    info!("✅ {} mapas CAN carregados", decoder_map.len());
-    
-    // 2. Conectar TimescaleDB
-    let pool = PgPoolOptions::new()
-        .max_connections(MAX_CONNECTIONS)
-        .connect(DB_URL)
+    info!("✅ {} CAN IDs carregados do CSV", decoder_map.len());
+
+    // 3. Conectar TimescaleDB (PostgreSQL)
+    let pg_pool = PgPoolOptions::new()
+        .max_connections(MAX_PG_CONNECTIONS)
+        .connect(PG_URL)
         .await?;
-    info!("✅ Conectado ao TimescaleDB");
-    
-    // 3. Inicializar estrutura do banco
-    init_database(&pool).await?;
-    
-    // 4. Criar broadcast channel para WebSocket
-    let (tx, _rx) = broadcast::channel::<String>(1000);
-    
-    // 5. Spawn servidor WebSocket (implementar em servidor separado)
-    // TODO: Implementar servidor WebSocket/HTTP em porta separada (8081)
-    
-    // 6. Ouvir conexões TCP
-    let listener = TcpListener::bind(format!("0.0.0.0:{}", SERVER_PORT)).await?;
-    info!("📡 Servidor TCP ouvindo em 0.0.0.0:{}", SERVER_PORT);
-    info!("🌐 Pronto para receber carros!");
-    
+    init_timescale(&pg_pool).await?;
+
+    // 4. Conectar SQLite
+    // Cria o arquivo se não existir
+    let sqlite_file = "./data/historico.db";
+    if !Path::new(sqlite_file).exists() {
+        std::fs::File::create(sqlite_file)?;
+    }
+    let sqlite_pool = SqlitePool::connect(SQLITE_PATH).await?;
+    init_sqlite(&sqlite_pool).await?;
+
+    // 5. Canal broadcast para WebSocket (buffer de 10.000 msgs)
+    let (ws_tx, ws_rx) = broadcast::channel::<String>(10_000);
+
+    // 6. Spawn servidor WebSocket em task separada
+    tokio::spawn(run_websocket_server(ws_rx, WS_PORT));
+
+    // 7. Iniciar listener TCP para os carros
+    let tcp_listener = TcpListener::bind(format!("0.0.0.0:{}", TCP_PORT)).await?;
+    info!("📡 TCP listener em 0.0.0.0:{} (recebe frames CAN dos carros)", TCP_PORT);
+    info!("🌐 WebSocket em 0.0.0.0:{} (envia JSON para app Android)", WS_PORT);
+    info!("✅ Servidor pronto!\n");
+
+    // 8. Loop de aceitação de conexões TCP
     loop {
-        let (socket, addr) = listener.accept().await?;
-        
-        let pool = pool.clone();
+        let (socket, addr) = tcp_listener.accept().await?;
+
+        let pg_pool = pg_pool.clone();
+        let sqlite_pool = sqlite_pool.clone();
         let decoder_map = decoder_map.clone();
-        let tx = tx.clone();
-        
+        let ws_tx = ws_tx.clone();
+
         tokio::spawn(async move {
-            handle_client(socket, addr, pool, decoder_map, tx).await;
+            handle_client(socket, addr, pg_pool, sqlite_pool, decoder_map, ws_tx).await;
         });
     }
 }

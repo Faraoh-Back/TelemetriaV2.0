@@ -1,396 +1,395 @@
-# GUIA DE INSTALAÇÃO COMPLETO - SERVIDOR TELEMETRIA V2
-
-**Versão:** 2.0 Prático  
-**Data:** 15 de Fevereiro de 2026  
-**Objetivo:** Servidor pronto para APK Android conectar e visualizar dados
+# GUIA DE INSTALAÇÃO — SERVIDOR TELEMETRIA V2
+**Versão:** 2.1  
+**Data:** 01 de Março de 2026  
+**Objetivo:** Instalar e configurar o servidor de telemetria com a topologia de rede real da equipe.
 
 ---
 
-## 📥 PASSO 1: PREPARAR O NOTEBOOK
+## TOPOLOGIA DE REDE REAL
 
-### 1.1 Baixar Ubuntu Server 22.04 LTS
-
-```bash
-# No seu computador atual, baixe:
-Link: https://ubuntu.com/download/server
-Arquivo: ubuntu-22.04.3-live-server-amd64.iso (2GB)
+```
+[SERVIDOR]                    BASE DE AQUISIÇÕES              [CARRO]
+Ubuntu Server
+192.168.1.100
+     |
+     | Cabo Ethernet
+     |
+  [ROTEADOR]  ←── Vocês NÃO gerenciam este roteador pelo servidor
+     |              O roteador apenas roteia pacotes
+     |
+  [Antena Unifi AC Mesh]  ← montada na base, aponta para o carro
+     |
+     ~ ~ ~ Wi-Fi ~ ~ ~
+     |
+  [Antena Unifi AC Mesh]  ← montada no carro
+     |
+     | Cabo Ethernet
+     |
+  [JETSON] (edge)
+  192.168.1.101
 ```
 
-### 1.2 Criar Pendrive Bootável
+**Importante:** O roteador é apenas um roteador — ele não precisa ser configurado pelo servidor. O servidor recebe os dados via TCP na porta 8080. A comunicação Wi-Fi entre as antenas Unifi é configurada diretamente no painel das antenas (IP padrão 192.168.1.20), não pelo servidor.
+
+---
+
+## PASSO 1 — INSTALAR UBUNTU SERVER 22.04
+
+### 1.1 Criar pendrive bootável
 
 **Windows:**
-- Baixe Rufus: https://rufus.ie/
-- Insira pendrive (mínimo 4GB)
-- Abra Rufus, selecione o ISO do Ubuntu
-- Clique em "Start" e aguarde
+```
+1. Baixe Rufus: https://rufus.ie/
+2. Baixe Ubuntu Server 22.04: https://ubuntu.com/download/server
+3. Insira pendrive (mínimo 4GB)
+4. Abra Rufus → selecione ISO → Start
+```
 
-**Linux/Mac:**
+**Linux:**
 ```bash
-# Identifique o pendrive
-lsblk
-
-# Grave a ISO (substitua /dev/sdX pelo seu pendrive)
 sudo dd if=ubuntu-22.04.3-live-server-amd64.iso of=/dev/sdX bs=4M status=progress && sync
 ```
 
----
+### 1.2 Instalação (dual boot com Windows)
 
-## 💿 PASSO 2: INSTALAR UBUNTU SERVER
-
-### 2.1 Bootar do Pendrive
-
-1. Insira o pendrive no notebook
-2. Reinicie e pressione F12/F2/Del (varia por fabricante)
-3. Selecione boot pelo pendrive USB
-4. Escolha "Install Ubuntu Server"
-
-### 2.2 Configurações de Instalação
-
-**Idioma:** Português do Brasil (ou English para melhor suporte)
-
-**Configuração de Rede:**
-```
-Interface: eth0 ou wlan0
-Método: DHCP (depois configuraremos IP fixo)
-```
-
-**Configuração de Storage:**
-```
-Opção: Use entire disk
-Filesystem: ext4
-Particionamento: Guided - use entire disk
-```
-
-**Informações do Servidor:**
-```
-Nome do servidor: telemetry-server
-Seu nome: racing
-Nome de usuário: racing
-Senha: [escolha uma senha forte]
-```
-
-**SSH Server:** ✅ Marque "Install OpenSSH server"
-
-**Featured Server Snaps:** Não selecione nenhum (instalaremos manualmente)
-
-### 2.3 Finalizar Instalação
-
-1. Aguarde a instalação completar (~10 minutos)
-2. Remova o pendrive quando solicitado
-3. Reinicie o sistema
-4. Faça login com usuário e senha criados
+1. Reinicie com o pendrive → F12/F2/Del para boot menu
+2. Selecione "Install Ubuntu Server"
+3. Idioma: English (melhor suporte)
+4. Rede: deixe DHCP por enquanto
+5. **Storage — IMPORTANTE para dual boot:**
+   - Escolha "Custom storage layout"
+   - Identifique a partição que você criou para o Ubuntu (pelo tamanho)
+   - Delete ela → vira "free space"
+   - Selecione o free space → Add GPT Partition
+   - Format: **ext4**, Mount: **/**
+   - **NÃO mexa nas partições do Windows (NTFS)**
+6. Usuário: `eracing` / Senha: sua preferência
+7. Marque: ✅ Install OpenSSH server
+8. Snaps: não selecione nenhum
+9. Aguarde ~10 minutos → reinicie
 
 ---
 
-## 🌐 PASSO 3: CONFIGURAÇÃO INICIAL DO SISTEMA
+## PASSO 2 — CONFIGURAÇÃO INICIAL DO SISTEMA
 
-### 3.1 Atualizar o Sistema
+### 2.1 Atualizar o sistema
 
 ```bash
-# Login como racing
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y git curl wget vim htop net-tools
+sudo apt install -y git curl wget vim htop net-tools build-essential pkg-config libssl-dev
 ```
 
-### 3.2 Configurar IP Fixo para o Servidor
+### 2.2 Descobrir o nome da interface ethernet
 
 ```bash
-# Identificar interface de rede
-ip addr show
-
-# Editar configuração de rede (supondo interface wlan0 para WiFi)
-sudo nano /etc/netplan/00-installer-config.yaml
+ip link show
 ```
 
-**Conteúdo do arquivo:**
-```yaml
-network:
-  version: 2
-  wifis:
-    wlan0:
-      addresses:
-        - 192.168.1.100/24
-      gateway4: 192.168.1.1
-      nameservers:
-        addresses:
-          - 8.8.8.8
-          - 8.8.4.4
-      access-points:
-        "ERacing_Telemetry_WiFi":
-          password: "SenhaSegura123!"
-```
+Procure a interface que mostra `state UP` com cabo conectado. Geralmente `enp1s0`, `enp5s0` ou `eth0`. **Anote o nome exato.**
 
-**Se usar Ethernet (eth0):**
-```yaml
+### 2.3 Configurar IP fixo via ethernet
+
+```bash
+# Substitua enp1s0 pelo nome real da sua interface
+sudo bash -c 'cat > /etc/netplan/00-installer-config.yaml << EOF
 network:
   version: 2
   ethernets:
-    eth0:
+    enp1s0:
       addresses:
         - 192.168.1.100/24
       gateway4: 192.168.1.1
       nameservers:
-        addresses:
-          - 8.8.8.8
-```
+        addresses: [8.8.8.8, 8.8.4.4]
+EOF'
 
-**Aplicar configuração:**
-```bash
 sudo netplan apply
 ```
 
-**Verificar:**
+### 2.4 Verificar IP e internet
+
 ```bash
-ip addr show
-ping 8.8.8.8
+ip addr show enp1s0
+# Deve mostrar: inet 192.168.1.100/24
+
+ping -c 3 8.8.8.8
+# Deve responder normalmente
+```
+
+**Se não tiver internet após configurar o IP fixo:**
+```bash
+# DNS conflitando — força resolução direta
+sudo bash -c 'echo "nameserver 8.8.8.8" > /etc/resolv.conf'
+ping -c 3 google.com
 ```
 
 ---
 
-## 📡 PASSO 4: CONFIGURAR REDE WiFi PRIVADA
+## PASSO 3 — INSTALAR POSTGRESQL + TIMESCALEDB
 
-### 4.1 Instalar Access Point + DHCP
+O TimescaleDB é uma extensão do PostgreSQL especializada em séries temporais. Usamos ele para dados em **tempo real** (últimos 7 dias) e o SQLite para **histórico** completo.
 
-```bash
-# Instalar hostapd (Access Point) e dnsmasq (DHCP/DNS)
-sudo apt install -y hostapd dnsmasq
-
-# Parar serviços para configurar
-sudo systemctl stop hostapd
-sudo systemctl stop dnsmasq
-```
-
-### 4.2 Configurar Interface WiFi Estática
+### 3.1 Instalar PostgreSQL
 
 ```bash
-sudo nano /etc/dhcpcd.conf
+sudo apt install -y postgresql postgresql-contrib
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
 ```
 
-**Adicionar no final:**
-```
-interface wlan0
-    static ip_address=192.168.1.1/24
-    nohook wpa_supplicant
-```
-
-### 4.3 Configurar DHCP Server (dnsmasq)
+### 3.2 Instalar TimescaleDB
 
 ```bash
-# Backup da configuração original
-sudo mv /etc/dnsmasq.conf /etc/dnsmasq.conf.orig
+# Adicionar repositório TimescaleDB
+sudo apt install -y gnupg postgresql-common apt-transport-https lsb-release wget
 
-# Criar nova configuração
-sudo nano /etc/dnsmasq.conf
+sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+
+echo "deb https://packagecloud.io/timescale/timescaledb/ubuntu/ $(lsb_release -c -s) main" \
+    | sudo tee /etc/apt/sources.list.d/timescaledb.list
+
+wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | sudo apt-key add -
+
+sudo apt update
+sudo apt install -y timescaledb-2-postgresql-14
 ```
 
-**Conteúdo:**
-```
-interface=wlan0
-dhcp-range=192.168.1.10,192.168.1.50,255.255.255.0,24h
-domain=telemetry.local
-address=/telemetry.local/192.168.1.1
-```
-
-### 4.4 Configurar Access Point (hostapd)
+### 3.3 Configurar PostgreSQL + TimescaleDB
 
 ```bash
-sudo nano /etc/hostapd/hostapd.conf
+sudo timescaledb-tune --quiet --yes
+sudo systemctl restart postgresql
 ```
 
-**Conteúdo:**
-```
-interface=wlan0
-driver=nl80211
-ssid=ERacing_Telemetry_WiFi
-hw_mode=g
-channel=7
-wmm_enabled=0
-macaddr_acl=0
-auth_algs=1
-ignore_broadcast_ssid=0
-wpa=2
-wpa_passphrase=SenhaSegura123!
-wpa_key_mgmt=WPA-PSK
-wpa_pairwise=TKIP
-rsn_pairwise=CCMP
-```
-
-**Indicar arquivo de configuração:**
-```bash
-sudo nano /etc/default/hostapd
-```
-
-**Descomentar e editar:**
-```
-DAEMON_CONF="/etc/hostapd/hostapd.conf"
-```
-
-### 4.5 Habilitar IP Forwarding (Opcional, se precisar internet)
+### 3.4 Criar banco e usuário
 
 ```bash
-sudo nano /etc/sysctl.conf
-```
-
-**Descomentar:**
-```
-net.ipv4.ip_forward=1
-```
-
-**Aplicar:**
-```bash
-sudo sysctl -p
-```
-
-### 4.6 Iniciar Serviços
-
-```bash
-# Recarregar daemon
-sudo systemctl unmask hostapd
-sudo systemctl enable hostapd
-sudo systemctl enable dnsmasq
-
-# Reiniciar serviços
-sudo systemctl start hostapd
-sudo systemctl start dnsmasq
-
-# Verificar status
-sudo systemctl status hostapd
-sudo systemctl status dnsmasq
-```
-
-### 4.7 Verificar Rede WiFi
-
-```bash
-# De outro dispositivo (celular/laptop):
-# 1. Buscar rede WiFi "ERacing_Telemetry_WiFi"
-# 2. Conectar com senha "SenhaSegura123!"
-# 3. Verificar se recebe IP (192.168.1.10-50)
-# 4. Pingar o servidor: ping 192.168.1.1
-```
-
----
-
-## 🗄️ PASSO 5: CONFIGURAR BANCO DE DADOS
-
-### 5.1 Instalar SQLite (Já vem instalado)
-
-```bash
-# Verificar instalação
-sqlite3 --version
-```
-
-### 5.2 Criar Estrutura de Diretórios
-
-```bash
-# Criar estrutura de pastas
-mkdir -p ~/telemetry_server/{data/db,config,logs}
-cd ~/telemetry_server
-```
-
-### 5.3 Criar Banco de Dados Inicial
-
-```bash
-sqlite3 data/db/telemetria.db
-```
-
-**Dentro do SQLite, executar:**
-```sql
--- Tabela de usuários
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT DEFAULT 'viewer',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP
-);
-
--- Tabela de telemetria
-CREATE TABLE IF NOT EXISTS telemetry (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    session_id INTEGER NOT NULL DEFAULT 1,
-    timestamp REAL NOT NULL,
-    device_id TEXT NOT NULL,
-    can_id TEXT NOT NULL,
-    signal_name TEXT NOT NULL,
-    value REAL NOT NULL,
-    unit TEXT,
-    quality TEXT DEFAULT 'ok',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Índices para performance
-CREATE INDEX IF NOT EXISTS idx_timestamp ON telemetry(timestamp);
-CREATE INDEX IF NOT EXISTS idx_signal ON telemetry(signal_name);
-CREATE INDEX IF NOT EXISTS idx_device ON telemetry(device_id);
-
--- Criar usuário admin padrão (senha: admin123)
-INSERT INTO users (email, password_hash, name, role) VALUES 
-('admin@eracing.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lS7fgHxFmvXu', 'Admin E-Racing', 'admin');
-
--- Inserir dados de exemplo
-INSERT INTO telemetry (device_id, timestamp, can_id, signal_name, value, unit) VALUES
-('car_001', 1708041600.0, '0x19B50100', 'battery_voltage', 380.5, 'V'),
-('car_001', 1708041601.0, '0x19B50200', 'battery_current', 120.3, 'A'),
-('car_001', 1708041602.0, '0x19B50300', 'motor_temperature', 65.8, '°C');
-
--- Verificar
-SELECT * FROM users;
-SELECT * FROM telemetry;
-
--- Sair
-.quit
-```
-
----
-
-## 🐍 PASSO 6: INSTALAR PYTHON E DEPENDÊNCIAS
-
-### 6.1 Instalar Python 3 e Pip
-
-```bash
-sudo apt install -y python3 python3-pip python3-venv
-python3 --version
-```
-
-### 6.2 Criar Ambiente Virtual
-
-```bash
-cd ~/telemetry_server
-python3 -m venv venv
-source venv/bin/activate
-```
-
-### 6.3 Instalar Dependências Python
-
-```bash
-pip install --upgrade pip
-
-# Criar arquivo requirements.txt
-cat > requirements.txt << EOF
-flask==3.0.0
-flask-cors==4.0.0
-flask-socketio==5.3.5
-bcrypt==4.1.2
-pyjwt==2.8.0
-paho-mqtt==1.6.1
-python-socketcan==3.2.3
+sudo -u postgres psql << EOF
+CREATE USER eracing WITH PASSWORD 'eracing_secret';
+CREATE DATABASE telemetria OWNER eracing;
+GRANT ALL PRIVILEGES ON DATABASE telemetria TO eracing;
 EOF
+```
 
-# Instalar dependências
-pip install -r requirements.txt
+### 3.5 Verificar conexão
+
+```bash
+psql -U eracing -d telemetria -h localhost -c "SELECT version();"
+# Deve mostrar a versão do PostgreSQL
 ```
 
 ---
 
-## 🔐 PASSO 7: CRIAR API REST PARA AUTENTICAÇÃO
-
-### 7.1 Criar Servidor Flask com Autenticação
+## PASSO 4 — INSTALAR SQLITE
 
 ```bash
-nano ~/telemetry_server/api_server.py
+sudo apt install -y sqlite3
+sqlite3 --version
+# Deve mostrar: 3.37.x
 ```
 
-**Conteúdo completo do arquivo em próximo artifact...**
+---
 
+## PASSO 5 — INSTALAR RUST
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Quando perguntar: pressione 1 (padrão)
+
+source ~/.cargo/env
+echo 'source ~/.cargo/env' >> ~/.bashrc
+
+# Verificar
+rustc --version
+cargo --version
+```
+
+**Nunca use `sudo cargo`** — o Rust é instalado por usuário. Sempre compile sem sudo.
+
+---
+
+## PASSO 6 — MONTAR ESTRUTURA DO SERVIDOR
+
+```bash
+# Sempre na pasta home — nunca em /
+mkdir -p ~/telemetry-server/src
+mkdir -p ~/telemetry-server/csv_data
+mkdir -p ~/telemetry-server/data
+cd ~/telemetry-server
+```
+
+Estrutura final esperada:
+```
+~/telemetry-server/
+├── Cargo.toml
+├── csv_data/
+│   └── CAN Description 2025 - VCU.csv
+├── data/                    ← SQLite será criado aqui automaticamente
+└── src/
+    ├── main.rs
+    └── decoder.rs
+```
+
+Copie os arquivos `main.rs`, `decoder.rs` e `Cargo.toml` para as pastas acima.
+
+---
+
+## PASSO 7 — COMPILAR E RODAR O SERVIDOR
+
+### 7.1 Compilar
+
+```bash
+cd ~/telemetry-server
+cargo build --release
+# Primeira vez: ~5-10 minutos
+# Compilações seguintes: ~30 segundos
+```
+
+### 7.2 Rodar em primeiro plano (para ver logs)
+
+```bash
+cd ~/telemetry-server
+./target/release/telemetry-server
+```
+
+Saída esperada:
+```
+🚀 Telemetry Server v2.0 — Dual DB Edition
+   TimescaleDB → tempo real | SQLite → histórico
+✅ 47 CAN IDs carregados do CSV
+✅ TimescaleDB inicializado (tempo real, retenção 7 dias)
+✅ SQLite inicializado (histórico persistente)
+📡 TCP listener em 0.0.0.0:8080
+🌐 WebSocket em 0.0.0.0:8081
+✅ Servidor pronto!
+```
+
+### 7.3 Rodar em background
+
+```bash
+cd ~/telemetry-server
+nohup ./target/release/telemetry-server > ~/telemetry-server/server.log 2>&1 &
+echo $! > ~/telemetry-server/server.pid
+echo "Servidor rodando — PID: $(cat ~/telemetry-server/server.pid)"
+```
+
+Ver logs:
+```bash
+tail -f ~/telemetry-server/server.log
+```
+
+Parar:
+```bash
+kill $(cat ~/telemetry-server/server.pid)
+```
+
+---
+
+## PASSO 8 — CONFIGURAR AS ANTENAS UNIFI
+
+As antenas Unifi AC Mesh são configuradas diretamente no painel web delas, **não pelo servidor**. O servidor apenas usa a rede que as antenas fornecem.
+
+### 8.1 Acessar painel da antena base
+
+```
+1. Conecte um computador diretamente na antena via cabo
+2. Acesse: https://192.168.1.20 (IP padrão Unifi)
+3. Usuário: ubnt / Senha: ubnt (padrão de fábrica)
+```
+
+### 8.2 Configurar como Access Point (antena base)
+
+```
+Wireless → Mode: Access Point
+SSID: eracing_telemetry
+Security: WPA2
+Password: (sua senha)
+Frequency: 5GHz (menos interferência que 2.4GHz)
+Channel Width: 40MHz ou 80MHz
+```
+
+### 8.3 Configurar como Station (antena do carro)
+
+```
+Wireless → Mode: Station
+SSID: eracing_telemetry (mesmo da base)
+Password: (mesma senha)
+```
+
+### 8.4 Verificar link
+
+No painel da antena base deve aparecer a antena do carro conectada com RSSI (sinal) e taxa de link.
+
+---
+
+## PASSO 9 — VERIFICAR SISTEMA COMPLETO
+
+### 9.1 Ver dados no TimescaleDB (tempo real)
+
+```bash
+psql -U eracing -d telemetria -h localhost -c "
+SELECT
+    time,
+    signal_name,
+    round(value::numeric, 2) as valor,
+    unit,
+    device_id
+FROM sensor_data
+ORDER BY time DESC
+LIMIT 20;"
+```
+
+### 9.2 Ver dados no SQLite (histórico)
+
+```bash
+sqlite3 ~/telemetry-server/data/historico.db \
+  "SELECT datetime(timestamp,'unixepoch','localtime') as hora,
+          signal_name,
+          printf('%.2f', value) as valor,
+          unit
+   FROM historico
+   ORDER BY id DESC
+   LIMIT 20;"
+```
+
+### 9.3 Monitorar chegada de dados em tempo real
+
+```bash
+watch -n 1 "psql -U eracing -d telemetria -h localhost -t -c \
+  'SELECT COUNT(*) as registros_timescale FROM sensor_data;'"
+```
+
+---
+
+## SOLUÇÃO DE PROBLEMAS
+
+**`cargo: command not found` com sudo**
+```bash
+# Nunca use sudo com cargo
+source ~/.cargo/env
+cargo build --release   # sem sudo
+```
+
+**`Permission denied` ao criar pastas**
+```bash
+# Use sempre ~/  (home) — nunca /
+mkdir -p ~/telemetry-server/src   # ✅ correto
+mkdir -p /telemetry-server/src    # ❌ errado
+```
+
+**Sem internet após configurar IP fixo**
+```bash
+sudo bash -c 'echo "nameserver 8.8.8.8" > /etc/resolv.conf'
+```
+
+**PostgreSQL não conecta**
+```bash
+sudo systemctl status postgresql
+sudo -u postgres psql -c "\l"   # lista bancos
+```
+
+**Porta 8080 já em uso**
+```bash
+sudo ss -tulpn | grep 8080
+sudo kill $(sudo lsof -t -i:8080)
+```

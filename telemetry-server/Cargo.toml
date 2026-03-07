@@ -4,9 +4,27 @@ version = "2.0.0"
 edition = "2021"
 
 [dependencies]
+# Async runtime
 tokio = { version = "1", features = ["full"] }
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls"] }
-csv = "1"
+
+# Bancos de dados
+sqlx = { version = "0.7", features = [
+    "postgres",                      # TimescaleDB (PostgreSQL)
+    "sqlite",                        # Histórico
+    "runtime-tokio-native-tls",
+    "chrono",
+] }
+
+# Serialização JSON para WebSocket
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# CSV para mapa CAN
+csv = "1"
+
+# Logging
 tracing = "0.1"
 tracing-subscriber = "0.3"
+
+# Data/hora
+chrono = { version = "0.4", features = ["serde"] }

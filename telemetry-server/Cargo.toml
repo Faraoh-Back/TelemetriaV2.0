@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 # Async runtime
 tokio = { version = "1", features = ["full"] }
+dotenvy = "0.15"
 
 # Bancos de dados
 sqlx = { version = "0.7", features = [

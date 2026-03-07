@@ -25,7 +25,10 @@ mod decoder;
 // ==================== CONFIGURAÇÕES ====================
 const TCP_PORT: u16 = 8080;
 const WS_PORT: u16 = 8081;
-const PG_URL: &str = "postgres://eracing:eracing_secret@localhost/telemetria";
+fn get_pg_url() -> String {
+    let password = std::env::var("DB_PASSWORD").expect("❌ DB_PASSWORD não definida no .env");
+    format!("postgres://eracing:{}@localhost/telemetria", password)
+}
 const SQLITE_PATH: &str = "sqlite:./data/historico.db";
 const CSV_DATA_PATH: &str = "./csv_data";
 const MAX_PG_CONNECTIONS: u32 = 20;
@@ -388,6 +391,7 @@ async fn run_websocket_server(
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    dotenvy::dotenv().ok(); // carrega o .env para acessar DB_PASSWORD
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
@@ -405,7 +409,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 3. Conectar TimescaleDB (PostgreSQL)
     let pg_pool = PgPoolOptions::new()
         .max_connections(MAX_PG_CONNECTIONS)
-        .connect(PG_URL)
+        .connect(&get_pg_url)
         .await?;
     init_timescale(&pg_pool).await?;
 

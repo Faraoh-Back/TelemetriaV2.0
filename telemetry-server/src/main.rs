@@ -286,9 +286,11 @@ async fn handle_client(
         let sqlite_pool_c = sqlite_pool.clone();
         let processed_c = processed.clone();
 
+        let value = processed_c.clone();
+
         tokio::spawn(async move {
             // TimescaleDB — tempo real
-            if let Err(e) = save_timescale(&pg_pool_c, &processed_c).await {
+            if let Err(e) = save_timescale(&pg_pool_c, &value).await {
                 error!("❌ TimescaleDB insert error: {:?}", e);
             }
         });
@@ -332,7 +334,7 @@ async fn handle_client(
 // Protocolo: cada mensagem é uma linha JSON terminada em \n
 
 async fn run_websocket_server(
-    mut ws_rx: broadcast::Receiver<String>,
+    ws_rx: broadcast::Receiver<String>,
     port: u16,
 ) {
     let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {

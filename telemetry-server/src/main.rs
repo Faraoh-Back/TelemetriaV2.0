@@ -77,11 +77,16 @@ async fn init_timescale(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::E
     .ok();
 
     // Índices para o app Android consultar rápido
-    sqlx::query(r#"
+sqlx::query(r#"
         CREATE INDEX IF NOT EXISTS idx_device_signal_time
-            ON sensor_data (device_id, signal_name, time DESC);
+            ON sensor_data (device_id, signal_name, time DESC)
+    "#)
+    .execute(pool)
+    .await?;
+
+    sqlx::query(r#"
         CREATE INDEX IF NOT EXISTS idx_signal_time
-            ON sensor_data (signal_name, time DESC);
+            ON sensor_data (signal_name, time DESC)
     "#)
     .execute(pool)
     .await?;

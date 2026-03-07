@@ -102,7 +102,6 @@ async fn init_timescale(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::E
 // ==================== INIT SQLITE ====================
 
 async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>> {
-    // Garante que o diretório existe
     std::fs::create_dir_all("./data")?;
 
     sqlx::query(r#"
@@ -115,24 +114,26 @@ async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>
             unit        TEXT,
             can_id      INTEGER NOT NULL,
             created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS idx_hist_timestamp
-            ON historico (timestamp DESC);
-        CREATE INDEX IF NOT EXISTS idx_hist_signal
-            ON historico (signal_name, timestamp DESC);
-        CREATE INDEX IF NOT EXISTS idx_hist_device
-            ON historico (device_id, timestamp DESC);
-    "#)
-    .execute(pool)
-    .await?;
+        )
+    "#).execute(pool).await?;
 
-    // WAL mode para melhor performance de escrita concorrente
-    sqlx::query("PRAGMA journal_mode=WAL")
-        .execute(pool)
-        .await?;
-    sqlx::query("PRAGMA synchronous=NORMAL")
-        .execute(pool)
-        .await?;
+    sqlx::query(r#"
+        CREATE INDEX IF NOT EXISTS idx_hist_timestamp
+            ON historico (timestamp DESC)
+    "#).execute(pool).await?;
+
+    sqlx::query(r#"
+        CREATE INDEX IF NOT EXISTS idx_hist_signal
+            ON historico (signal_name, timestamp DESC)
+    "#).execute(pool).await?;
+
+    sqlx::query(r#"
+        CREATE INDEX IF NOT EXISTS idx_hist_device
+            ON historico (device_id, timestamp DESC)
+    "#).execute(pool).await?;
+
+    sqlx::query("PRAGMA journal_mode=WAL").execute(pool).await?;
+    sqlx::query("PRAGMA synchronous=NORMAL").execute(pool).await?;
 
     info!("✅ SQLite inicializado (histórico persistente)");
     Ok(())

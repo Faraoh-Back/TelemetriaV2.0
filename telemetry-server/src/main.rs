@@ -407,9 +407,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("✅ {} CAN IDs carregados do CSV", decoder_map.len());
 
     // 3. Conectar TimescaleDB (PostgreSQL)
+    let pg_url = get_pg_url();
     let pg_pool = PgPoolOptions::new()
         .max_connections(MAX_PG_CONNECTIONS)
-        let pg_url = get_pg_url();
         .connect(&pg_url)
         .await?;
     init_timescale(&pg_pool).await?;

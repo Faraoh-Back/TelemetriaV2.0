@@ -409,7 +409,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 3. Conectar TimescaleDB (PostgreSQL)
     let pg_pool = PgPoolOptions::new()
         .max_connections(MAX_PG_CONNECTIONS)
-        .connect(&get_pg_url)
+        let pg_url = get_pg_url();
+        .connect(&pg_url)
         .await?;
     init_timescale(&pg_pool).await?;
 

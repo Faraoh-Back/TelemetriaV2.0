@@ -33,11 +33,6 @@ csv = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt"] }
 
-# Kvaser canlib (opcional — só ativo com feature "kvaser")
-# Requer: libcanlib.so instalada no sistema
-# Download: https://www.kvaser.com/download/#?utm_source=software&utm_ean=7330130980013
-canlib = { version = "0.3", optional = true }
-
 [profile.release]
 opt-level = 3
 lto = true

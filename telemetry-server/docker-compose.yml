@@ -6,7 +6,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=eracing_secret
+      - POSTGRES_PASSWORD=ficade4q
       - POSTGRES_USER=postgres
       - POSTGRES_DB=telemetria
     volumes:

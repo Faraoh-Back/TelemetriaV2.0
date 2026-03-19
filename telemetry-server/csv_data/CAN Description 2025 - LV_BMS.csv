@@ -1,0 +1,32 @@
+voltage_1,0x19B70100,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_0,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 1,Voltage of cell 1
+,vcell_1,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 2,Voltage of cell 2
+,vcell_2,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 3,Voltage of cell 3
+,vcell_3,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 4,Voltage of cell 4
+,vcell_4,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 5,Voltage of cell 5
+,vcell_5,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 6,Voltage of cell 6
+,vcell_6,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 7,Voltage of cell 7
+,vcell_7,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 8,Voltage of cell 8
+,,,,,,,,,,
+temperature_1,0x19B70800,5B,type,min,max,multiplier,offset,unit,description,description
+,tcell_0,byte(0),int,-100,155,1,-100,°C,Temperature of cell_(1),Temperature of cell_(1)
+,tcell_1,byte(1),int,-100,155,1,-100,°C,Temperature of cell_(2),Temperature of cell_(2)
+,tcell_2,byte(2),int,-100,155,1,-100,°C,Temperature of cell_(3),Temperature of cell_(3)
+,tcell_3,byte(3),int,-100,155,1,-100,°C,Temperature of cell_(4),Temperature of cell_(4)
+,tcell_4,byte(4),int,-100,155,1,-100,°C,Temperature of cell_(5),Temperature of cell_(5)
+,,,,,,,,,,
+BMS Diagnostic,0x19B70007,8B,type,min,max,multiplier,offset,unit,description,description
+,Under_voltage,bit(0),bool,0,1,1,,logic,,
+,Over_voltage,bit(1),bool,0,1,1,,logic,,
+,Discharge_over_current,bit(2),bool,0,1,1,,logic,,
+,Charge_over_current,bit(3),bool,0,1,1,,logic,,
+,Cell_module_Overheat,bit(4),bool,0,1,1,,logic,,
+,Leakage,bit(5),bool,0,1,1,,logic,,
+,No_cell_Communication,bit(6),bool,0,1,1,,logic,,
+,Low_voltage_W,bit(8),bool,0,1,1,,logic,,
+,High_current_W,bit(9),bool,0,1,1,,logic,,
+,High_temperature_W,bit(10),bool,0,1,1,,logic,,
+,Validity,byte(3),int,0,255,1,,state,Faults  39,Faults  39
+,Cell_Overheat,bit(19),bool,0,1,1,,logic,,
+,No_Current_Sensor,bit(20),bool,0,1,1,,logic,,
+,Pack_Under_Voltage,bit(21),bool,0,1,1,,logic,,

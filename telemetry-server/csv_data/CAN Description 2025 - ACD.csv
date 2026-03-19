@@ -1,0 +1,18 @@
+FaultsMailbox,0x00000103,7B,type,min,max,multiplier,unit,description,description,
+,IMD,bit(0),bool,0,1,1,state,,A7,
+,BMS,bit(1),bool,0,1,1,state,,A1,
+,BSPD,bit(2),bool,0,1,1,state,,B9,
+,Safety_OK,bit(3),bool,0,1,1,state,,B12,
+,GENERAL ERROR,bit(4),bool,0,1,1,state,,B6,
+,PRE_CHARGE_TIME_EXCEEDED,bit(5),bool,0,1,1,state,,,
+,BMS_TIMEOUT,bit(6),bool,0,1,1,state,,,
+,,,,,,,,,,
+,,0x000,,,,,,,,
+,,0x00000000,,,,,,,,
+FaultsMailbox,0x00000103,6B,type,min,max,multiplier,unit,description,description,
+,IMD,bit(0),bool,0,1,1,state,,A7,EXTI
+,BMS,bit(1),bool,0,1,1,state,,A1,CAN
+,BSPD,bit(2),bool,0,1,1,state,,B9,EXTI
+,Safety_OK,bit(3),bool,0,1,1,state,,B12,EXTI
+,GENERAL ERROR,bit(4),bool,0,1,1,state,,B6,CAN
+,PRE_CHARGE_TIME_EXCEEDED,bit(5),bool,0,1,1,state,se em 8s nn apagar falta,B2,

@@ -1,0 +1,7 @@
+arref_fluid_line,0x410,6B,type,min,max,multiplier,unit,description,description
+,fluid_temp_1,byte(0),float,0,127,2,ºC,Coolant temperature 1,Coolant temperature 1
+,fluid_temp_2,byte(1),float,0,127,2,ºC,Coolant temperature 2,Coolant temperature 2
+,fluid_temp_3,byte(2),float,0,127,2,ºC,Coolant temperature 2,Coolant temperature 2
+,susp_compression_front_left_suspension,byte(3),float,0,100,2.55,%,Suspension compression percent,Suspension compression percent
+,susp_compression_front_right_suspension,byte(4),float,0,100,2.55,%,Suspension compression percent,Suspension compression percent
+,brake_front_fluid_press,byte(5),float,0,255,1,Bar,Brake Fluid Press,Brake Fluid Press

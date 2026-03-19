@@ -1,37 +1,50 @@
-// [SERVIDOR] main.rs - DUAL DB: TimescaleDB (tempo real) + SQLite (histórico)
+// [SERVIDOR] main.rs - DUAL DB + HTTP/WS com autenticação JWT
 //
 // FLUXO:
-//   Edge (Jetson) ──Wi-Fi Unifi──→ Roteador ──Cabo──→ Servidor
-//   TCP :8080 recebe frames CAN binários
-//       ↓ decodifica via decoder.rs + CSV
-//       ├── TimescaleDB → tempo real (App Android via WebSocket :8081)
-//       └── SQLite      → histórico persistente
+//   Edge (Jetson) ──Wi-Fi──→ TCP :8080 → decodifica → TimescaleDB + SQLite
+//   Browser/App   ──HTTP──→ GET /       → index.html
+//   Browser/App   ──HTTP──→ POST /login → JWT token
+//   Browser/App   ──WS──→   /ws         → broadcast JSON (requer JWT)
 //
 // PORTAS:
-//   8080 → TCP binário (edge → servidor)
-//   8081 → WebSocket JSON (servidor → app Android)
+//   8080 → TCP binário (edge → servidor) — NÃO MUDA
+//   8081 → HTTP + WebSocket autenticado (servidor → clientes)
 
 use tokio::net::{TcpListener, TcpStream};
-use tokio::io::AsyncReadExt;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::sync::broadcast;
 use tracing::{info, warn, error};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::sqlite::SqlitePool;
+use sqlx::Row;
 use std::path::Path;
+use jsonwebtoken::{encode, decode, Header, Algorithm, Validation, EncodingKey, DecodingKey};
+use bcrypt::verify;
+use chrono::Utc;
 
 mod decoder;
 
+// ==================== HTML ESTÁTICO ====================
+// Embutido no binário — não precisa de arquivo externo em produção
+const INDEX_HTML: &str = include_str!("../static/index.html");
+
 // ==================== CONFIGURAÇÕES ====================
 const TCP_PORT: u16 = 8080;
-const WS_PORT: u16 = 8081;
+const HTTP_WS_PORT: u16 = 8081;
+const SQLITE_PATH: &str = "sqlite:./data/historico.db";
+const CSV_DATA_PATH: &str = "./csv_data";
+const MAX_PG_CONNECTIONS: u32 = 20;
+const JWT_EXPIRY_HOURS: i64 = 8;
+
 fn get_pg_url() -> String {
     let password = std::env::var("DB_PASSWORD").expect("❌ DB_PASSWORD não definida no .env");
     format!("postgres://eracing:{}@localhost/telemetria", password)
 }
-const SQLITE_PATH: &str = "sqlite:./data/historico.db";
-const CSV_DATA_PATH: &str = "./csv_data";
-const MAX_PG_CONNECTIONS: u32 = 20;
+
+fn get_jwt_secret() -> String {
+    std::env::var("JWT_SECRET").expect("❌ JWT_SECRET não definida no .env")
+}
 
 // ==================== ESTRUTURAS ====================
 
@@ -45,15 +58,54 @@ pub struct ProcessedSignal {
     pub unit: String,
 }
 
+// Claims do JWT — o que fica dentro do token
+#[derive(Debug, Serialize, Deserialize)]
+struct Claims {
+    sub: String,  // username
+    iat: i64,     // issued at
+    exp: i64,     // expiry
+}
+
+// Body do POST /login
+#[derive(Debug, Deserialize)]
+struct LoginRequest {
+    username: String,
+    password: String,
+}
+
+// ==================== JWT — GERAR E VALIDAR ====================
+
+fn generate_jwt(username: &str) -> Result<String, jsonwebtoken::errors::Error> {
+    let now = Utc::now().timestamp();
+    let claims = Claims {
+        sub: username.to_string(),
+        iat: now,
+        exp: now + (JWT_EXPIRY_HOURS * 3600),
+    };
+    encode(
+        &Header::default(), // HS256
+        &claims,
+        &EncodingKey::from_secret(get_jwt_secret().as_bytes()),
+    )
+}
+
+fn validate_jwt(token: &str) -> bool {
+    let secret = get_jwt_secret();
+    decode::<Claims>(
+        token,
+        &DecodingKey::from_secret(secret.as_bytes()),
+        &Validation::new(Algorithm::HS256),
+    )
+    .is_ok()
+}
+
 // ==================== INIT TIMESCALEDB ====================
 
 async fn init_timescale(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {
-    // Extensão TimescaleDB
     sqlx::query("CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE")
         .execute(pool)
         .await?;
 
-    // Tabela de tempo real
     sqlx::query(r#"
         CREATE TABLE IF NOT EXISTS sensor_data (
             time        TIMESTAMPTZ      NOT NULL,
@@ -63,12 +115,11 @@ async fn init_timescale(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::E
             unit        TEXT,
             can_id      INTEGER          NOT NULL,
             quality     TEXT             DEFAULT 'ok'
-        );
+        )
     "#)
     .execute(pool)
     .await?;
 
-    // Hypertable para queries de série temporal eficientes
     sqlx::query(
         "SELECT create_hypertable('sensor_data', 'time', if_not_exists => TRUE)"
     )
@@ -76,8 +127,7 @@ async fn init_timescale(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::E
     .await
     .ok();
 
-    // Índices para o app Android consultar rápido
-sqlx::query(r#"
+    sqlx::query(r#"
         CREATE INDEX IF NOT EXISTS idx_device_signal_time
             ON sensor_data (device_id, signal_name, time DESC)
     "#)
@@ -91,14 +141,12 @@ sqlx::query(r#"
     .execute(pool)
     .await?;
 
-    // Política de retenção: mantém só os últimos 7 dias no TimescaleDB
-    // (histórico longo fica no SQLite)
     sqlx::query(r#"
         SELECT add_retention_policy('sensor_data', INTERVAL '7 days', if_not_exists => TRUE)
     "#)
     .execute(pool)
     .await
-    .ok(); // Só disponível em TimescaleDB licenciado — ignora se falhar
+    .ok();
 
     info!("✅ TimescaleDB inicializado (tempo real, retenção 7 dias)");
     Ok(())
@@ -109,6 +157,7 @@ sqlx::query(r#"
 async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all("./data")?;
 
+    // Tabela de histórico CAN — igual à versão anterior
     sqlx::query(r#"
         CREATE TABLE IF NOT EXISTS historico (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -137,22 +186,34 @@ async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>
             ON historico (device_id, timestamp DESC)
     "#).execute(pool).await?;
 
+    // Tabela de usuários para autenticação web
+    // Senhas armazenadas como hash bcrypt — nunca plain text
+    sqlx::query(r#"
+        CREATE TABLE IF NOT EXISTS users (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            username      TEXT    NOT NULL UNIQUE,
+            password_hash TEXT    NOT NULL,
+            created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    "#).execute(pool).await?;
+
     sqlx::query("PRAGMA journal_mode=WAL").execute(pool).await?;
     sqlx::query("PRAGMA synchronous=NORMAL").execute(pool).await?;
 
-    info!("✅ SQLite inicializado (histórico persistente)");
+    info!("✅ SQLite inicializado (histórico persistente + users)");
     Ok(())
 }
 
 // ==================== SALVAR TIMESCALEDB ====================
 
-async fn save_timescale(pool: &sqlx::PgPool, signals: &[ProcessedSignal],) -> Result<(), Box<dyn std::error::Error>> {
+async fn save_timescale(
+    pool: &sqlx::PgPool,
+    signals: &[ProcessedSignal],
+) -> Result<(), Box<dyn std::error::Error>> {
     if signals.is_empty() {
         return Ok(());
     }
-
     let mut tx = pool.begin().await?;
-
     for s in signals {
         sqlx::query(r#"
             INSERT INTO sensor_data (time, device_id, signal_name, value, unit, can_id)
@@ -167,20 +228,20 @@ async fn save_timescale(pool: &sqlx::PgPool, signals: &[ProcessedSignal],) -> Re
         .execute(&mut *tx)
         .await?;
     }
-
     tx.commit().await?;
     Ok(())
 }
 
 // ==================== SALVAR SQLITE ====================
 
-async fn save_sqlite(pool: &SqlitePool,signals: &[ProcessedSignal],) -> Result<(), Box<dyn std::error::Error>> {
+async fn save_sqlite(
+    pool: &SqlitePool,
+    signals: &[ProcessedSignal],
+) -> Result<(), Box<dyn std::error::Error>> {
     if signals.is_empty() {
         return Ok(());
     }
-
     let mut tx = pool.begin().await?;
-
     for s in signals {
         sqlx::query(r#"
             INSERT INTO historico (timestamp, device_id, signal_name, value, unit, can_id)
@@ -195,12 +256,12 @@ async fn save_sqlite(pool: &SqlitePool,signals: &[ProcessedSignal],) -> Result<(
         .execute(&mut *tx)
         .await?;
     }
-
     tx.commit().await?;
     Ok(())
 }
 
-// ==================== HANDLER DE CLIENTE TCP ====================
+// ==================== HANDLER TCP (FRAMES CAN) ====================
+// Esta função não mudou — recebe frames do edge, decodifica, persiste e faz broadcast
 
 async fn handle_client(
     mut socket: TcpStream,
@@ -211,8 +272,6 @@ async fn handle_client(
     ws_tx: broadcast::Sender<String>,
 ) {
     info!("🚗 Carro conectado: {}", addr);
-
-    // Identifica o carro pelo IP de origem (não pela porta — porta muda a cada reconexão)
     let device_id = format!("car_{}", addr.ip().to_string().replace('.', "_"));
 
     let mut frames_total: u64 = 0;
@@ -220,7 +279,6 @@ async fn handle_client(
     let mut last_log = std::time::Instant::now();
 
     loop {
-        // ── 1. Ler tamanho do pacote (4 bytes little-endian) ──────────────
         let mut len_buf = [0u8; 4];
         match socket.read_exact(&mut len_buf).await {
             Ok(_) => {}
@@ -231,14 +289,11 @@ async fn handle_client(
         }
 
         let len = u32::from_le_bytes(len_buf) as usize;
-
-        // Proteção contra pacotes malformados
         if len == 0 || len > 1024 {
             error!("Pacote inválido (len={}) de {} — desconectando", len, addr);
             break;
         }
 
-        // ── 2. Ler payload ────────────────────────────────────────────────
         let mut payload = vec![0u8; len];
         match socket.read_exact(&mut payload).await {
             Ok(_) => {}
@@ -248,23 +303,20 @@ async fn handle_client(
             }
         }
 
-        // Estrutura esperada: [can_id: 4B][timestamp: 8B][data: 8B] = 20 bytes
         if payload.len() < 20 {
             warn!("Payload curto ({} bytes) de {}", payload.len(), addr);
             continue;
         }
 
-        // ── 3. Deserializar frame ─────────────────────────────────────────
         let can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
         let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
         let raw_data = &payload[12..20];
 
         frames_total += 1;
 
-        // ── 4. Decodificar via CSV ────────────────────────────────────────
         let signals_config = match decoder_map.get(&can_id) {
             Some(s) => s,
-            None => continue, // CAN ID não está no CSV — ignora silenciosamente
+            None => continue,
         };
 
         let processed: Vec<ProcessedSignal> = signals_config
@@ -284,43 +336,34 @@ async fn handle_client(
 
         frames_decoded += processed.len() as u64;
 
-        // ── 5. Persistir em paralelo: TimescaleDB + SQLite ────────────────
         let pg_pool_c = pg_pool.clone();
         let sqlite_pool_c = sqlite_pool.clone();
-        let processed_c = processed.clone();
-
-        let value = processed_c.clone();
+        let processed_ts = processed.clone();
+        let processed_sq = processed.clone();
 
         tokio::spawn(async move {
-            // TimescaleDB — tempo real
-            if let Err(e) = save_timescale(&pg_pool_c, &value).await {
+            if let Err(e) = save_timescale(&pg_pool_c, &processed_ts).await {
                 error!("❌ TimescaleDB insert error: {:?}", e);
             }
         });
 
         tokio::spawn(async move {
-            // SQLite — histórico
-            if let Err(e) = save_sqlite(&sqlite_pool_c, &processed).await {
+            if let Err(e) = save_sqlite(&sqlite_pool_c, &processed_sq).await {
                 error!("❌ SQLite insert error: {:?}", e);
             }
         });
 
-        // ── 6. Broadcast WebSocket → App Android ─────────────────────────
-        for signal in &processed_c {
+        for signal in &processed {
             if let Ok(json) = serde_json::to_string(signal) {
-                // Se não houver listeners, send retorna Err — ignoramos
                 let _ = ws_tx.send(json);
             }
         }
 
-        // ── 7. Log de performance a cada 10s ─────────────────────────────
         if last_log.elapsed().as_secs() >= 10 {
             let elapsed = last_log.elapsed().as_secs_f64();
             info!(
                 "📊 {} | frames: {} | sinais: {} | taxa: {:.0} frames/s",
-                device_id,
-                frames_total,
-                frames_decoded,
+                device_id, frames_total, frames_decoded,
                 frames_total as f64 / elapsed
             );
             frames_total = 0;
@@ -332,90 +375,424 @@ async fn handle_client(
     info!("👋 {} desconectado", device_id);
 }
 
-// ==================== SERVIDOR WEBSOCKET SIMPLES ====================
-// Transmite JSON para o App Android em tempo real
-// Protocolo: cada mensagem é uma linha JSON terminada em \n
+// ==================== SERVIDOR HTTP + WEBSOCKET :8081 ====================
+// Uma única porta serve:
+//   GET /       → index.html
+//   POST /login → JWT
+//   GET /ws     → WebSocket (requer JWT no header Authorization)
+//   qualquer outra → 404
 
-async fn run_websocket_server(
-    ws_rx: broadcast::Receiver<String>,
+async fn run_http_ws_server(
+    ws_broadcast_tx: broadcast::Sender<String>,
+    sqlite_pool: SqlitePool,
     port: u16,
 ) {
     let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
         Ok(l) => {
-            info!("🌐 WebSocket server em 0.0.0.0:{}", port);
+            info!("🌐 HTTP+WS server em 0.0.0.0:{}", port);
             l
         }
         Err(e) => {
-            error!("❌ Falha ao abrir porta WebSocket {}: {}", port, e);
+            error!("❌ Falha ao abrir porta {}: {}", port, e);
             return;
         }
     };
 
-    // Aceita múltiplos clientes (app Android, dashboard, etc.)
     loop {
         match listener.accept().await {
-            Ok((mut stream, addr)) => {
-                info!("📱 App conectado: {}", addr);
-
-                // Cada cliente recebe uma cópia do receiver
-                let mut rx = ws_rx.resubscribe();
-
+            Ok((stream, addr)) => {
+                let tx = ws_broadcast_tx.clone();
+                let db = sqlite_pool.clone();
                 tokio::spawn(async move {
-                    use tokio::io::AsyncWriteExt;
-
-                    loop {
-                        match rx.recv().await {
-                            Ok(json) => {
-                                let msg = format!("{}\n", json);
-                                if stream.write_all(msg.as_bytes()).await.is_err() {
-                                    info!("📱 App desconectado: {}", addr);
-                                    break;
-                                }
-                            }
-                            Err(broadcast::error::RecvError::Lagged(n)) => {
-                                warn!("App {} atrasado, perdeu {} mensagens", addr, n);
-                            }
-                            Err(_) => break,
-                        }
-                    }
+                    handle_http_connection(stream, addr, tx, db).await;
                 });
             }
-            Err(e) => {
-                error!("Erro ao aceitar conexão WebSocket: {}", e);
+            Err(e) => error!("Erro ao aceitar conexão: {}", e),
+        }
+    }
+}
+
+// ==================== PARSER HTTP MÍNIMO ====================
+// Lê os primeiros bytes da conexão TCP para identificar a requisição
+
+async fn handle_http_connection(
+    mut stream: TcpStream,
+    addr: std::net::SocketAddr,
+    ws_tx: broadcast::Sender<String>,
+    sqlite_pool: SqlitePool,
+) {
+    // Lê até 4KB do request HTTP
+    let mut buf = vec![0u8; 4096];
+    let n = match stream.read(&mut buf).await {
+        Ok(n) if n > 0 => n,
+        _ => return,
+    };
+
+    let request = match std::str::from_utf8(&buf[..n]) {
+        Ok(s) => s.to_string(),
+        Err(_) => return,
+    };
+
+    let first_line = request.lines().next().unwrap_or("");
+
+    // Roteamento por método + path
+    if first_line.starts_with("GET / ") || first_line.starts_with("GET / HTTP") {
+        // Serve o HTML estático
+        serve_html(&mut stream).await;
+
+    } else if first_line.starts_with("POST /login") {
+        // Autenticação — retorna JWT
+        handle_login(&mut stream, &request, &sqlite_pool).await;
+
+    } else if first_line.starts_with("GET /ws") {
+        // Upgrade para WebSocket (com validação JWT)
+        handle_ws_upgrade(stream, &request, addr, ws_tx).await;
+
+    } else {
+        // 404 para tudo mais
+        let response = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\n\r\nNot Found";
+        let _ = stream.write_all(response.as_bytes()).await;
+    }
+}
+
+// ==================== GET / → index.html ====================
+
+async fn serve_html(stream: &mut TcpStream) {
+    let body = INDEX_HTML;
+    let response = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-cache\r\n\r\n{}",
+        body.len(),
+        body
+    );
+    let _ = stream.write_all(response.as_bytes()).await;
+}
+
+// ==================== POST /login ====================
+
+async fn handle_login(
+    stream: &mut TcpStream,
+    request: &str,
+    sqlite_pool: &SqlitePool,
+) {
+    // Extrai o body JSON do request HTTP
+    let body = match request.split("\r\n\r\n").nth(1) {
+        Some(b) => b.trim(),
+        None => {
+            send_json(stream, 400, r#"{"ok":false,"message":"Bad request"}"#).await;
+            return;
+        }
+    };
+
+    // Parseia JSON { "username": "...", "password": "..." }
+    let login_req: LoginRequest = match serde_json::from_str(body) {
+        Ok(r) => r,
+        Err(_) => {
+            send_json(stream, 400, r#"{"ok":false,"message":"JSON inválido"}"#).await;
+            return;
+        }
+    };
+
+    // Busca usuário no banco
+    let row = sqlx::query(
+        "SELECT password_hash FROM users WHERE username = ?"
+    )
+    .bind(&login_req.username)
+    .fetch_optional(sqlite_pool)
+    .await;
+
+    match row {
+        Ok(Some(row)) => {
+            let hash: String = row.get("password_hash");
+
+            // Verifica senha com bcrypt
+            match verify(&login_req.password, &hash) {
+                Ok(true) => {
+                    // Gera JWT
+                    match generate_jwt(&login_req.username) {
+                        Ok(token) => {
+                            let json = format!(r#"{{"ok":true,"token":"{}"}}"#, token);
+                            send_json(stream, 200, &json).await;
+                            info!("🔑 Login OK: {}", login_req.username);
+                        }
+                        Err(e) => {
+                            error!("Erro ao gerar JWT: {}", e);
+                            send_json(stream, 500, r#"{"ok":false,"message":"Erro interno"}"#).await;
+                        }
+                    }
+                }
+                _ => {
+                    send_json(stream, 401, r#"{"ok":false,"message":"Credenciais inválidas"}"#).await;
+                    warn!("🔒 Login falhou: {}", login_req.username);
+                }
+            }
+        }
+        Ok(None) => {
+            // Usuário não encontrado — mesma mensagem para não vazar info
+            send_json(stream, 401, r#"{"ok":false,"message":"Credenciais inválidas"}"#).await;
+        }
+        Err(e) => {
+            error!("Erro ao consultar banco: {}", e);
+            send_json(stream, 500, r#"{"ok":false,"message":"Erro interno"}"#).await;
+        }
+    }
+}
+
+// ==================== GET /ws → WebSocket com JWT ====================
+
+async fn handle_ws_upgrade(
+    mut stream: TcpStream,
+    request: &str,
+    addr: std::net::SocketAddr,
+    ws_tx: broadcast::Sender<String>,
+) {
+    // Extrai token do header Authorization: Bearer <token>
+    let token = extract_bearer_token(request);
+
+    match token {
+        None => {
+            let resp = "HTTP/1.1 401 Unauthorized\r\nContent-Length: 12\r\n\r\nUnauthorized";
+            let _ = stream.write_all(resp.as_bytes()).await;
+            warn!("🔒 WS rejeitado (sem token): {}", addr);
+            return;
+        }
+        Some(t) if !validate_jwt(&t) => {
+            let resp = "HTTP/1.1 401 Unauthorized\r\nContent-Length: 21\r\n\r\nToken inválido/expirado";
+            let _ = stream.write_all(resp.as_bytes()).await;
+            warn!("🔒 WS rejeitado (token inválido): {}", addr);
+            return;
+        }
+        Some(_) => {
+            // Token válido — faz o upgrade WebSocket
+        }
+    }
+
+    // Extrai Sec-WebSocket-Key para o handshake
+    let ws_key = match extract_ws_key(request) {
+        Some(k) => k,
+        None => {
+            let resp = "HTTP/1.1 400 Bad Request\r\nContent-Length: 11\r\n\r\nBad Request";
+            let _ = stream.write_all(resp.as_bytes()).await;
+            return;
+        }
+    };
+
+    // Calcula o accept key conforme RFC 6455
+    let accept = compute_ws_accept(&ws_key);
+
+    // Responde com handshake de upgrade
+    let handshake = format!(
+        "HTTP/1.1 101 Switching Protocols\r\n\
+         Upgrade: websocket\r\n\
+         Connection: Upgrade\r\n\
+         Sec-WebSocket-Accept: {}\r\n\r\n",
+        accept
+    );
+
+    if stream.write_all(handshake.as_bytes()).await.is_err() {
+        return;
+    }
+
+    info!("📱 WS conectado: {}", addr);
+
+    // Loop de broadcast: envia cada frame JSON como mensagem WebSocket
+    let mut rx = ws_tx.subscribe();
+    loop {
+        match rx.recv().await {
+            Ok(json) => {
+                if send_ws_text_frame(&mut stream, &json).await.is_err() {
+                    info!("📱 WS desconectado: {}", addr);
+                    break;
+                }
+            }
+            Err(broadcast::error::RecvError::Lagged(n)) => {
+                warn!("WS {} atrasado, perdeu {} mensagens", addr, n);
+            }
+            Err(_) => break,
+        }
+    }
+}
+
+// ==================== HELPERS HTTP/WS ====================
+
+async fn send_json(stream: &mut TcpStream, status: u16, body: &str) {
+    let status_text = match status {
+        200 => "OK",
+        400 => "Bad Request",
+        401 => "Unauthorized",
+        404 => "Not Found",
+        500 => "Internal Server Error",
+        _   => "Unknown",
+    };
+    let response = format!(
+        "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: *\r\n\r\n{}",
+        status, status_text, body.len(), body
+    );
+    let _ = stream.write_all(response.as_bytes()).await;
+}
+
+fn extract_bearer_token(request: &str) -> Option<String> {
+    for line in request.lines() {
+        let lower = line.to_lowercase();
+        if lower.starts_with("authorization:") {
+            let parts: Vec<&str> = line.splitn(2, ':').collect();
+            if parts.len() == 2 {
+                let value = parts[1].trim();
+                if let Some(token) = value.strip_prefix("Bearer ").or_else(|| value.strip_prefix("bearer ")) {
+                    return Some(token.trim().to_string());
+                }
             }
         }
     }
+    None
+}
+
+fn extract_ws_key(request: &str) -> Option<String> {
+    for line in request.lines() {
+        if line.to_lowercase().starts_with("sec-websocket-key:") {
+            let parts: Vec<&str> = line.splitn(2, ':').collect();
+            if parts.len() == 2 {
+                return Some(parts[1].trim().to_string());
+            }
+        }
+    }
+    None
+}
+
+fn compute_ws_accept(key: &str) -> String {
+    // RFC 6455: base64(SHA1(key + GUID))
+    let combined = format!("{}258EAFA5-E914-47DA-95CA-C5AB0DC85B11", key);
+    let mut hasher = Sha1::new();
+    hasher.extend(combined.as_bytes());
+    let hash = hasher.finish();
+    base64_encode_bytes(&hash)
+}
+
+struct Sha1 {
+    h: [u32; 5],
+    data: Vec<u8>,
+}
+
+impl Sha1 {
+    fn new() -> Self {
+        Sha1 {
+            h: [0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0],
+            data: Vec::new(),
+        }
+    }
+    fn extend(&mut self, bytes: &[u8]) {
+        self.data.extend_from_slice(bytes);
+    }
+    fn finish(mut self) -> [u8; 20] {
+        let len = self.data.len() as u64;
+        self.data.push(0x80);
+        while (self.data.len() % 64) != 56 {
+            self.data.push(0);
+        }
+        self.data.extend_from_slice(&(len * 8).to_be_bytes());
+        for chunk in self.data.chunks(64) {
+            let mut w = [0u32; 80];
+            for i in 0..16 {
+                w[i] = u32::from_be_bytes(chunk[i*4..i*4+4].try_into().unwrap());
+            }
+            for i in 16..80 {
+                w[i] = (w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16]).rotate_left(1);
+            }
+            let (mut a, mut b, mut c, mut d, mut e) =
+                (self.h[0], self.h[1], self.h[2], self.h[3], self.h[4]);
+            for i in 0..80 {
+                let (f, k) = match i {
+                    0..=19  => ((b & c) | ((!b) & d),          0x5A827999u32),
+                    20..=39 => (b ^ c ^ d,                     0x6ED9EBA1u32),
+                    40..=59 => ((b & c) | (b & d) | (c & d),   0x8F1BBCDCu32),
+                    _       => (b ^ c ^ d,                     0xCA62C1D6u32),
+                };
+                let temp = a.rotate_left(5)
+                    .wrapping_add(f)
+                    .wrapping_add(e)
+                    .wrapping_add(k)
+                    .wrapping_add(w[i]);
+                e = d; d = c; c = b.rotate_left(30); b = a; a = temp;
+            }
+            self.h[0] = self.h[0].wrapping_add(a);
+            self.h[1] = self.h[1].wrapping_add(b);
+            self.h[2] = self.h[2].wrapping_add(c);
+            self.h[3] = self.h[3].wrapping_add(d);
+            self.h[4] = self.h[4].wrapping_add(e);
+        }
+        let mut out = [0u8; 20];
+        for (i, &val) in self.h.iter().enumerate() {
+            out[i*4..i*4+4].copy_from_slice(&val.to_be_bytes());
+        }
+        out
+    }
+}
+
+fn base64_encode_bytes(bytes: &[u8]) -> String {
+    const TABLE: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut out = String::new();
+    for chunk in bytes.chunks(3) {
+        let b0 = chunk[0] as u32;
+        let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
+        let n = (b0 << 16) | (b1 << 8) | b2;
+        out.push(TABLE[(n >> 18) as usize] as char);
+        out.push(TABLE[((n >> 12) & 0x3F) as usize] as char);
+        if chunk.len() > 1 { out.push(TABLE[((n >> 6) & 0x3F) as usize] as char); } else { out.push('='); }
+        if chunk.len() > 2 { out.push(TABLE[(n & 0x3F) as usize] as char); } else { out.push('='); }
+    }
+    out
+}
+
+// Envia uma mensagem como frame WebSocket text (opcode 0x1)
+async fn send_ws_text_frame(stream: &mut TcpStream, msg: &str) -> Result<(), std::io::Error> {
+    let payload = msg.as_bytes();
+    let len = payload.len();
+    let mut frame = Vec::new();
+    frame.push(0x81u8); // FIN + opcode text
+    if len <= 125 {
+        frame.push(len as u8);
+    } else if len <= 65535 {
+        frame.push(126u8);
+        frame.extend_from_slice(&(len as u16).to_be_bytes());
+    } else {
+        frame.push(127u8);
+        frame.extend_from_slice(&(len as u64).to_be_bytes());
+    }
+    frame.extend_from_slice(payload);
+    stream.write_all(&frame).await
 }
 
 // ==================== MAIN ====================
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    dotenvy::dotenv().ok(); // carrega o .env para acessar DB_PASSWORD
+    dotenvy::dotenv().ok();
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::INFO)
         .init();
 
-    info!("🚀 Telemetry Server v2.0 — Dual DB Edition");
-    info!("   TimescaleDB → tempo real | SQLite → histórico");
+    // Validar variáveis de ambiente obrigatórias
+    let _ = get_pg_url();
+    let _ = get_jwt_secret();
 
-    // 1. Garantir que pasta de dados existe
+    info!("🚀 Telemetry Server v2.1 — Dual DB + JWT Auth");
+    info!("   TimescaleDB → tempo real | SQLite → histórico + users");
+
     std::fs::create_dir_all("./data")?;
+    std::fs::create_dir_all("./static")?;
 
-    // 2. Carregar mapa CAN do CSV
+    // Carrega mapa CAN
     let decoder_map = decoder::load_can_mappings(CSV_DATA_PATH)?;
     info!("✅ {} CAN IDs carregados do CSV", decoder_map.len());
 
-    // 3. Conectar TimescaleDB (PostgreSQL)
-    let pg_url = get_pg_url();
+    // Conecta TimescaleDB
     let pg_pool = PgPoolOptions::new()
         .max_connections(MAX_PG_CONNECTIONS)
-        .connect(&pg_url)
+        .connect(&get_pg_url())
         .await?;
     init_timescale(&pg_pool).await?;
 
-    // 4. Conectar SQLite
-    // Cria o arquivo se não existir
+    // Conecta SQLite
     let sqlite_file = "./data/historico.db";
     if !Path::new(sqlite_file).exists() {
         std::fs::File::create(sqlite_file)?;
@@ -423,29 +800,32 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sqlite_pool = SqlitePool::connect(SQLITE_PATH).await?;
     init_sqlite(&sqlite_pool).await?;
 
-    // 5. Canal broadcast para WebSocket (buffer de 10.000 msgs)
-    let (ws_tx, ws_rx) = broadcast::channel::<String>(10_000);
+    // Canal broadcast para WebSocket (buffer 10.000 msgs)
+    let (ws_tx, _) = broadcast::channel::<String>(10_000);
 
-    // 6. Spawn servidor WebSocket em task separada
-    tokio::spawn(run_websocket_server(ws_rx, WS_PORT));
+    // Spawn servidor HTTP+WS :8081
+    {
+        let tx = ws_tx.clone();
+        let db = sqlite_pool.clone();
+        tokio::spawn(async move {
+            run_http_ws_server(tx, db, HTTP_WS_PORT).await;
+        });
+    }
 
-    // 7. Iniciar listener TCP para os carros
+    // Listener TCP :8080 para frames CAN
     let tcp_listener = TcpListener::bind(format!("0.0.0.0:{}", TCP_PORT)).await?;
-    info!("📡 TCP listener em 0.0.0.0:{} (recebe frames CAN dos carros)", TCP_PORT);
-    info!("🌐 WebSocket em 0.0.0.0:{} (envia JSON para app Android)", WS_PORT);
+    info!("📡 TCP CAN listener em 0.0.0.0:{}", TCP_PORT);
+    info!("🌐 HTTP+WS server em 0.0.0.0:{}", HTTP_WS_PORT);
     info!("✅ Servidor pronto!\n");
 
-    // 8. Loop de aceitação de conexões TCP
     loop {
         let (socket, addr) = tcp_listener.accept().await?;
-
-        let pg_pool = pg_pool.clone();
-        let sqlite_pool = sqlite_pool.clone();
-        let decoder_map = decoder_map.clone();
-        let ws_tx = ws_tx.clone();
-
+        let pg  = pg_pool.clone();
+        let sq  = sqlite_pool.clone();
+        let dec = decoder_map.clone();
+        let tx  = ws_tx.clone();
         tokio::spawn(async move {
-            handle_client(socket, addr, pg_pool, sqlite_pool, decoder_map, ws_tx).await;
+            handle_client(socket, addr, pg, sq, dec, tx).await;
         });
     }
 }

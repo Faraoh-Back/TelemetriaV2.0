@@ -1,0 +1,14 @@
+arref_fluid_line,0x400,8B,type,min,max,multiplier,unit,description,description
+,fluid_temp_1,byte(0),float,0,127,2,ºC,Coolant temperature 1,Coolant temperature 1
+,fluid_temp_2,byte(1),float,0,127,2,ºC,Coolant temperature 2,Coolant temperature 2
+,fluid_temp_3,byte(2),float,0,127,2,ºC,Coolant temperature 3,Coolant temperature 3
+,fluid_temp_4,byte(3),float,0,127,2,ºC,Coolant temperature 4,Coolant temperature 4
+,fluid_flow_1,byte(4),float,0,31,8,L/min,Coolant flow rate 1,Coolant flow rate 1
+,fluid_flow_2,byte(5),float,0,31,8,L/min,Coolant flow rate 2,Coolant flow rate 2
+,brake_right_fluid_press,byte(6),float,0,255,1,Bar,Brake Fluid Press,Brake Fluid Press
+,,,,,,,,,
+,0x402,4B,type,min,max,multiplier,unit,description,description
+,susp_compression_back_left_suspension,byte(0),float,0,100,2.55,%,Suspension compression percent,Suspension compression percent
+,susp_compression_back_right_suspension,byte(1),float,0,100,2.55,%,Suspension compression percent,Suspension compression percent
+,arref_right_fluid_press,byte(2),float,0,225,2,kPA,Arrefs Fluid Press,Arrefs Fluid Press
+,arref_left_fluid_press,byte(3),float,0,255,2,kPA,Arrefs Fluid Press,Arrefs Fluid Press

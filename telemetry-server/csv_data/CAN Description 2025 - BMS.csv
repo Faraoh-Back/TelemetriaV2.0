@@ -1,0 +1,176 @@
+voltage_1,0x19B50100,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_0,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 1,Voltage of cell 1
+,vcell_1,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 2,Voltage of cell 2
+,vcell_2,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 3,Voltage of cell 3
+,vcell_3,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 4,Voltage of cell 4
+,vcell_4,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 5,Voltage of cell 5
+,vcell_5,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 6,Voltage of cell 6
+,vcell_6,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 7,Voltage of cell 7
+,vcell_7,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 8,Voltage of cell 8
+,,,,,,,,,,
+voltage_2,0x19B50101,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_8,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 9,Voltage of cell 9
+,vcell_9,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 10,Voltage of cell 10
+,vcell_10,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 11,Voltage of cell 11
+,vcell_11,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 12,Voltage of cell 12
+,vcell_12,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 13,Voltage of cell 13
+,vcell_13,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 14,Voltage of cell 14
+,vcell_14,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 15,Voltage of cell 15
+,vcell_15,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 16,Voltage of cell 16
+,,,,,,,,,,
+voltage_3,0x19B50102,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_16,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 17,Voltage of cell 17
+,vcell_17,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 18,Voltage of cell 18
+,vcell_18,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 19,Voltage of cell 19
+,vcell_19,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 20,Voltage of cell 20
+,vcell_20,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 21,Voltage of cell 21
+,vcell_21,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 22,Voltage of cell 22
+,vcell_22,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 23,Voltage of cell 23
+,vcell_23,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 24,Voltage of cell 24
+,,,,,,,,,,
+voltage_4,0x19B50103,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_24,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 25,Voltage of cell 25
+,vcell_25,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 26,Voltage of cell 26
+,vcell_26,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 27,Voltage of cell 27
+,vcell_27,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 28,Voltage of cell 28
+,vcell_28,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 29,Voltage of cell 29
+,vcell_29,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 30,Voltage of cell 30
+,vcell_30,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 31,Voltage of cell 31
+,vcell_31,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 32,Voltage of cell 32
+,,,,,,,,,,
+voltage_5,0x19B50104,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_32,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 33,Voltage of cell 33
+,vcell_33,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 34,Voltage of cell 34
+,vcell_34,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 35,Voltage of cell 35
+,vcell_35,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 36,Voltage of cell 36
+,vcell_36,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 37,Voltage of cell 37
+,vcell_37,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 38,Voltage of cell 38
+,vcell_38,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 39,Voltage of cell 39
+,vcell_39,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 40,Voltage of cell 40
+,,,,,,,,,,
+voltage_6,0x19B50105,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_40,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 41,Voltage of cell 41
+,vcell_41,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 42,Voltage of cell 42
+,vcell_42,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 43,Voltage of cell 43
+,vcell_43,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 44,Voltage of cell 44
+,vcell_44,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 45,Voltage of cell 45
+,vcell_45,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 46,Voltage of cell 46
+,vcell_46,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 47,Voltage of cell 47
+,vcell_47,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 48,Voltage of cell 48
+,,,,,,,,,,
+voltage_7,0x19B50106,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_48,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 49,Voltage of cell 49
+,vcell_49,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 50,Voltage of cell 50
+,vcell_50,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 51,Voltage of cell 51
+,vcell_51,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 52,Voltage of cell 52
+,vcell_52,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 53,Voltage of cell 53
+,vcell_53,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 54,Voltage of cell 54
+,vcell_54,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 55,Voltage of cell 55
+,vcell_55,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 56,Voltage of cell 56
+,,,,,,,,,,
+voltage_8,0x19B50107,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_56,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 57,Voltage of cell 57
+,vcell_57,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 58,Voltage of cell 58
+,vcell_58,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 59,Voltage of cell 59
+,vcell_59,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 60,Voltage of cell 60
+,vcell_60,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 61,Voltage of cell 61
+,vcell_61,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 62,Voltage of cell 62
+,vcell_62,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 63,Voltage of cell 63
+,vcell_63,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 64,Voltage of cell 64
+,,,,,,,,,,
+voltage_9,0x19B50108,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_64,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 65,Voltage of cell 65
+,vcell_65,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 66,Voltage of cell 66
+,vcell_66,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 67,Voltage of cell 67
+,vcell_67,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 68,Voltage of cell 68
+,vcell_68,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 69,Voltage of cell 69
+,vcell_69,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 70,Voltage of cell 70
+,vcell_70,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 71,Voltage of cell 71
+,vcell_71,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 72,Voltage of cell 72
+,,,,,,,,,,
+voltage_10,0x19B50109,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_72,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 73,Voltage of cell 73
+,vcell_73,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 74,Voltage of cell 74
+,vcell_74,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 75,Voltage of cell 75
+,vcell_75,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 76,Voltage of cell 76
+,vcell_76,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 77,Voltage of cell 77
+,vcell_77,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 78,Voltage of cell 78
+,vcell_78,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 79,Voltage of cell 79
+,vcell_79,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 80,Voltage of cell 80
+,,,,,,,,,,
+voltage_11,0x19B5010A,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_80,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 81,Voltage of cell 81
+,vcell_81,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 82,Voltage of cell 82
+,vcell_82,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 83,Voltage of cell 83
+,vcell_83,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 84,Voltage of cell 84
+,vcell_84,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 85,Voltage of cell 85
+,vcell_85,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 86,Voltage of cell 86
+,vcell_86,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 87,Voltage of cell 87
+,vcell_87,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 88,Voltage of cell 88
+,,,,,,,,,,
+voltage_12,0x19B5010B,8B,type,min,max,multiplier,offset,unit,description,description
+,vcell_88,byte(0),float,2,4.55,0.01,2,V,Voltage of cell 89,Voltage of cell 89
+,vcell_89,byte(1),float,2,4.55,0.01,2,V,Voltage of cell 90,Voltage of cell 90
+,vcell_90,byte(2),float,2,4.55,0.01,2,V,Voltage of cell 91,Voltage of cell 91
+,vcell_91,byte(3),float,2,4.55,0.01,2,V,Voltage of cell 92,Voltage of cell 92
+,vcell_92,byte(4),float,2,4.55,0.01,2,V,Voltage of cell 93,Voltage of cell 93
+,vcell_93,byte(5),float,2,4.55,0.01,2,V,Voltage of cell 94,Voltage of cell 94
+,vcell_94,byte(6),float,2,4.55,0.01,2,V,Voltage of cell 95,Voltage of cell 95
+,vcell_95,byte(7),float,2,4.55,0.01,2,V,Voltage of cell 96,Voltage of cell 96
+,,,,,,,,,,
+temperature_1,0x19B50800,8B,type,min,max,multiplier,offset,unit,description,description
+,tcell_0,byte(0),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_1,byte(1),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_2,byte(2),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_3,byte(3),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_4,byte(4),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_5,byte(5),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_6,byte(6),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_7,byte(7),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,,,,,,,,,,
+"temperature_2
+",0x19B50801,8B,type,min,max,multiplier,offset,unit,description,description
+,tcell_8,byte(0),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_9,byte(1),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_10,byte(2),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_11,byte(3),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_12,byte(4),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_13,byte(5),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_14,byte(6),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_15,byte(7),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,,,,,,,,,,
+temperature_3,0x19B50802,8B,type,min,max,multiplier,offset,unit,description,description
+,tcell_16,byte(0),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_17,byte(1),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_18,byte(2),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_19,byte(3),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_20,byte(4),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_21,byte(5),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_22,byte(6),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_23,byte(7),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,,,,,,,,,,
+temperature_4,0x19B50803,8B,type,min,max,multiplier,offset,unit,description,description
+,tcell_24,byte(0),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_25,byte(1),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_26,byte(2),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_27,byte(3),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_28,byte(4),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_29,byte(5),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_30,byte(6),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,tcell_31,byte(7),int,-100,155,1,-100,°C,Temperature of cell_(n),Temperature of cell_(n)
+,,,,,,,,,,
+BMS Diagnostic,0x19B50007,8B,type,min,max,multiplier,offset,unit,description,description
+,Under_voltage,bit(0),bool,0,1,1,,logic,,
+,Over_voltage,bit(1),bool,0,1,1,,logic,,
+,Discharge_over_current,bit(2),bool,0,1,1,,logic,,
+,Charge_over_current,bit(3),bool,0,1,1,,logic,,
+,Cell_module_Overheat,bit(4),bool,0,1,1,,logic,,
+,Leakage,bit(5),bool,0,1,1,,logic,,
+,No_cell_Communication,bit(6),bool,0,1,1,,logic,,
+,Low_voltage_W,bit(8),bool,0,1,1,,logic,,
+,High_current_W,bit(9),bool,0,1,1,,logic,,
+,High_temperature_W,bit(10),bool,0,1,1,,logic,,
+,Cell_Overheat,bit(19),bool,0,1,1,,logic,,
+,No_Current_Sensor,bit(20),bool,0,1,1,,logic,,
+,Pack_Under_Voltage,bit(21),bool,0,1,1,,logic,,
+,Validity,byte(3),int,0,255,1,,state,Faults  39,Faults  39

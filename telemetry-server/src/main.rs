@@ -146,10 +146,7 @@ async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>
 
 // ==================== SALVAR TIMESCALEDB ====================
 
-async fn save_timescale(
-    pool: &sqlx::PgPool,
-    signals: &[ProcessedSignal],
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn save_timescale(pool: &sqlx::PgPool, signals: &[ProcessedSignal],) -> Result<(), Box<dyn std::error::Error>> {
     if signals.is_empty() {
         return Ok(());
     }
@@ -177,10 +174,7 @@ async fn save_timescale(
 
 // ==================== SALVAR SQLITE ====================
 
-async fn save_sqlite(
-    pool: &SqlitePool,
-    signals: &[ProcessedSignal],
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn save_sqlite(pool: &SqlitePool,signals: &[ProcessedSignal],) -> Result<(), Box<dyn std::error::Error>> {
     if signals.is_empty() {
         return Ok(());
     }

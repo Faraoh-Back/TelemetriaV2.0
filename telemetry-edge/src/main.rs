@@ -27,6 +27,7 @@ use std::path::Path;
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use socketcan::EmbeddedFrame;
 use clap::Parser;
 use tokio::net::TcpStream;
 use tokio::io::AsyncWriteExt;

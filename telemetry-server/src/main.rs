@@ -546,7 +546,7 @@ async fn handle_ws_upgrade(
     ws_tx: broadcast::Sender<String>,
 ) {
     // Extrai token do header Authorization: Bearer <token>
-    let token = extract_bearer_token(request);
+    let token = extract_query_token(request).or_else(|| extract_bearer_token(request));
 
     match token {
         None => {
@@ -640,6 +640,19 @@ fn extract_bearer_token(request: &str) -> Option<String> {
                 if let Some(token) = value.strip_prefix("Bearer ").or_else(|| value.strip_prefix("bearer ")) {
                     return Some(token.trim().to_string());
                 }
+            }
+        }
+    }
+    None
+}
+
+fn extract_query_token(request: &str) -> Option<String> {
+    let first_line = request.lines().next()?;
+    let path = first_line.split_whitespace().nth(1)?;
+    if let Some(query) = path.split('?').nth(1) {
+        for param in query.split('&') {
+            if let Some(value) = param.strip_prefix("token=") {
+                return Some(value.to_string());
             }
         }
     }

@@ -400,7 +400,7 @@ function connectWebSocket(token) {
   setWsStatus('conectando...', '');
 
   // Token no header via protocolo WebSocket — padrão suportado pelo servidor
-  ws = new WebSocket(WS_URL, []);
+  ws = new WebSocket(`ws://${SERVER_HOST}:${SERVER_PORT}/ws?token=${encodeURIComponent(token)}`);
 
   // Nota: browsers não permitem headers custom no WebSocket por segurança.
   // Alternativa: mandar token como subprotocol ou no primeiro frame.
@@ -408,7 +408,6 @@ function connectWebSocket(token) {
   // para browser, mandamos no primeiro frame após conexão.
   ws.onopen = () => {
     // Envia token como primeiro frame de autenticação
-    ws.send(JSON.stringify({ type: 'auth', token }));
     setWsStatus('conectado', 'connected');
   };
 

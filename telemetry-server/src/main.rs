@@ -36,6 +36,7 @@ const SQLITE_PATH: &str = "sqlite:./data/historico.db";
 const CSV_DATA_PATH: &str = "./csv_data";
 const MAX_PG_CONNECTIONS: u32 = 20;
 const JWT_EXPIRY_HOURS: i64 = 8;
+const NTP_PORT: u16 = 9999;
 
 fn get_pg_url() -> String {
     let password = std::env::var("DB_PASSWORD").expect("❌ DB_PASSWORD não definida no .env");
@@ -311,6 +312,16 @@ async fn handle_client(
         let can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
         let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
         let raw_data = &payload[12..20];
+
+        // Latência real = agora no servidor - timestamp já corrigido pelo offset da Jetson
+        let t_recv_srv = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs_f64();
+        let latency_ms = (t_recv_srv - timestamp) * 1000.0;
+        if latency_ms >= 0.0 && latency_ms < 5000.0 {
+            info!("⏱️  Latência | CAN=0x{:X} | {:.1}ms", can_id, latency_ms);
+        }
 
         frames_total += 1;
 
@@ -775,6 +786,48 @@ async fn send_ws_text_frame(stream: &mut TcpStream, msg: &str) -> Result<(), std
     stream.write_all(&frame).await
 }
 
+// ==================== SERVIDOR NTP (medição de offset) ====================
+// Protocolo: recebe 8 bytes (t1 f64), responde 16 bytes (t2 f64 + t3 f64)
+// t2 = timestamp de quando o servidor recebeu
+// t3 = timestamp de quando o servidor vai responder
+// A Jetson calcula: offset = ((t2 - t1) + (t3 - t4)) / 2
+
+async fn run_ntp_server(port: u16) {
+    let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
+        Ok(l) => { info!("🕐 NTP server em 0.0.0.0:{}", port); l }
+        Err(e) => { error!("❌ Falha ao abrir porta NTP {}: {}", port, e); return; }
+    };
+
+    loop {
+        match listener.accept().await {
+            Ok((mut stream, addr)) => {
+                tokio::spawn(async move {
+                    let mut buf = [0u8; 8];
+                    if stream.read_exact(&mut buf).await.is_err() { return; }
+
+                    let t2 = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs_f64();
+
+                    let t3 = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs_f64();
+
+                    let mut resp = [0u8; 16];
+                    resp[0..8].copy_from_slice(&t2.to_le_bytes());
+                    resp[8..16].copy_from_slice(&t3.to_le_bytes());
+
+                    if stream.write_all(&resp).await.is_err() { return; }
+                    info!("🕐 NTP respondido para {}", addr);
+                });
+            }
+            Err(e) => error!("NTP accept error: {}", e),
+        }
+    }
+}
+
 // ==================== MAIN ====================
 
 #[tokio::main]
@@ -822,6 +875,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let db = sqlite_pool.clone();
         tokio::spawn(async move {
             run_http_ws_server(tx, db, HTTP_WS_PORT).await;
+        });
+
+        // Spawn servidor NTP :9999
+        tokio::spawn(async move {
+        run_ntp_server(NTP_PORT).await;
         });
     }
 

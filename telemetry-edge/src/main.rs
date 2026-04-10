@@ -81,6 +81,14 @@ struct Args {
     /// Tamanho do lote para envio TCP (padrão: 10)
     #[arg(long, default_value = "10")]
     batch_size: usize,
+
+    /// Porta NTP para sincronização de clock com o servidor (padrão: 9999)
+    #[arg(long, default_value = "9999")]
+    ntp_port: u16,
+
+    /// Número de amostras NTP para calcular offset (padrão: 10)
+    #[arg(long, default_value = "10")]
+    ntp_samples: u32,
 }
 
 // ─── Estruturas ────────────────────────────────────────────────
@@ -264,6 +272,59 @@ async fn send_batch(
     Ok(())
 }
 
+// ─── Medição de Offset de Clock (NTP simplificado) ─────────────
+// offset > 0 → servidor adiantado em relação à Jetson
+// timestamp_corrigido = timestamp_jetson + offset
+async fn measure_clock_offset(
+    server_host: &str,
+    ntp_port: u16,
+    samples: u32,
+) -> f64 {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    info!("🕐 Medindo offset de clock ({} amostras)...", samples);
+
+    let ntp_addr = format!("{}:{}", server_host, ntp_port);
+    let mut offsets: Vec<f64> = Vec::new();
+
+    for i in 0..samples {
+        let Ok(mut stream) = tokio::net::TcpStream::connect(&ntp_addr).await else {
+            warn!("⚠️  NTP amostra {}: falha ao conectar", i + 1);
+            continue;
+        };
+
+        let t1 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs_f64();
+
+        if stream.write_all(&t1.to_le_bytes()).await.is_err() { continue; }
+        if stream.flush().await.is_err() { continue; }
+
+        let mut buf = [0u8; 16];
+        if stream.read_exact(&mut buf).await.is_err() { continue; }
+
+        let t4 = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs_f64();
+
+        let t2 = f64::from_le_bytes(buf[0..8].try_into().unwrap());
+        let t3 = f64::from_le_bytes(buf[8..16].try_into().unwrap());
+
+        let rtt    = (t4 - t1) - (t3 - t2);
+        let offset = ((t2 - t1) + (t3 - t4)) / 2.0;
+
+        info!("  Amostra {:>2}: RTT={:.3}ms  Offset={:+.3}ms", i + 1, rtt * 1000.0, offset * 1000.0);
+        offsets.push(offset);
+    }
+
+    if offsets.is_empty() {
+        warn!("⚠️  Nenhuma amostra NTP coletada — offset = 0.0");
+        return 0.0;
+    }
+
+    // Mediana para robustez contra outliers
+    offsets.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    let median = offsets[offsets.len() / 2];
+    info!("✅ Offset final (mediana): {:+.3}ms", median * 1000.0);
+    median
+}
+
 // ─── Sincronização de Pendentes ─────────────────────────────────
 async fn sync_pending_data(
     pool: &SqlitePool,
@@ -354,7 +415,7 @@ async fn run_socketcan_reader(
                 let timestamp = SystemTime::now()
                     .duration_since(UNIX_EPOCH)
                     .unwrap_or_default()
-                    .as_secs_f64();
+                    .as_secs_f64() + clock_offset;
 
                 let can_id: u32 = match frame.id() {
                     socketcan::Id::Standard(id) => id.as_raw() as u32,
@@ -457,7 +518,7 @@ async fn run_kvaser_reader(
                     let timestamp = SystemTime::now()
                         .duration_since(UNIX_EPOCH)
                         .unwrap_or_default()
-                        .as_secs_f64();
+                        .as_secs_f64() + clock_offset;
 
                     let can_id = frame.id() as u32;
 
@@ -574,6 +635,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         warn!("⚠️  Mapa de prioridades vazio — todos os frames terão prioridade 4");
     }
 
+    // Mede offset de clock entre Jetson e servidor
+    let server_host = args.server.split(':').next().unwrap_or("192.168.1.100");
+    let clock_offset = if args.ntp_port > 0 {
+        measure_clock_offset(server_host, args.ntp_port, args.ntp_samples).await
+    } else {
+        warn!("⚠️  NTP desabilitado (--ntp_port 0) — timestamps sem correção");
+        0.0
+    };
+    let clock_offset = Arc::new(clock_offset);
+
     // 2. Inicializa banco local de backup
     let db_pool = init_database(&args.db_path).await?;
 
@@ -596,6 +667,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 4. Inicia leitores CAN em tasks separadas
     if let Some(ref iface) = args.ch0 {
+        let offset = clock_offset.clone();
         let iface_clone = iface.clone();
         let pmap = priority_map.clone();
         let tx_clone = tx.clone();
@@ -604,7 +676,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         tokio::spawn(async move {
             #[cfg(target_os = "linux")]
-            run_socketcan_reader(iface_clone, bitrate, pmap, tx_clone, running_clone).await;
+            run_socketcan_reader(iface_clone, bitrate, pmap, tx_clone, running_clone, *offset).await;
 
             #[cfg(not(target_os = "linux"))]
             {
@@ -614,13 +686,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     if let Some(ch1_num) = args.ch1 {
+        let offset = clock_offset.clone();
         let pmap = priority_map.clone();
         let tx_clone = tx.clone();
         let running_clone = running.clone();
         let bitrate = args.bitrate1;
 
         tokio::spawn(async move {
-            run_kvaser_reader(ch1_num, bitrate, pmap, tx_clone, running_clone).await;
+            #[cfg(target_os = "linux")]
+            run_kvaser_reader(ch1_num, bitrate, pmap, tx_clone, running_clone, *offset).await;
         });
     }
 

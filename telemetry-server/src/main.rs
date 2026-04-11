@@ -578,9 +578,7 @@ async fn handle_migrate(
             send_json(stream, 200, &json).await;
         }
         Err(e) => {
-            let msg = format!("{:?}", e);
-            drop(e); // descarta o erro antes do await
-            error!("❌ Erro na migração manual: {}", msg);
+            error!("❌ Erro na migração manual: {}", e);
             send_json(stream, 500, r#"{"ok":false,"message":"Erro na migração"}"#).await;
         }
     }
@@ -873,7 +871,7 @@ async fn run_ntp_server(port: u16) {
 async fn migrate_old_data(
     pg_pool: &sqlx::PgPool,
     sqlite_pool: &SqlitePool,
-) -> Result<usize, Box<dyn std::error::Error>> {
+) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
 
     // Verifica se há dados antigos antes de fazer qualquer coisa
     let count_row = sqlx::query(

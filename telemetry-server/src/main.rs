@@ -894,6 +894,7 @@ async fn migrate_old_data(
     let mut total_migrated = 0usize;
     let batch_size: i64 = 5000;
     let mut last_ts: f64 = 0.0; // cursor — começa do início
+    let mut prev_ts: f64 = 0.0; // para deletar só o lote migrado
 
     loop {
         let rows = sqlx::query(r#"
@@ -920,6 +921,7 @@ async fn migrate_old_data(
         }
 
         // Atualiza cursor com o timestamp do último registro do lote
+        prev_ts = last_ts; // ← salva o cursor anterior antes de atualizar
         last_ts = rows.last()
             .map(|r| r.get::<f64, _>("ts"))
             .unwrap_or(last_ts);
@@ -949,6 +951,19 @@ async fn migrate_old_data(
             .await?;
         }
         tx.commit().await?;
+
+        // Deleta do TimescaleDB os registros já migrados
+        // Usa o timestamp do cursor anterior e do atual para deletar só o lote
+        sqlx::query(r#"
+            DELETE FROM sensor_data
+            WHERE time < NOW() - INTERVAL '7 days'
+            AND EXTRACT(EPOCH FROM time)::float8 > $1
+            AND EXTRACT(EPOCH FROM time)::float8 <= $2
+        "#)
+        .bind(prev_ts)
+        .bind(last_ts)
+        .execute(pg_pool)
+        .await?;
 
         total_migrated += rows.len();
         info!("  → {} / {} migrados...", total_migrated, count);

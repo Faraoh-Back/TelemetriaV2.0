@@ -578,7 +578,9 @@ async fn handle_migrate(
             send_json(stream, 200, &json).await;
         }
         Err(e) => {
-            error!("❌ Erro na migração manual: {:?}", e);
+            let msg = format!("{:?}", e);
+            drop(e); // descarta o erro antes do await
+            error!("❌ Erro na migração manual: {}", msg);
             send_json(stream, 500, r#"{"ok":false,"message":"Erro na migração"}"#).await;
         }
     }

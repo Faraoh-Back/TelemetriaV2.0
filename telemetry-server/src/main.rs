@@ -348,19 +348,11 @@ async fn handle_client(
         frames_decoded += processed.len() as u64;
 
         let pg_pool_c = pg_pool.clone();
-        let sqlite_pool_c = sqlite_pool.clone();
         let processed_ts = processed.clone();
-        let processed_sq = processed.clone();
 
         tokio::spawn(async move {
             if let Err(e) = save_timescale(&pg_pool_c, &processed_ts).await {
                 error!("❌ TimescaleDB insert error: {:?}", e);
-            }
-        });
-
-        tokio::spawn(async move {
-            if let Err(e) = save_sqlite(&sqlite_pool_c, &processed_sq).await {
-                error!("❌ SQLite insert error: {:?}", e);
             }
         });
 
@@ -828,6 +820,92 @@ async fn run_ntp_server(port: u16) {
     }
 }
 
+// ==================== JOB DE MIGRAÇÃO TimescaleDB → SQLite ====================
+// Roda a cada hora. Migra dados com mais de 7 dias do TimescaleDB para o SQLite.
+// O TimescaleDB deleta automaticamente via retention policy após 7 dias.
+
+async fn run_migration_job(pg_pool: sqlx::PgPool, sqlite_pool: SqlitePool) {
+    loop {
+        tokio::time::sleep(tokio::time::Duration::from_secs(3600)).await;
+
+        info!("🔄 Iniciando migração TimescaleDB → SQLite...");
+
+        // Busca dados com mais de 7 dias no TimescaleDB
+        let rows = sqlx::query(r#"
+            SELECT
+                extract(epoch from time) as ts,
+                device_id,
+                signal_name,
+                value,
+                unit,
+                can_id
+            FROM sensor_data
+            WHERE time < NOW() - INTERVAL '7 days'
+            ORDER BY time ASC
+            LIMIT 10000
+        "#)
+        .fetch_all(&pg_pool)
+        .await;
+
+        let rows = match rows {
+            Ok(r) => r,
+            Err(e) => {
+                error!("❌ Migração: erro ao ler TimescaleDB: {:?}", e);
+                continue;
+            }
+        };
+
+        if rows.is_empty() {
+            info!("✅ Migração: nenhum dado antigo para migrar");
+            continue;
+        }
+
+        info!("📦 Migração: {} registros para mover", rows.len());
+
+        // Insere no SQLite em uma única transação
+        let mut tx = match sqlite_pool.begin().await {
+            Ok(t) => t,
+            Err(e) => {
+                error!("❌ Migração: erro ao abrir transação SQLite: {:?}", e);
+                continue;
+            }
+        };
+
+        let mut migrated = 0usize;
+        for row in &rows {
+            let ts: f64       = row.get("ts");
+            let device_id: &str  = row.get("device_id");
+            let signal_name: &str = row.get("signal_name");
+            let value: f64    = row.get("value");
+            let unit: &str    = row.get("unit");
+            let can_id: i32   = row.get("can_id");
+
+            let res = sqlx::query(r#"
+                INSERT OR IGNORE INTO historico
+                    (timestamp, device_id, signal_name, value, unit, can_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+            "#)
+            .bind(ts)
+            .bind(device_id)
+            .bind(signal_name)
+            .bind(value)
+            .bind(unit)
+            .bind(can_id as i64)
+            .execute(&mut *tx)
+            .await;
+
+            if res.is_ok() { migrated += 1; }
+        }
+
+        if let Err(e) = tx.commit().await {
+            error!("❌ Migração: erro ao commitar SQLite: {:?}", e);
+            continue;
+        }
+
+        info!("✅ Migração concluída: {} registros movidos para SQLite", migrated);
+    }
+}
+
 // ==================== MAIN ====================
 
 #[tokio::main]
@@ -863,7 +941,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !Path::new(sqlite_file).exists() {
         std::fs::File::create(sqlite_file)?;
     }
-    let sqlite_pool = SqlitePool::connect(SQLITE_PATH).await?;
+    let sqlite_pool = sqlx::sqlite::SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect(SQLITE_PATH)
+        .await?;
     init_sqlite(&sqlite_pool).await?;
 
     // Canal broadcast para WebSocket (buffer 10.000 msgs)
@@ -880,6 +961,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Spawn servidor NTP :9999
         tokio::spawn(async move {
         run_ntp_server(NTP_PORT).await;
+        });
+    }
+
+    // Spawn job de migração TimescaleDB → SQLite (roda a cada 1h)
+    {
+        let pg = pg_pool.clone();
+        let sq = sqlite_pool.clone();
+        tokio::spawn(async move {
+            run_migration_job(pg, sq).await;
         });
     }
 

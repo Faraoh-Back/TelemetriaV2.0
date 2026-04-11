@@ -199,7 +199,10 @@ async fn init_database(db_path: &str) -> Result<SqlitePool, Box<dyn std::error::
         }
     }
 
-    let pool = SqlitePool::connect(db_path).await?;
+    let pool = SqlitePool::
+        .max_connections(1) // SQLite não lida bem com concorrência pesada    
+        connect(db_path)
+        .await?;
 
     sqlx::query(
         r#"

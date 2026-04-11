@@ -390,6 +390,7 @@ async fn run_socketcan_reader(
     priority_map: Arc<PriorityMap>,
     tx: mpsc::Sender<TelemetryFrame>,
     running: Arc<AtomicBool>,
+    clock_offset: f64,
 ) {
     use socketcan::{CanSocket, Socket};
 
@@ -465,6 +466,7 @@ async fn run_kvaser_reader(
     priority_map: Arc<PriorityMap>,
     tx: mpsc::Sender<TelemetryFrame>,
     running: Arc<AtomicBool>,
+    clock_offset: f64,
 ) {
     // Tenta usar a canlib via comando de sistema (kvaser_stat) para verificar disponibilidade
     // Na prática, usa FFI direto. Aqui usamos o crate `canlib` se disponível.

@@ -268,7 +268,6 @@ async fn handle_client(
     mut socket: TcpStream,
     addr: std::net::SocketAddr,
     pg_pool: sqlx::PgPool,
-    sqlite_pool: SqlitePool,
     decoder_map: decoder::DecoderMap,
     ws_tx: broadcast::Sender<String>,
 ) {
@@ -407,8 +406,9 @@ async fn run_http_ws_server(
             Ok((stream, addr)) => {
                 let tx = ws_broadcast_tx.clone();
                 let db = sqlite_pool.clone();
+                let pg = pg_pool.clone();
                 tokio::spawn(async move {
-                    handle_http_connection(stream, addr, tx, db).await;
+                    handle_http_connection(stream, addr, tx, pg, db).await;
                 });
             }
             Err(e) => error!("Erro ao aceitar conexão: {}", e),

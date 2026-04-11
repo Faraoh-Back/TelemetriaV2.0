@@ -582,7 +582,7 @@ async fn run_kvaser_reader(
 
             let mut data_fixed = [0u8; 8];
             data_fixed[0] = counter;
-            data_fixed[1] = (counter.wrapping_mul(2));
+            data_fixed[1] = counter.wrapping_mul(2);
             counter = counter.wrapping_add(1);
 
             // Alterna entre alguns IDs simulados

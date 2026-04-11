@@ -897,7 +897,7 @@ async fn migrate_old_data(
     loop {
         let rows = sqlx::query(r#"
             SELECT
-                extract(epoch from time) as ts,
+                EXTRACT(EPOCH FROM time)::float8 as ts,
                 device_id,
                 signal_name,
                 value,

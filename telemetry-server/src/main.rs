@@ -890,9 +890,10 @@ async fn migrate_old_data(
     info!("📦 Migração: {} registros antigos encontrados, iniciando...", count);
 
     // Busca em lotes de 5000 para não explodir a memória
+    // DEPOIS — loop com cursor por timestamp:
     let mut total_migrated = 0usize;
-    let mut offset: i64 = 0;
     let batch_size: i64 = 5000;
+    let mut last_ts: f64 = 0.0; // cursor — começa do início
 
     loop {
         let rows = sqlx::query(r#"
@@ -905,11 +906,12 @@ async fn migrate_old_data(
                 can_id
             FROM sensor_data
             WHERE time < NOW() - INTERVAL '7 days'
+            AND EXTRACT(EPOCH FROM time)::float8 > $1
             ORDER BY time ASC
-            LIMIT $1 OFFSET $2
+            LIMIT $2
         "#)
+        .bind(last_ts)
         .bind(batch_size)
-        .bind(offset)
         .fetch_all(pg_pool)
         .await?;
 
@@ -917,16 +919,20 @@ async fn migrate_old_data(
             break;
         }
 
+        // Atualiza cursor com o timestamp do último registro do lote
+        last_ts = rows.last()
+            .map(|r| r.get::<f64, _>("ts"))
+            .unwrap_or(last_ts);
+
         // Insere lote no SQLite em uma única transação
         let mut tx = sqlite_pool.begin().await?;
-
         for row in &rows {
-            let ts: f64          = row.get("ts");
-            let device_id: &str  = row.get("device_id");
+            let ts: f64           = row.get("ts");
+            let device_id: &str   = row.get("device_id");
             let signal_name: &str = row.get("signal_name");
-            let value: f64       = row.get("value");
-            let unit: &str       = row.get("unit");
-            let can_id: i32      = row.get("can_id");
+            let value: f64        = row.get("value");
+            let unit: &str        = row.get("unit");
+            let can_id: i32       = row.get("can_id");
 
             sqlx::query(r#"
                 INSERT OR IGNORE INTO historico
@@ -942,11 +948,9 @@ async fn migrate_old_data(
             .execute(&mut *tx)
             .await?;
         }
-
         tx.commit().await?;
 
         total_migrated += rows.len();
-        offset += batch_size;
         info!("  → {} / {} migrados...", total_migrated, count);
     }
 

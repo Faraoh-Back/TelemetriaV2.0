@@ -956,9 +956,8 @@ async fn migrate_old_data(
         // Usa o timestamp do cursor anterior e do atual para deletar só o lote
         sqlx::query(r#"
             DELETE FROM sensor_data
-            WHERE time < NOW() - INTERVAL '7 days'
-            AND EXTRACT(EPOCH FROM time)::float8 > $1
-            AND EXTRACT(EPOCH FROM time)::float8 <= $2
+            WHERE time > to_timestamp($1)
+                AND time <= to_timestamp($2)
         "#)
         .bind(prev_ts)
         .bind(last_ts)

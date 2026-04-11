@@ -387,6 +387,7 @@ async fn handle_client(
 
 async fn run_http_ws_server(
     ws_broadcast_tx: broadcast::Sender<String>,
+    pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
     port: u16,
 ) {
@@ -422,6 +423,7 @@ async fn handle_http_connection(
     mut stream: TcpStream,
     addr: std::net::SocketAddr,
     ws_tx: broadcast::Sender<String>,
+    pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
 ) {
     // Lê até 4KB do request HTTP
@@ -450,6 +452,9 @@ async fn handle_http_connection(
     } else if first_line.starts_with("GET /ws") {
         // Upgrade para WebSocket (com validação JWT)
         handle_ws_upgrade(stream, &request, addr, ws_tx).await;
+
+    } else if first_line.starts_with("POST /migrate") {
+        handle_migrate(&mut stream, &request, &pg_pool, &sqlite_pool).await;
 
     } else {
         // 404 para tudo mais
@@ -536,6 +541,45 @@ async fn handle_login(
         Err(e) => {
             error!("Erro ao consultar banco: {}", e);
             send_json(stream, 500, r#"{"ok":false,"message":"Erro interno"}"#).await;
+        }
+    }
+}
+
+// ==================== POST /migrate ====================
+// Rota manual para migrar dados antigos do TimescaleDB para SQLite
+// Útil para exportar logs de corrida para análise fora de pista
+// Requer JWT válido no header Authorization
+
+async fn handle_migrate(
+    stream: &mut TcpStream,
+    request: &str,
+    pg_pool: &sqlx::PgPool,
+    sqlite_pool: &SqlitePool,
+) {
+    // Valida JWT — só usuários autenticados podem disparar migração
+    let token = extract_bearer_token(request);
+    match token {
+        None => {
+            send_json(stream, 401, r#"{"ok":false,"message":"Token necessário"}"#).await;
+            return;
+        }
+        Some(t) if !validate_jwt(&t) => {
+            send_json(stream, 401, r#"{"ok":false,"message":"Token inválido"}"#).await;
+            return;
+        }
+        Some(_) => {}
+    }
+
+    info!("🔄 Migração manual disparada via POST /migrate");
+
+    match migrate_old_data(pg_pool, sqlite_pool).await {
+        Ok(n) => {
+            let json = format!(r#"{{"ok":true,"migrated":{}}}"#, n);
+            send_json(stream, 200, &json).await;
+        }
+        Err(e) => {
+            error!("❌ Erro na migração manual: {:?}", e);
+            send_json(stream, 500, r#"{"ok":false,"message":"Erro na migração"}"#).await;
         }
     }
 }
@@ -820,67 +864,71 @@ async fn run_ntp_server(port: u16) {
     }
 }
 
-// ==================== JOB DE MIGRAÇÃO TimescaleDB → SQLite ====================
-// Roda a cada hora. Migra dados com mais de 7 dias do TimescaleDB para o SQLite.
-// O TimescaleDB deleta automaticamente via retention policy após 7 dias.
+// ==================== MIGRAÇÃO TimescaleDB → SQLite ====================
+// Chamada uma vez no boot e também disponível via rota HTTP POST /migrate
+// Migra dados com mais de 7 dias do TimescaleDB para o SQLite histórico.
 
-async fn run_migration_job(pg_pool: sqlx::PgPool, sqlite_pool: SqlitePool) {
+async fn migrate_old_data(
+    pg_pool: &sqlx::PgPool,
+    sqlite_pool: &SqlitePool,
+) -> Result<usize, Box<dyn std::error::Error>> {
+
+    // Verifica se há dados antigos antes de fazer qualquer coisa
+    let count_row = sqlx::query(
+        "SELECT COUNT(*) as cnt FROM sensor_data WHERE time < NOW() - INTERVAL '7 days'"
+    )
+    .fetch_one(pg_pool)
+    .await?;
+
+    let count: i64 = count_row.get("cnt");
+
+    if count == 0 {
+        info!("✅ Migração: nenhum dado antigo no TimescaleDB");
+        return Ok(0);
+    }
+
+    info!("📦 Migração: {} registros antigos encontrados, iniciando...", count);
+
+    // Busca em lotes de 5000 para não explodir a memória
+    let mut total_migrated = 0usize;
+    let mut offset: i64 = 0;
+    let batch_size: i64 = 5000;
+
     loop {
-        tokio::time::sleep(tokio::time::Duration::from_secs(3600)).await;
-
-        info!("🔄 Iniciando migração TimescaleDB → SQLite...");
-
-        // Busca dados com mais de 7 dias no TimescaleDB
         let rows = sqlx::query(r#"
             SELECT
                 extract(epoch from time) as ts,
                 device_id,
                 signal_name,
                 value,
-                unit,
+                COALESCE(unit, '') as unit,
                 can_id
             FROM sensor_data
             WHERE time < NOW() - INTERVAL '7 days'
             ORDER BY time ASC
-            LIMIT 10000
+            LIMIT $1 OFFSET $2
         "#)
-        .fetch_all(&pg_pool)
-        .await;
-
-        let rows = match rows {
-            Ok(r) => r,
-            Err(e) => {
-                error!("❌ Migração: erro ao ler TimescaleDB: {:?}", e);
-                continue;
-            }
-        };
+        .bind(batch_size)
+        .bind(offset)
+        .fetch_all(pg_pool)
+        .await?;
 
         if rows.is_empty() {
-            info!("✅ Migração: nenhum dado antigo para migrar");
-            continue;
+            break;
         }
 
-        info!("📦 Migração: {} registros para mover", rows.len());
+        // Insere lote no SQLite em uma única transação
+        let mut tx = sqlite_pool.begin().await?;
 
-        // Insere no SQLite em uma única transação
-        let mut tx = match sqlite_pool.begin().await {
-            Ok(t) => t,
-            Err(e) => {
-                error!("❌ Migração: erro ao abrir transação SQLite: {:?}", e);
-                continue;
-            }
-        };
-
-        let mut migrated = 0usize;
         for row in &rows {
-            let ts: f64       = row.get("ts");
+            let ts: f64          = row.get("ts");
             let device_id: &str  = row.get("device_id");
             let signal_name: &str = row.get("signal_name");
-            let value: f64    = row.get("value");
-            let unit: &str    = row.get("unit");
-            let can_id: i32   = row.get("can_id");
+            let value: f64       = row.get("value");
+            let unit: &str       = row.get("unit");
+            let can_id: i32      = row.get("can_id");
 
-            let res = sqlx::query(r#"
+            sqlx::query(r#"
                 INSERT OR IGNORE INTO historico
                     (timestamp, device_id, signal_name, value, unit, can_id)
                 VALUES (?, ?, ?, ?, ?, ?)
@@ -892,18 +940,18 @@ async fn run_migration_job(pg_pool: sqlx::PgPool, sqlite_pool: SqlitePool) {
             .bind(unit)
             .bind(can_id as i64)
             .execute(&mut *tx)
-            .await;
-
-            if res.is_ok() { migrated += 1; }
+            .await?;
         }
 
-        if let Err(e) = tx.commit().await {
-            error!("❌ Migração: erro ao commitar SQLite: {:?}", e);
-            continue;
-        }
+        tx.commit().await?;
 
-        info!("✅ Migração concluída: {} registros movidos para SQLite", migrated);
+        total_migrated += rows.len();
+        offset += batch_size;
+        info!("  → {} / {} migrados...", total_migrated, count);
     }
+
+    info!("✅ Migração concluída: {} registros movidos para SQLite", total_migrated);
+    Ok(total_migrated)
 }
 
 // ==================== MAIN ====================
@@ -946,6 +994,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .connect(SQLITE_PATH)
         .await?;
     init_sqlite(&sqlite_pool).await?;
+    // Migração no boot: move dados antigos do TimescaleDB para SQLite (roda uma vez)
+    info!("🔍 Verificando dados antigos para migração...");
+    match migrate_old_data(&pg_pool, &sqlite_pool).await {
+        Ok(n) if n > 0 => info!("✅ Boot: {} registros migrados para SQLite", n),
+        Ok(_)          => info!("✅ Boot: nenhum dado antigo para migrar"),
+        Err(e)         => warn!("⚠️  Boot: erro na migração (não crítico): {:?}", e),
+    }
 
     // Canal broadcast para WebSocket (buffer 10.000 msgs)
     let (ws_tx, _) = broadcast::channel::<String>(10_000);
@@ -953,23 +1008,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Spawn servidor HTTP+WS :8081
     {
         let tx = ws_tx.clone();
+        let pg = pg_pool.clone();
         let db = sqlite_pool.clone();
         tokio::spawn(async move {
-            run_http_ws_server(tx, db, HTTP_WS_PORT).await;
+            run_http_ws_server(tx, pg, db, HTTP_WS_PORT).await;
         });
 
         // Spawn servidor NTP :9999
         tokio::spawn(async move {
         run_ntp_server(NTP_PORT).await;
-        });
-    }
-
-    // Spawn job de migração TimescaleDB → SQLite (roda a cada 1h)
-    {
-        let pg = pg_pool.clone();
-        let sq = sqlite_pool.clone();
-        tokio::spawn(async move {
-            run_migration_job(pg, sq).await;
         });
     }
 
@@ -982,11 +1029,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     loop {
         let (socket, addr) = tcp_listener.accept().await?;
         let pg  = pg_pool.clone();
-        let sq  = sqlite_pool.clone();
         let dec = decoder_map.clone();
         let tx  = ws_tx.clone();
         tokio::spawn(async move {
-            handle_client(socket, addr, pg, sq, dec, tx).await;
+            handle_client(socket, addr, pg, dec, tx).await;
         });
     }
 }

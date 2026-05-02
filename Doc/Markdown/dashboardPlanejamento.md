@@ -1,8 +1,8 @@
 # Dashboard E-Racing Telemetria — Planejamento Técnico
 
-**Versão:** 1.0  
+**Versão:** 2.0  
 **Data:** Maio 2025  
-**Status:** Em planejamento
+**Status:** Em desenvolvimento
 
 ---
 
@@ -21,15 +21,21 @@ A aplicação terá duas abas principais:
 
 ## 2. Stack Técnica
 
-| Camada | Tecnologia |
-|--------|-----------|
-| Framework | React 18 + Vite |
-| Runtime | Node.js 20+ |
-| Gráficos | Recharts ou uPlot (decidir conforme performance) |
-| WebSocket | API nativa do browser (`WebSocket`) |
-| Estilização | Tailwind CSS + CSS Variables |
-| Estado global | Zustand (leve, sem boilerplate) |
-| Roteamento | React Router v6 |
+A arquitetura foi redesenhada para eliminar os três gargalos de telemetria web (rede, processamento e renderização), suportando até 130Hz de forma estável.
+
+| Camada | Tecnologia | Motivo |
+|--------|-----------|--------|
+| Framework UI | SolidJS | Reatividade granular — atualiza apenas o nó DOM do sinal que mudou, sem reconciliação global |
+| Build | Vite + pnpm | Vite: ESM nativo, hot-reload, bundle de Worker. pnpm: instalação rápida via hard links, economia de disco e lockfile determinístico |
+| WebSocket | Web Worker isolado | Mantém a conexão fora da thread principal — sem jank de render |
+| Comunicação Worker → UI | SharedArrayBuffer / Transferable Objects | Zero-copy — sem serialização entre threads |
+| Buffer de dados | Circular Buffer (tamanho fixo por sinal) | Sem crescimento de memória; sobrescreve amostras antigas |
+| Gráficos | uPlot | Canvas 2D puro — ordens de grandeza mais rápido que SVG para séries temporais densas |
+| Gauges / Cockpit | Canvas API via componente SolidJS | Redesenho do ponteiro por frame, throttle a 60fps via `requestAnimationFrame` |
+| Estado global | Sinais do SolidJS (`createSignal` / `createStore`) | Substitui Zustand — alinhado ao runtime do framework |
+| Decodificação binária | `DataView` / buffer parsing no Worker | Dados chegam em formato binário (Protobuf/FlatBuffers) — decodificação acontece fora da thread principal |
+| Downsampling | LTTB (Largest-Triangle-Three-Buckets) no Worker | Reduz pontos enviados ao gráfico sem perder a forma da curva |
+| Estilização | CSS Variables | Compatível com o tema escuro já definido |
 
 ---
 
@@ -45,51 +51,69 @@ ws://<servidor>:8081/ws?token=<JWT>
 
 O token JWT é obtido via `POST /login` com `{ username, password }` e tem validade de 8 horas.
 
-### 3.2 Formato de Mensagem Esperado (por frame WebSocket)
+### 3.2 Formato de Mensagem (binário por frame WebSocket)
 
-Cada mensagem é um JSON com um único sinal:
-
-```json
-{
-  "timestamp": 1716300000.123,
-  "device_id": "car_192_168_1_10",
-  "can_id": 415006592,
-  "signal_name": "act_Speed_A0",
-  "value": 3200.0,
-  "unit": "rpm"
-}
-```
+Os dados chegam em formato binário (Protobuf/FlatBuffers). A decodificação é responsabilidade do `worker.js`, que expõe os campos abaixo para o restante do frontend:
 
 | Campo | Tipo | Uso no Frontend |
 |-------|------|-----------------|
-| `timestamp` | `float` (Unix epoch, segundos) | Eixo X dos gráficos; timestamp de última leitura |
+| `timestamp` | `f64` (Unix epoch, segundos) | Eixo X dos gráficos; timestamp de última leitura |
 | `device_id` | `string` | Filtro por dispositivo (futuro multi-carro) |
-| `can_id` | `uint32` | Agrupamento por subsistema (BMS, VCU, IMU…) |
+| `can_id` | `u32` | Agrupamento por subsistema (BMS, VCU, IMU…) |
 | `signal_name` | `string` | Chave primária para identificar o parâmetro |
-| `value` | `float` | Valor a plotar / exibir na status bar |
+| `value` | `f64` | Valor a plotar / exibir na status bar |
 | `unit` | `string` | Exibido ao lado do valor (rpm, V, °C, m/s², %) |
 
 ### 3.3 Comportamento de Reconexão
 
-O frontend reconecta automaticamente em até 3 segundos em caso de queda. Não há estado no servidor por conexão — cada reconexão recebe apenas frames novos.
+O Worker reconecta automaticamente em até 3 segundos em caso de queda. Não há estado no servidor por conexão — cada reconexão recebe apenas frames novos.
 
 ### 3.4 O que o Backend NÃO precisa implementar (por ora)
 
-- Snapshots iniciais ou histórico ao conectar — o dashboard mostra dados a partir da conexão
-- Agrupamento por subsistema — o frontend faz isso via `signal_name`
-- Throttling — o frontend aceita qualquer taxa e descarta frames antigos da janela de visualização
+- Snapshots iniciais ou histórico ao conectar
+- Agrupamento por subsistema (feito no frontend via `signal_name`)
+- Throttling de taxa (o Worker aplica LTTB antes de enviar à UI)
 
 ---
 
-## 4. Fase 1 — Aba "Análise" (MoTeC-style)
+## 4. Arquitetura de Dados em Tempo Real
 
-### 4.1 Layout
+```
+Servidor Rust (binário — Protobuf/FlatBuffers)
+      │
+      │  WebSocket
+      ▼
+ worker.js  ──────────────────────────────────────────────────
+  │  Recebe frames binários, decodifica via DataView         │ Thread do Worker
+  │  Aplica LTTB, mantém CircularBuffer[signal_name]         │
+  │  Mantém latestValues[signal_name] → { value, unit, ts }  │
+  └──── SharedArrayBuffer / postMessage(Transferable) ────────
+      │
+      ▼
+ store.js (SolidJS createStore)
+  │  Expõe sinais reativos para cada signal_name
+  └──── Componentes subscrevem apenas o que renderizam
+      │
+      ▼
+ App.jsx → StatusBar / MotecChart / Gauge
+```
+
+**Regras do buffer:**
+- Tamanho fixo por sinal (ex: 3.000 pontos = ~23s a 130Hz)
+- Worker aplica LTTB antes de transferir para o gráfico (ex: reduz para 500 pontos para visualização de volta completa)
+- `requestAnimationFrame` limita updates de Canvas a 60fps — dados a 130Hz são amostrados, não descartados
+
+---
+
+## 5. Fase 1 — Aba "Análise" (MoTeC-style)
+
+### 5.1 Layout
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  TOPBAR: Logo | Status WS | Taxa msg/s | Última atualização │
+│  TOPBAR: Logo | Status WS | Taxa msg/s | Latência | Alertas │
 ├─────────────────────────────────────────────────────────────┤
-│  TABS: [ Análise ] [ Mapa & Cockpit (em breve) ]            │
+│  TABS: [ Análise ] [ Dashboard / Cockpit (em breve) ]       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  STATUS BAR (parâmetros pinados)                            │
@@ -99,174 +123,130 @@ O frontend reconecta automaticamente em até 3 segundos em caso de queda. Não h
 │  │ max/min  │ │ max/min  │ │ max/min  │ │          │      │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘      │
 │                                                             │
-│  ÁREA DE GRÁFICOS (grid configurável)                       │
+│  ÁREA DE GRÁFICOS uPlot (grid configurável)                 │
 │  ┌──────────────────────┐  ┌──────────────────────┐        │
 │  │  Gráfico A           │  │  Gráfico B           │        │
-│  │  (sinal vs tempo)    │  │  (sinal vs sinal)    │        │
+│  │  Canvas — sinal×tempo│  │  Canvas — sinal×sinal│        │
 │  └──────────────────────┘  └──────────────────────┘        │
 │  ┌──────────────────────────────────────────────────┐      │
-│  │  Gráfico C (largura total, ex: velocidade)       │      │
+│  │  Gráfico C (largura total — cursor sincronizado) │      │
 │  └──────────────────────────────────────────────────┘      │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Componentes
+### 5.2 Componentes
 
-#### `StatusBar`
+#### `StatusBar.jsx`
 - Cards para cada parâmetro "pinado"
-- Cada card exibe: valor atual, unidade, máximo histórico (sessão), mínimo histórico, média (janela deslizante de N amostras)
-- Cor do card muda conforme limites configuráveis (verde → amarelo → vermelho)
-- Lista de parâmetros pinados: **a ser definida pelo time** — o sistema suporta qualquer `signal_name` recebido via WS
+- Cada card: valor atual, unidade, máximo/mínimo da sessão, média (janela deslizante)
+- Cor do card via CSS variable: verde → amarelo → vermelho conforme limites configuráveis
+- SolidJS atualiza **apenas o nó de texto** do sinal que mudou — sem re-render do card inteiro
 
-#### `ChartGrid`
-- Grid responsivo de 1, 2 ou 3 colunas
-- Cada célula é um `ChartPanel` independente
-- O engenheiro pode selecionar qual sinal vai em cada painel via dropdown
-- Suporta múltiplos sinais no mesmo gráfico (eixo Y duplo opcional)
-
-#### `ChartPanel`
+#### `MotecChart.jsx`
+- Wrapper do uPlot com cursor sincronizado entre instâncias (`cursor.sync`)
+- Instâncias separadas por grupo de sinais (Velocidade, RPM, Suspensão, etc.)
 - Janela temporal configurável: últimos 10s / 30s / 60s / 5min
-- Eixo X: tempo relativo (segundos atrás)
-- Eixo Y: automático com margem de 10%, ou com limites fixos vindos do CSV CAN
-- Legenda inline (clique para mostrar/ocultar sinal)
-- Linha de referência horizontal (limite crítico) — configurável
+- Eixo Y automático com margem de 10%, ou com limites fixos vindos do CSV CAN
+- O Worker aplica LTTB antes de enviar dados ao gráfico para visualização de longo prazo
+
+#### `Gauge.jsx`
+- Componente Canvas para tacômetros e velocímetros estilo cockpit
+- Camada estática: imagem de fundo (carro/escala) carregada uma vez
+- Camada dinâmica: ponteiro redesenhado via `clearRect` + `drawImage` a cada frame
+- Throttle obrigatório via `requestAnimationFrame` — máximo 60fps independente da taxa de entrada
 
 #### `SignalSelector`
-- Dropdown que lista todos os `signal_name` recebidos na sessão
-- Organizado por subsistema inferido do prefixo do nome (`act_Speed_A0` → VCU / Motor)
+- Lista todos os `signal_name` recebidos na sessão
+- Organizado por subsistema inferido do prefixo (`act_Speed_A0` → VCU / Motor)
 - Busca por texto
 
-### 4.3 Gerenciamento de Dados em Tempo Real
-
-```
-WebSocket frame
-      │
-      ▼
- signalStore (Zustand)
-      │
-      ├── ringBuffer[signal_name] → últimas N amostras (ex: 3000 pontos)
-      │   usado pelos ChartPanels
-      │
-      └── latestValues[signal_name] → { value, timestamp, min, max, sum, count }
-          usado pela StatusBar
-```
-
-- **Ring buffer por sinal:** descarta amostras mais antigas quando cheio — sem crescimento de memória
-- **Subscrição granular:** cada componente subscreve apenas os sinais que renderiza
-- **Throttle de render:** gráficos re-renderizam no máximo a 10 Hz via `requestAnimationFrame`
-
-### 4.4 Configuração de Parâmetros (a definir pelo time)
-
-Os parâmetros da StatusBar e os layouts de gráfico padrão serão definidos num arquivo de configuração:
+### 5.3 Configuração de Parâmetros (a definir pelo time)
 
 ```js
-// src/config/dashboardConfig.js  (a ser preenchido)
+// src/config/dashboardConfig.js  (a ser preenchido pelo time de engenharia)
 export const PINNED_SIGNALS = [
-  // { signalName: 'act_Speed_A0', label: 'RPM Motor A', warnMin: null, warnMax: 10000, critMax: 12000 },
-  // ...
+  // { signalName: 'act_Speed_A0', label: 'RPM Motor A', warnMax: 10000, critMax: 12000 },
+  // { signalName: 'act_MotorTemperature_A0', label: 'Temp Motor A', warnMax: 80, critMax: 100 },
 ];
 
 export const DEFAULT_CHART_LAYOUT = [
   // { signals: ['act_Speed_A0', 'act_Speed_B0'], label: 'Velocidade Motores' },
-  // ...
 ];
 ```
 
-**A lista de sinais prioritários será definida pelo time de engenharia após análise dos CSVs CAN.**
-
 ---
 
-## 5. Fase 2 — Aba "Mapa & Cockpit" (implementação futura)
-
-> Esta aba está planejada mas **não será implementada na Fase 1**. Documentada aqui para alinhar dependências de backend.
-
-### 5.1 Subcomponentes planejados
+## 6. Fase 2 — Aba "Dashboard / Cockpit" (implementação futura)
 
 | Componente | Descrição | Dependência de backend |
 |-----------|-----------|----------------------|
-| **TrackMap** | SVG/Canvas da pista com posição do carro em tempo real | Precisa de `lat/lon` ou coordenadas locais via IMU integrada |
-| **LiveCamera** | Stream de vídeo ao vivo (MJPEG ou WebRTC) | Endpoint de vídeo separado do WS de telemetria |
-| **RPM Gauge** | Tacômetro analógico estilo cockpit | `act_Speed_*` já disponível no WS |
-| **SpeedDisplay** | Velocidade em km/h grande em destaque | `ventor_linear_speed_x` do IMU já disponível no WS |
-| **GForceVector** | Vetor de aceleração G em 2D | `ventor_linear_acc_*` já disponível no WS |
-
-### 5.2 Requisitos adicionais para o backend (Fase 2)
-
-- Endpoint de vídeo (a definir: MJPEG stream ou WebRTC signaling)
-- Integração de GPS ou estimativa de posição por odometria para o mapa de trajetória
-- Possível endpoint REST para buscar o SVG/imagem da pista configurada
+| **TrackMap** | Canvas com posição do carro em tempo real | `lat/lon` ou odometria via IMU |
+| **LiveCamera** | Stream de vídeo ao vivo (MJPEG ou WebRTC) | Endpoint de vídeo separado do WS |
+| **RPM Gauge** | Tacômetro Canvas estilo cockpit | `act_Speed_*` já disponível |
+| **SpeedDisplay** | Velocidade em destaque | `ventor_linear_speed_x` já disponível |
+| **GForceVector** | Vetor de aceleração 2D | `ventor_linear_acc_*` já disponível |
 
 ---
 
-## 6. Estrutura de Pastas do Projeto
+## 7. Estrutura de Arquivos
 
 ```
 telemetry-dashboard/
 ├── public/
 ├── src/
+│   ├── worker.js               ← WebSocket client + decodificação + CircularBuffer + LTTB
+│   ├── store.js                ← SolidJS createStore: sinais reativos globais
+│   ├── App.jsx                 ← Estrutura principal, Tabs, StatusBar
 │   ├── components/
-│   │   ├── layout/
-│   │   │   ├── TopBar.jsx
-│   │   │   └── TabNav.jsx
-│   │   ├── analysis/
-│   │   │   ├── StatusBar.jsx
-│   │   │   ├── StatusCard.jsx
-│   │   │   ├── ChartGrid.jsx
-│   │   │   ├── ChartPanel.jsx
-│   │   │   └── SignalSelector.jsx
-│   │   └── cockpit/           ← Fase 2 (stubs apenas)
+│   │   ├── StatusBar.jsx       ← Cards de parâmetros pinados
+│   │   ├── MotecChart.jsx      ← Wrapper uPlot com cursor.sync
+│   │   ├── Gauge.jsx           ← Canvas gauge (RPM, Velocidade)
+│   │   └── cockpit/            ← Fase 2 (stubs)
 │   │       ├── TrackMap.jsx
-│   │       ├── LiveCamera.jsx
-│   │       └── Gauges.jsx
-│   ├── store/
-│   │   └── signalStore.js     ← Zustand: ring buffers + latest values
-│   ├── hooks/
-│   │   ├── useWebSocket.js    ← Gerenciamento de conexão + reconexão
-│   │   └── useSignalHistory.js
+│   │       └── LiveCamera.jsx
 │   ├── config/
-│   │   └── dashboardConfig.js ← Parâmetros pinados + layouts padrão (A DEFINIR)
-│   ├── utils/
-│   │   ├── ringBuffer.js
-│   │   └── signalGrouping.js  ← Inferência de subsistema por prefixo
-│   ├── pages/
-│   │   ├── LoginPage.jsx
-│   │   └── DashboardPage.jsx
-│   ├── App.jsx
-│   └── main.jsx
+│   │   └── dashboardConfig.js  ← Sinais pinados + layouts padrão (A DEFINIR)
+│   └── utils/
+│       ├── circularBuffer.js
+│       ├── lttb.js             ← Algoritmo Largest-Triangle-Three-Buckets
+│       └── signalGrouping.js   ← Inferência de subsistema por prefixo
 ├── package.json
 └── vite.config.js
 ```
 
 ---
 
-## 7. Próximos Passos
+## 8. Próximos Passos
 
 ### Time Frontend
 
-1. Bootstrapar o projeto com `npm create vite@latest telemetry-dashboard -- --template react`
-2. Implementar `useWebSocket.js` e `signalStore.js` com ring buffer
-3. Implementar `StatusBar` com cards genéricos (parâmetros configuráveis via `dashboardConfig.js`)
-4. Implementar `ChartPanel` com janela temporal configurável
-5. Implementar `ChartGrid` com layout de 2 colunas padrão
-6. **Aguardar definição do time de engenharia** para preencher `dashboardConfig.js`
+1. Bootstrapar o projeto: `pnpm create vite telemetry-dashboard -- --template` com SolidJS
+2. Implementar `worker.js`: WebSocket + decodificação binária + CircularBuffer + postMessage com Transferable
+3. Implementar `store.js` com `createStore` do SolidJS
+4. Implementar `StatusBar.jsx` com atualização granular por sinal
+5. Implementar `MotecChart.jsx` com uPlot e cursor.sync
+6. Implementar `Gauge.jsx` com Canvas + rAF throttle
+7. Aguardar definição do time de engenharia para preencher `dashboardConfig.js`
 
 ### Time de Engenharia (dependência para Fase 1)
 
-- Definir lista de sinais prioritários para a `StatusBar` (nome, unidade, limites de alerta)
-- Definir layouts de gráficos padrão para os 2-3 painéis principais
-- Definir janela temporal padrão desejada (últimos 30s? 60s?)
+- Definir lista de sinais prioritários para a StatusBar (nome, unidade, limites de alerta)
+- Definir layouts de gráficos padrão
+- Definir janela temporal padrão desejada
 
 ### Time Backend
 
-- Confirmar que o contrato de mensagem WS descrito na Seção 3 reflete o que será enviado
-- Confirmar porta e autenticação (JWT via query param `?token=` está documentado no `main.rs` e é o mecanismo suportado pelo browser)
+- Confirmar que o schema binário (Protobuf/FlatBuffers) da Seção 3 reflete o que é enviado
+- Endpoint de vídeo para a Fase 2 (MJPEG ou WebRTC signaling)
 
 ---
 
-## 8. Observações Técnicas
+## 9. Observações Técnicas
 
-- **Performance:** Gráficos com alta taxa de dados (>100 frames/s) podem exigir migração de Recharts para `uPlot` (Canvas nativo). Validar na integração.
-- **Multi-carro:** A arquitetura com `device_id` no store já permite filtrar por carro. A UI de seleção de dispositivo não está planejada para Fase 1 mas a estrutura suporta.
-- **Offline/histórico:** Não está no escopo. O dashboard exibe apenas dados da sessão atual (desde a conexão WS).
-- **Segurança:** O token JWT expira em 8h. O frontend detecta expiração localmente (decodificando o payload sem verificar assinatura) e redireciona para login antes de tentar reconectar com token inválido.
+- **Por que SolidJS em vez de React:** a 130Hz, o custo de reconciliação do React causa quedas de frame (stuttering). O SolidJS tem impacto na CPU equivalente ao Vanilla JS, com o código organizado em componentes.
+- **Por que uPlot em vez de Recharts:** o uPlot desenha diretamente em Canvas, evitando a manipulação de milhares de nós SVG. Para séries temporais densas, a diferença de performance é de ordens de grandeza.
+- **Por que Web Worker:** isola a conexão WebSocket da thread principal. Se o navegador processar um layout pesado, o recebimento de dados não é afetado.
+- **Multi-carro:** a arquitetura com `device_id` no store já suporta filtrar por carro. A UI de seleção não está na Fase 1.
+- **Segurança:** o token JWT expira em 8h. O frontend detecta expiração localmente e redireciona para login antes de reconectar com token inválido.
+- **`requestAnimationFrame` como throttle:** tentar atualizar gauges a 130Hz é desperdício — o monitor opera a 60Hz (ou 120Hz no máximo). O rAF garante que o Canvas só redesenha quando o monitor está pronto para exibir.

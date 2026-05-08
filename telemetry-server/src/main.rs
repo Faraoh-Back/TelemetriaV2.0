@@ -27,7 +27,7 @@ mod decoder;
 
 // ==================== HTML ESTÁTICO ====================
 // Embutido no binário — não precisa de arquivo externo em produção
-const INDEX_HTML: &str = include_str!("../static/index.html");
+const INDEX_HTML: &str = include_str!("../static/index.legacy.html");
 
 // ==================== CONFIGURAÇÕES ====================
 const TCP_PORT: u16 = 8080;

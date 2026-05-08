@@ -1,9 +1,9 @@
 import { onMount } from 'solid-js'
 import { For } from 'solid-js'
-import { connect, status } from './store.js'
-import StatusBar from './components/StatusBar.jsx'
-import MotecChart from './components/MotecChart.jsx'
-import { DEFAULT_CHART_LAYOUT } from './config/dashboardConfig.js'
+import { connect, status } from '../store.js'
+import StatusBar from '../components/StatusBar.jsx'
+import MotecChart from '../components/MotecChart.jsx'
+import { DEFAULT_CHART_LAYOUT } from '../config/dashboardConfig.js'
 
     function App() {
         onMount(() => {

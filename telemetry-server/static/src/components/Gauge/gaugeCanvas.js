@@ -1,17 +1,13 @@
 /**
  * ============================================================================
- * gaugeCanvas.js
+ * gaugeCanvas.js  (atualizado)
  * ============================================================================
  *
- * RESPONSABILIDADE:
- * -----------------
- * Camada imperativa de desenho do Gauge.
+ * Sem mudanças estruturais. Depende de gaugeUtils.js atualizado para:
+ *   - formatGaugeValue(): zero casas decimais (Math.round)
+ *   - valueToAngle(): valor já clampado antes de chegar aqui
  *
- * O componente SolidJS apenas decide quando desenhar. Este arquivo decide como
- * desenhar cada parte do canvas:
- *
- *   - drawStatic(): fundo, arco base, zonas, ticks e labels
- *   - drawDynamic(): arco de valor, ponteiro, valor central e unidade
+ * O texto central continua exibindo: valor (zero decimais) + unidade.
  */
 
 import {
@@ -24,15 +20,6 @@ import {
     valueToAngle,
 } from './gaugeUtils'
 
-/**
- * Desenha a camada que muda raramente.
- *
- * Fluxo:
- *   props de escala/limite
- *       -> geometria do arco
- *       -> zonas de alerta
- *       -> ticks e labels fixos
- */
 export function drawStatic(ctx, layout, min, max, warnMax, critMax) {
     const { cx, cy, size } = layout
 
@@ -79,14 +66,8 @@ export function drawStatic(ctx, layout, min, max, warnMax, critMax) {
         const sin = Math.sin(angle)
 
         ctx.beginPath()
-        ctx.moveTo(
-            cx + cos * layout.tickInnerRadius,
-            cy + sin * layout.tickInnerRadius
-        )
-        ctx.lineTo(
-            cx + cos * layout.tickOuterRadius,
-            cy + sin * layout.tickOuterRadius
-        )
+        ctx.moveTo(cx + cos * layout.tickInnerRadius, cy + sin * layout.tickInnerRadius)
+        ctx.lineTo(cx + cos * layout.tickOuterRadius, cy + sin * layout.tickOuterRadius)
         ctx.strokeStyle = GAUGE_COLORS.tick
         ctx.lineWidth = layout.tickWidth
         ctx.lineCap = 'butt'
@@ -100,24 +81,10 @@ export function drawStatic(ctx, layout, min, max, warnMax, critMax) {
         ctx.fillStyle = GAUGE_COLORS.tickLabel
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.fillText(
-            formatGaugeTick(tickValue, layout.compactTicks),
-            lx,
-            ly
-        )
+        ctx.fillText(formatGaugeTick(tickValue, layout.compactTicks), lx, ly)
     }
 }
 
-/**
- * Desenha a camada que acompanha os dados em tempo real.
- *
- * Fluxo:
- *   valor atual do store
- *       -> cor por limite
- *       -> arco preenchido
- *       -> ponteiro
- *       -> display central
- */
 export function drawDynamic(ctx, layout, value, min, max, unit, warnMax, critMax, hasSignal = true) {
     const { cx, cy, size } = layout
 
@@ -162,6 +129,7 @@ export function drawDynamic(ctx, layout, value, min, max, unit, warnMax, critMax
     ctx.fillStyle = color
     ctx.fill()
 
+    // Valor com zero casas decimais + unidade rpm
     ctx.font = `bold ${layout.valueFontSize}px ui-monospace,Consolas,monospace`
     ctx.fillStyle = GAUGE_COLORS.value
     ctx.textAlign = 'center'

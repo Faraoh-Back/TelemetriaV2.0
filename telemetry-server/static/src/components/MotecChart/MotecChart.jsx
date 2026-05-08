@@ -239,7 +239,7 @@ function MotecChart(props) {
         /**
          * Cria gráfico inicial.
          */
-        await initChart()
+        await ensureChart()
 
         /**
          * ========================================================================

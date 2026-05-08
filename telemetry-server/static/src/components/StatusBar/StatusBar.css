@@ -1,12 +1,33 @@
+/* StatusBar.css  (atualizado)
+─────────────────────────────────────────────────────────────────────────────
+Correções:
+        1. Container externo: overflow: hidden, min-height: 0
+        2. Container de scroll interno: overflow-y: auto, min-height: 0
+        3. signal-card__value-area: largura fixa 110px, flex-shrink 0, text-align right,
+            white-space nowrap, font-variant-numeric tabular-nums
+        4. Estatísticas: mesmo tratamento de largura para estabilidade
+*/
+
+/* ── CONTAINER PRINCIPAL ─────────────────────────────────────────────────── */
 .status-bar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px 16px;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;                  /* container externo NÃO rola */
     background: var(--bg2);
     border-bottom: 1px solid var(--border);
 }
 
+.status-bar__scroll {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    min-height: 0;
+    overflow-y: auto;                  /* apenas o container interno rola */
+}
+
+/* ── SIGNAL CARD ─────────────────────────────────────────────────────────── */
 .signal-card {
     --signal-card-color: var(--accent);
     background: var(--bg3);
@@ -14,41 +35,80 @@
     border-left: 3px solid var(--signal-card-color);
     border-radius: 8px;
     padding: 10px 14px;
-    min-width: 140px;
+    min-width: 160px;
+    flex-shrink: 0;
 }
 
 .signal-card--temperature { --signal-card-color: #e09b2f; }
-
-.signal-card--voltage { --signal-card-color: #3d8ef0; }
-
-.signal-card--power { --signal-card-color: var(--brand-orange); }
-
-.signal-card--state { --signal-card-color: #8b92a8; }
+.signal-card--voltage     { --signal-card-color: #3d8ef0; }
+.signal-card--power       { --signal-card-color: var(--brand-orange); }
+.signal-card--state       { --signal-card-color: #8b92a8; }
 
 .signal-card__label {
     font-size: 11px;
     color: var(--text2);
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ── LINHA DO VALOR ──────────────────────────────────────────────────────── */
+.signal-card__value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+/*
+ * Área de largura FIXA para o valor numérico.
+ * Isso evita que o layout oscile conforme a quantidade de dígitos muda.
+ */
+.signal-card__value-area {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    width: 110px;               /* largura fixa */
+    flex-shrink: 0;
+    justify-content: flex-end;  /* alinha à direita */
 }
 
 .signal-card__value {
     font-size: 20px;
     font-weight: 600;
     font-family: var(--mono);
+    font-variant-numeric: tabular-nums;  /* dígitos de largura uniforme */
     color: var(--signal-card-color);
+    white-space: nowrap;
+    text-align: right;
 }
 
 .signal-card__unit {
     font-size: 11px;
     color: var(--text2);
-    margin-left: 2px;
+    white-space: nowrap;
 }
 
+/* ── ESTATÍSTICAS ────────────────────────────────────────────────────────── */
 .signal-card__stats {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-top: 6px;
     font-size: 11px;
     color: var(--text2);
     font-family: var(--mono);
+}
+
+.signal-card__stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    white-space: nowrap;
+}
+
+.signal-card__stat-value {
+    font-variant-numeric: tabular-nums;
+    min-width: 48px;           /* largura mínima para estabilidade */
+    text-align: right;
+    display: inline-block;
 }

@@ -1,22 +1,18 @@
 /**
  * ============================================================================
- * StatusBar.jsx
+ * StatusBar.jsx  (atualizado)
  * ============================================================================
  *
- * RESPONSABILIDADE:
- * -----------------
- * Renderizar a lista de sinais fixos do dashboard.
- *
- * Este componente não calcula estatísticas nem conhece detalhes internos do
- * card. Ele apenas:
- *
- *   1. Inicializa o hook de estatísticas para os sinais pinados
- *   2. Itera sobre PINNED_SIGNALS
- *   3. Renderiza um SignalCard por sinal
+ * Alterações:
+ *   - Estrutura de dois containers: externo com overflow:hidden,
+ *     interno (.status-bar__scroll) com overflow-y:auto e min-height:0.
+ *   - Passa signalColor de PINNED_SIGNALS para cada SignalCard (se definido),
+ *     ou usa getSignalColor(índice) como fallback para consistência com gráficos.
  */
 
 import { For } from 'solid-js'
 import { PINNED_SIGNALS } from '../../config/dashboardConfig.js'
+import { getSignalColor } from '../../utils/telemetryUtils.js'
 import SignalCard from './SignalCard'
 import { useSignalStats } from './useSignalStats'
 import './StatusBar.css'
@@ -26,16 +22,20 @@ function StatusBar() {
 
     return (
         <div class="status-bar">
-        <For each={PINNED_SIGNALS}>
-            {({ signalName, label, dataClass }) => (
-            <SignalCard
-                signalName={signalName}
-                label={label}
-                dataClass={dataClass}
-                stats={stats}
-            />
-            )}
-        </For>
+            {/* Container interno com overflow-y: auto — único responsável pelo scroll */}
+            <div class="status-bar__scroll">
+                <For each={PINNED_SIGNALS}>
+                    {({ signalName, label, dataClass }, index) => (
+                        <SignalCard
+                            signalName={signalName}
+                            label={label}
+                            dataClass={dataClass}
+                            stats={stats}
+                            signalColor={getSignalColor(index())}
+                        />
+                    )}
+                </For>
+            </div>
         </div>
     )
 }

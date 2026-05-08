@@ -1,57 +1,19 @@
 /**
  * ============================================================================
- * Gauge.jsx
+ * Gauge.jsx  (atualizado)
  * ============================================================================
  *
- * RESPONSABILIDADE:
- * -----------------
- * Orquestra o gauge de canvas dentro do lifecycle do SolidJS.
- *
- * Este arquivo cuida de:
- *
- *   1. Ler props e store global
- *   2. Configurar refs dos canvases
- *   3. Desenhar a camada estática quando escala/limites mudam
- *   4. Atualizar a camada dinâmica via requestAnimationFrame
- *   5. Renderizar a estrutura visual
- *
- * ARQUITETURA:
- * -------------
- *
- * Gauge.jsx
- *    |
- *    |-- gaugeCanvas.js
- *    |      |-- drawStatic()
- *    |      `-- drawDynamic()
- *    |
- *    |-- gaugeUtils.js
- *    |      |-- valueToAngle()
- *    |      `-- pointerColor()
- *    |
- *    `-- Gauge.css
- *
- * FLUXO:
- * ------
- *
- * onMount()
- *    |
- *    |-- drawStatic()
- *    |      `-- pinta fundo/ticks/zonas uma vez
- *    |
- *    `-- requestAnimationFrame(tick)
- *           |
- *           |-- lê signals[signalName]
- *           |-- ignora se valor não mudou
- *           `-- drawDynamic()
- *
- * createEffect()
- *    `-- redesenha camada estática quando size/min/max/warn/crit mudam
+ * Alterações:
+ *   - Antes de passar o valor ao drawDynamic, aplica clampGaugeValue()
+ *     para normalizar ao intervalo [min, max] do gauge.
+ *   - formatGaugeValue() exibe zero casas decimais (já atualizado em gaugeUtils).
+ *   - A unidade continua exibida ao lado do valor textual.
  */
 
 import { createEffect, onCleanup, onMount } from 'solid-js'
 import { signals } from '../../store.js'
 import { drawDynamic, drawStatic } from './gaugeCanvas'
-import { getGaugeLayout } from './gaugeUtils'
+import { clampGaugeValue, getGaugeLayout } from './gaugeUtils'
 import './Gauge.css'
 
 function Gauge(props) {
@@ -66,47 +28,31 @@ function Gauge(props) {
     const warnMax = () => props.warnMax ?? null
     const critMax = () => props.critMax ?? null
 
-    /**
-     * Centraliza os cálculos de geometria.
-     *
-     * Como as duas camadas usam a mesma escala, manter isso em uma função evita
-     * divergência entre canvas estático e canvas dinâmico.
-     */
     function getLayout() {
         return getGaugeLayout(size(), min(), max())
     }
 
-    /**
-     * Redesenha fundo, ticks e faixas de alerta.
-     *
-     * Essa etapa é separada do ponteiro para reduzir trabalho por frame: o que
-     * não muda com frequência fica em um canvas próprio.
-     */
     function renderStaticLayer() {
         if (!staticCanvas) return
-
         const ctx = staticCanvas.getContext('2d')
         drawStatic(ctx, getLayout(), min(), max(), warnMax(), critMax())
     }
 
-    /**
-     * Lê o valor mais recente do store e atualiza somente a camada dinâmica.
-     *
-     * O RAF mantém o ponteiro sincronizado com a tela, enquanto o cache
-     * lastValue evita redesenhar quando o sinal ainda não mudou.
-     */
     function tick() {
         rafHandle = requestAnimationFrame(tick)
-
         if (!dynamicCanvas) return
 
         const entry = signals[props.signalName]
         const hasSignal = entry?.value != null
-        const value = hasSignal ? entry.value : min()
+
+        // ── NORMALIZAÇÃO ──────────────────────────────────────────────────────
+        // Clamp do valor bruto ao intervalo [min, max] antes de renderizar.
+        // Isso evita que RPMs fora da escala do gauge distorçam o ponteiro.
+        const rawValue = hasSignal ? entry.value : min()
+        const value = clampGaugeValue(rawValue, min(), max())
 
         const frameKey = hasSignal ? value : '__empty__'
         if (frameKey === lastValue) return
-
         lastValue = frameKey
 
         const unit = entry?.unit ?? props.unit ?? ''
@@ -125,29 +71,17 @@ function Gauge(props) {
         )
     }
 
-    /**
-     * ==========================================================================
-     * LIFECYCLE
-     * ==========================================================================
-     */
     onMount(() => {
         renderStaticLayer()
         rafHandle = requestAnimationFrame(tick)
     })
 
-    /**
-     * Reage a mudanças de configuração.
-     *
-     * Acessar os getters dentro do effect registra as dependências do Solid para
-     * size/min/max/warnMax/critMax. O valor dinâmico continua vindo do RAF.
-     */
     createEffect(() => {
         size()
         min()
         max()
         warnMax()
         critMax()
-
         renderStaticLayer()
     })
 
@@ -155,11 +89,6 @@ function Gauge(props) {
         if (rafHandle) cancelAnimationFrame(rafHandle)
     })
 
-    /**
-     * ==========================================================================
-     * RENDER
-     * ==========================================================================
-     */
     return (
         <div class="gauge">
             <div
@@ -175,7 +104,6 @@ function Gauge(props) {
                     width={size()}
                     height={size()}
                 />
-
                 <canvas
                     ref={dynamicCanvas}
                     class="gauge__canvas"

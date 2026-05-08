@@ -1,15 +1,15 @@
 /**
  * ============================================================================
- * gaugeUtils.js
+ * gaugeUtils.js  (atualizado)
  * ============================================================================
  *
- * RESPONSABILIDADE:
- * -----------------
  * Utilitários puros do Gauge.
  *
- * Este arquivo não conhece SolidJS, DOM ou Canvas. Ele concentra as regras de
- * conversão de valor e estado visual para que o desenho e o componente possam
- * reutilizar a mesma lógica sem acoplamento.
+ * Alterações:
+ *   - formatGaugeValue() agora mostra zero casas decimais (Math.round)
+ *     para RPM e qualquer sinal com escala grande
+ *   - clampGaugeValue(): normaliza o valor ao intervalo do gauge antes
+ *     de passar para valueToAngle, evitando valores visuais inconsistentes
  */
 
 export const START_ANGLE = (225 * Math.PI) / 180
@@ -71,18 +71,28 @@ export function formatGaugeTick(value, compact = false) {
     return Number.isInteger(value) ? value.toString() : value.toFixed(1)
 }
 
+/**
+ * Formata o valor central do gauge.
+ * Para RPM (escala >= 1000) ou qualquer valor: ZERO casas decimais.
+ */
 export function formatGaugeValue(value) {
     if (value == null) return '--'
+    // Sempre zero casas decimais conforme requisito
+    return Math.round(value).toString()
+}
 
-    if (Math.abs(value) >= 10000) {
-        return Math.round(value).toString()
-    }
-
-    return Number.isInteger(value) ? value.toString() : value.toFixed(1)
+/**
+ * Clamp do valor ao intervalo [min, max] do gauge.
+ * Evita que valores brutos absurdos distorçam o ponteiro.
+ */
+export function clampGaugeValue(value, min, max) {
+    if (value == null) return min
+    return Math.max(min, Math.min(max, value))
 }
 
 /**
  * Converte um valor numérico do intervalo [min, max] para o ângulo usado no arco.
+ * O valor já deve estar clampado antes de chamar esta função.
  */
 export function valueToAngle(value, min, max) {
     const range = max - min

@@ -1,216 +1,110 @@
 /**
  * ============================================================================
- * chartOptions.js
+ * chartOptions.js  (atualizado)
  * ============================================================================
  *
- * RESPONSABILIDADE:
- * -----------------
- * Este arquivo contém APENAS:
- *
- *   - configuração visual do uPlot
- *   - sync compartilhado
- *   - estilos
- *   - axes
- *   - séries
- *
- * A ideia é:
- *
- * manter configuração PURA e desacoplada.
- *
- * Isso facilita:
- *
- *   - manutenção
- *   - testes
- *   - reuso
- *   - criação de temas
- *   - múltiplos tipos de gráfico
- *
- * ============================================================================
+ * Alterações:
+ *   - Séries usam getSignalColor(index) — paleta fixa por índice,
+ *     consistente com cards e legenda.
+ *   - Domínio do eixo Y: fixo para sinais conhecidos (rpm, acc, temp, voltage,
+ *     power); dinâmico com margem 10% para demais, via getYDomain().
+ *   - Tooltip/legenda formata valores com 2 casas decimais.
+ *   - points.show: false, espessura de linha uniforme 1.5px.
  */
 
 import uPlot from 'uplot'
-import { getSignalClassColor } from '../../utils/signalClasses'
+import { getSignalColor, getYDomain } from '../../utils/telemetryUtils.js'
 
-/**
- * ============================================================================
- * CURSOR SYNC
- * ============================================================================
- *
- * Todas as instâncias de gráficos compartilham
- * o MESMO sync object.
- *
- * Resultado:
- *
- * mover cursor em um gráfico
- * move cursor nos demais.
- *
- * Isso é EXTREMAMENTE útil para análise de telemetria.
- */
-export const cursorSync = uPlot.sync(
-    'eracing-telemetry'
-)
+export const cursorSync = uPlot.sync('eracing-telemetry')
 
-/**
- * ============================================================================
- * BUILD OPTIONS
- * ============================================================================
- *
- * Gera objeto de configuração do uPlot.
- *
- * IMPORTANTE:
- * -----------
- *
- * Essa função é PURA.
- *
- * Ela:
- *
- *   recebe inputs
- *   → retorna config
- *
- * sem side effects.
- */
-export function buildUPlotOptions({
-    width,
-    height,
-    signals,
-    cursorSync,
-    }) {
-/**
-   * ==========================================================================
-   * SERIES
-   * ==========================================================================
-   *
-   * uPlot exige:
-   *
-   * série 0 = eixo X
-   *
-   * As demais são dados.
-   */
+export function buildUPlotOptions({ width, height, signals, cursorSync }) {
     const series = [
         {},
-
         ...signals.map((name, i) => ({
-        label: name,
-
-        stroke:
-            getSignalClassColor(name, i),
-
-        width: 1.5,
-
-        points: {
-            show: false,
-        },
+            label: name,
+            stroke: getSignalColor(i),
+            width: 1.5,
+            points: { show: false },
         })),
     ]
+
+    // Pré-calcula domínio; getYDomain retorna null para tipo 'default'
+    // (indica que devemos calcular dinamicamente com os dados reais)
+    const [fixedMin, fixedMax] = getYDomain(signals, null)
+    const isFixedDomain = fixedMin !== null && fixedMax !== null
 
     return {
         width,
         height,
 
-    /**
-     * ========================================================================
-     * CURSOR SYNC
-     * ========================================================================
-     */
         cursor: {
-        sync: {
-            key: cursorSync.key,
-        },
+            sync: { key: cursorSync.key },
         },
 
-    /**
-     * ========================================================================
-     * SCALES
-     * ========================================================================
-     */
         scales: {
-        x: { time: true },
-        y: {
-            auto: true,
-            range: (_, min, max) => {
-                if (min == null || max == null) return [min, max]
-                if (min === max) return [min - 1, max + 1]
+            x: { time: true },
+            y: {
+                auto: true,
+                range: (_u, dataMin, dataMax) => {
+                    if (isFixedDomain) {
+                        return [fixedMin, fixedMax]
+                    }
 
-                const padding = (max - min) * 0.10
+                    if (dataMin == null || dataMax == null) return [-1, 1]
 
-                return [min - padding, max + padding]
-            },
-        },
-        },
+                    if (dataMin === dataMax) {
+                        const margin = Math.abs(dataMin) * 0.1 || 1
+                        return [dataMin - margin, dataMax + margin]
+                    }
 
-    /**
-     * ========================================================================
-     * AXES
-     * ========================================================================
-     */
-    axes: [
-        {
-            /**
-             * Formatação do timestamp.
-             */
-            values: (_, ticks) =>
-            ticks.map((t) => {
-                const d = new Date(t * 1000)
-
-                return [
-                d
-                    .getHours()
-                    .toString()
-                    .padStart(2, '0'),
-
-                d
-                    .getMinutes()
-                    .toString()
-                    .padStart(2, '0'),
-
-                d
-                    .getSeconds()
-                    .toString()
-                    .padStart(2, '0'),
-                ].join(':')
-            }),
-
-            stroke: '#8b92a8',
-
-            ticks: {
-            stroke:
-                'rgba(255,255,255,0.06)',
-            },
-
-            grid: {
-            stroke:
-                'rgba(255,255,255,0.06)',
+                    const range = dataMax - dataMin
+                    const margin = range * 0.10
+                    return [dataMin - margin, dataMax + margin]
+                },
             },
         },
 
-        /**
-       * Eixo Y
-       */
-        {
-            stroke: '#8b92a8',
-
-            ticks: {
-            stroke:
-                'rgba(255,255,255,0.06)',
+        axes: [
+            {
+                values: (_, ticks) =>
+                    ticks.map((t) => {
+                        const d = new Date(t * 1000)
+                        return [
+                            d.getHours().toString().padStart(2, '0'),
+                            d.getMinutes().toString().padStart(2, '0'),
+                            d.getSeconds().toString().padStart(2, '0'),
+                        ].join(':')
+                    }),
+                stroke: '#8b92a8',
+                ticks:  { stroke: 'rgba(255,255,255,0.06)' },
+                grid:   { stroke: 'rgba(255,255,255,0.06)' },
             },
-
-            grid: {
-            stroke:
-                'rgba(255,255,255,0.06)',
+            {
+                values: (_, ticks) =>
+                    ticks.map((v) =>
+                        v == null ? '' : Number(v).toFixed(2)
+                    ),
+                stroke: '#8b92a8',
+                ticks:  { stroke: 'rgba(255,255,255,0.06)' },
+                grid:   { stroke: 'rgba(255,255,255,0.06)' },
             },
-        },
-    ],
+        ],
 
-    /**
-     * Séries configuradas.
-     */
-    series,
-
-    /**
-     * Legenda.
-     */
-    legend: {
-        show: true,
+        legend: {
+            show: true,
+            values: [
+                {},
+                ...signals.map(() => ({
+                    value: (u, seriesIdx, dataIdx) => {
+                        if (dataIdx == null) return '—'
+                        const val = u.data?.[seriesIdx]?.[dataIdx]
+                        if (val == null || !isFinite(val)) return '—'
+                        return Number(val).toFixed(2)
+                    },
+                })),
+            ],
         },
+
+        series,
     }
 }

@@ -1,7 +1,19 @@
+/* SignalSelector.css  (atualizado)
+    ─────────────────────────────────────────────────────────────────────────────
+    Correções de scroll:
+        - .signal-selector: overflow: hidden (não rola), min-height: 0
+        - .signal-selector__groups: overflow-x: auto (scroll horizontal dos grupos)
+        - .signal-group__list: overflow-y: auto, min-height: 0
+    Todos os containers flex recebem min-height: 0 para que o scroll
+    funcione corretamente dentro de layouts Flexbox.
+*/
+
 .signal-selector {
     background: var(--bg2);
     border-bottom: 1px solid var(--border);
     padding: 12px 20px;
+    min-height: 0;
+    overflow: hidden;               /* container externo NÃO rola */
 }
 
 .signal-selector__header {
@@ -10,6 +22,7 @@
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 10px;
+    min-height: 0;
 }
 
 .signal-selector__title {
@@ -27,6 +40,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-height: 0;
 }
 
 .signal-selector__clear {
@@ -64,16 +78,22 @@
     border-color: var(--accent);
 }
 
+/* Container dos grupos: scroll horizontal, min-height: 0 essencial para Flexbox */
 .signal-selector__groups {
     display: flex;
     gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 2px;
+    min-height: 0;
+    overflow-x: auto;              /* scroll horizontal entre grupos */
+    overflow-y: hidden;
+    padding-bottom: 4px;
 }
 
 .signal-group {
     flex: 0 0 240px;
     min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .signal-group__header {
@@ -83,14 +103,17 @@
     font-size: 11px;
     margin-bottom: 6px;
     text-transform: uppercase;
+    flex-shrink: 0;
 }
 
+/* Container da lista interna: ÚNICO responsável pelo scroll vertical */
 .signal-group__list {
     display: flex;
     flex-direction: column;
     gap: 4px;
     max-height: 168px;
-    overflow: auto;
+    min-height: 0;
+    overflow-y: auto;              /* scroll vertical por grupo */
 }
 
 .signal-row {
@@ -135,6 +158,7 @@
     font-family: var(--mono);
     font-size: 11px;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .signal-row__unit {

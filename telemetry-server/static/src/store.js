@@ -26,9 +26,12 @@
 import { createStore } from 'solid-js/store'
 
 // ─── WORKER ──────────────────────────────────────────────────────────────────
-// O Worker está em public/worker.js — servido como asset estático.
-// { type: 'module' } não é necessário pois o worker.js é script clássico.
-const worker = new Worker('/worker.js')
+// O Worker fica em src/workers para poder importar os utils do projeto.
+// Vite resolve a URL e empacota o module worker junto com a aplicação.
+const worker = new Worker(
+    new URL('./workers/worker.js', import.meta.url),
+    { type: 'module' }
+)
 
 // ─── ESTADO REATIVO ───────────────────────────────────────────────────────────
 // signals: { [signal_name]: { value, unit, timestamp } }

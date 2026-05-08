@@ -6,7 +6,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
-      input: 'index.vite.html',
+      input: 'index.html',
     },
   },
 })

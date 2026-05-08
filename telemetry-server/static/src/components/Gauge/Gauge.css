@@ -1,0 +1,23 @@
+.gauge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.gauge__canvas-stack {
+    position: relative;
+}
+
+.gauge__canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.gauge__label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}

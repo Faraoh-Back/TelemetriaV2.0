@@ -4,8 +4,9 @@ import TopBar from './components/TopBar/TopBar.jsx'
 import TabBar from './components/TabBar/TabBar.jsx'
 import StatusBar from './components/StatusBar/StatusBar.jsx'
 import SignalSelector from './components/SignalSelector/SignalSelector.jsx'
+import TimeWindowControl from './components/TimeWindowControl/TimeWindowControl.jsx'
 import MotecChart from './components/MotecChart/MotecChart.jsx'
-import Gauge from './components/Gauge/Gauge.jsx'
+import Cockpit from './components/Cockpit/Cockpit.jsx'
 import { DEFAULT_CHART_LAYOUT, GAUGE_CONFIG } from './config/dashboardConfig.js'
 
 const TABS = [
@@ -14,7 +15,9 @@ const TABS = [
 ]
 
 function App() {
+  const [activeTab, setActiveTab] = createSignal('analise')
   const [selectedSignals, setSelectedSignals] = createSignal([])
+  const [windowSeconds, setWindowSeconds] = createSignal(30)
   const customChartKey = createMemo(() => selectedSignals().join('|'))
 
   onMount(() => {
@@ -42,49 +45,51 @@ function App() {
   return (
     <>
       <TopBar onLogout={handleLogout} />
-      <TabBar tabs={TABS} activeTab="analise" />
-      <StatusBar />
-      <SignalSelector
-        selectedSignals={selectedSignals()}
-        onToggleSignal={toggleSignal}
-        onClearSelection={clearSignalSelection}
-      />
+      <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
 
-      <div class="gauge-row">
-        <For each={GAUGE_CONFIG}>
-          {(g) => (
-            <Gauge
-              signalName={g.signalName}
-              label={g.label}
-              min={g.min}
-              max={g.max}
-              unit={g.unit}
-              warnMax={g.warnMax}
-              critMax={g.critMax}
-              size={160}
+      <Show
+        when={activeTab() === 'cockpit'}
+        fallback={
+          <>
+            <StatusBar />
+            <SignalSelector
+              selectedSignals={selectedSignals()}
+              onToggleSignal={toggleSignal}
+              onClearSelection={clearSignalSelection}
             />
-          )}
-        </For>
-      </div>
+            <TimeWindowControl
+              value={windowSeconds()}
+              onChange={setWindowSeconds}
+            />
 
-      <div class="chart-area">
-        <Show when={selectedSignals().length > 0}>
-          <For each={[customChartKey()]}>
-            {() => (
-              <MotecChart
-                label="Seleção customizada"
-                signals={selectedSignals()}
-              />
-            )}
-          </For>
-        </Show>
+            <div class="chart-area">
+              <Show when={selectedSignals().length > 0}>
+                <For each={[customChartKey()]}>
+                  {() => (
+                    <MotecChart
+                      label="Seleção customizada"
+                      signals={selectedSignals()}
+                      windowSeconds={windowSeconds()}
+                    />
+                  )}
+                </For>
+              </Show>
 
-        <For each={DEFAULT_CHART_LAYOUT}>
-          {({ label, signals }) => (
-            <MotecChart label={label} signals={signals} />
-          )}
-        </For>
-      </div>
+              <For each={DEFAULT_CHART_LAYOUT}>
+                {({ label, signals }) => (
+                  <MotecChart
+                    label={label}
+                    signals={signals}
+                    windowSeconds={windowSeconds()}
+                  />
+                )}
+              </For>
+            </div>
+          </>
+        }
+      >
+        <Cockpit gauges={GAUGE_CONFIG} />
+      </Show>
     </>
   )
 }

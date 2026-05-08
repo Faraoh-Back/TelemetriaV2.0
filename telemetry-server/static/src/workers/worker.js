@@ -43,7 +43,7 @@ import { decodeSignal } from '../utils/canDecode.js'
 // MENSAGENS RECEBIDAS (store.js → Worker):
 //   { cmd: 'connect',    url }                    — abre WS autenticado
 //   { cmd: 'disconnect' }                         — fecha sem reconectar
-//   { cmd: 'getBuffer',  name, threshold, reqId } — buffer LTTB sob demanda
+//   { cmd: 'getBuffer',  name, threshold, windowSeconds, reqId } — buffer LTTB sob demanda
 //   { cmd: 'getLatest',  names }                  — snapshot para hidratação inicial
 //
 // MENSAGENS EMITIDAS (Worker → store.js):
@@ -277,6 +277,37 @@ const CAN_MAP = {
         lastRateTs  = now;
         }
     }
+
+    // ─── JANELA TEMPORAL ─────────────────────────────────────────────────────────
+    // Recorta os arrays para os últimos N segundos antes do LTTB.
+    //
+    // Fluxo:
+    //   CircularBuffer.toArrays()
+    //      -> filterByTimeWindow()
+    //      -> lttb()
+    //      -> postMessage('buffer')
+    
+    function filterByTimeWindow(ts, val, windowSeconds) {
+        if (!windowSeconds || ts.length === 0) return { ts, val };
+
+        const latestTimestamp = ts[ts.length - 1];
+        const startTimestamp = latestTimestamp - windowSeconds;
+        let startIdx = 0;
+
+        while (
+        startIdx < ts.length - 1 &&
+        ts[startIdx] < startTimestamp
+        ) {
+        startIdx++;
+        }
+
+        if (startIdx === 0) return { ts, val };
+
+        return {
+        ts: ts.slice(startIdx),
+        val: val.slice(startIdx),
+        };
+    }
     
     // ─── WEBSOCKET ────────────────────────────────────────────────────────────────
     
@@ -318,7 +349,7 @@ const CAN_MAP = {
     //
     //   { cmd: 'connect',    url: 'ws://...' }         → abre conexão autenticada
     //   { cmd: 'disconnect' }                           → fecha sem reconectar
-    //   { cmd: 'getBuffer',  name, threshold, reqId }   → retorna buffer LTTB-reduzido
+    //   { cmd: 'getBuffer',  name, threshold, windowSeconds, reqId } → retorna buffer filtrado + LTTB
     //   { cmd: 'getLatest',  names }                    → retorna snapshot dos últimos valores
     
     self.onmessage = ({ data }) => {
@@ -343,7 +374,8 @@ const CAN_MAP = {
             }
             const { ts, val } = buf.toArrays();
             const threshold   = data.threshold || 500;
-            const reduced     = lttb(ts, val, threshold);
+            const windowed    = filterByTimeWindow(ts, val, data.windowSeconds);
+            const reduced     = lttb(windowed.ts, windowed.val, threshold);
     
             // Transfere os ArrayBuffers (zero-copy)
             self.postMessage(

@@ -8,12 +8,22 @@
 }
 
 .signal-card {
+    --signal-card-color: var(--accent);
     background: var(--bg3);
     border: 1px solid var(--border);
+    border-left: 3px solid var(--signal-card-color);
     border-radius: 8px;
     padding: 10px 14px;
     min-width: 140px;
 }
+
+.signal-card--temperature { --signal-card-color: #e09b2f; }
+
+.signal-card--voltage { --signal-card-color: #3d8ef0; }
+
+.signal-card--power { --signal-card-color: #a78bfa; }
+
+.signal-card--state { --signal-card-color: #8b92a8; }
 
 .signal-card__label {
     font-size: 11px;
@@ -25,7 +35,7 @@
     font-size: 20px;
     font-weight: 600;
     font-family: var(--mono);
-    color: var(--accent);
+    color: var(--signal-card-color);
 }
 
 .signal-card__unit {

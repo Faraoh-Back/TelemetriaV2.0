@@ -27,10 +27,11 @@ function StatusBar() {
     return (
         <div class="status-bar">
         <For each={PINNED_SIGNALS}>
-            {({ signalName, label }) => (
+            {({ signalName, label, dataClass }) => (
             <SignalCard
                 signalName={signalName}
                 label={label}
+                dataClass={dataClass}
                 stats={stats}
             />
             )}

@@ -245,8 +245,9 @@ function MotecChart(props) {
          * Este effect observa:
          *
          *   signals[name]?.timestamp
+         *   props.windowSeconds
          *
-         * Sempre que um sinal recebe novos dados,
+         * Sempre que um sinal recebe novos dados ou a janela muda,
          * o effect é reexecutado.
          *
          * Porém:
@@ -268,6 +269,7 @@ function MotecChart(props) {
          */
         createEffect(() => {
         const sigNames = props.signals ?? []
+        props.windowSeconds
 
         /**
          * Apenas acessar a propriedade já registra

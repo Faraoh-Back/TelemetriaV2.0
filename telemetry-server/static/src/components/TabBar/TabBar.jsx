@@ -1,26 +1,24 @@
 import './TabBar.css'
 
-function TabBar({ tabs, activeTab, onSelect }) {
+function TabBar(props) {
     return (
         <div class="tabbar">
-        {tabs.map(tab => {
-            const isActive   = tab.id === activeTab
-            const isDisabled = tab.disabled ?? false
-            const cls = [
-            'tab',
-            isActive   ? 'tab--active'   : '',
-            isDisabled ? 'tab--disabled' : '',
-            ].join(' ')
-
-            return (
+        {props.tabs.map(tab => (
             <div
-                class={cls}
-                onclick={() => !isDisabled && !isActive && onSelect?.(tab.id)}
+                classList={{
+                    tab: true,
+                    'tab--active': tab.id === props.activeTab,
+                    'tab--disabled': tab.disabled ?? false,
+                }}
+                onclick={() =>
+                    !(tab.disabled ?? false) &&
+                    tab.id !== props.activeTab &&
+                    props.onSelect?.(tab.id)
+                }
             >
                 {tab.label}
             </div>
-            )
-        })}
+        ))}
         </div>
     )
 }

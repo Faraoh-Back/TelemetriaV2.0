@@ -29,6 +29,7 @@
  */
 
 import uPlot from 'uplot'
+import { getSignalClassColor } from '../../utils/signalClasses'
 
 /**
  * ============================================================================
@@ -48,25 +49,6 @@ import uPlot from 'uplot'
 export const cursorSync = uPlot.sync(
     'eracing-telemetry'
 )
-
-/**
- * ============================================================================
- * PALETA DE CORES
- * ============================================================================
- *
- * Cores rotacionadas automaticamente conforme
- * os sinais são adicionados.
- */
-const COLORS = [
-    '#1fb68e',
-    '#3d8ef0',
-    '#e09b2f',
-    '#e05252',
-    '#a78bfa',
-    '#34d399',
-    '#f472b6',
-    '#60a5fa',
-]
 
 /**
  * ============================================================================
@@ -111,7 +93,7 @@ export function buildUPlotOptions({
         label: name,
 
         stroke:
-            COLORS[i % COLORS.length],
+            getSignalClassColor(name, i),
 
         width: 1.5,
 
@@ -143,7 +125,17 @@ export function buildUPlotOptions({
      */
         scales: {
         x: { time: true },
-        y: { auto: true },
+        y: {
+            auto: true,
+            range: (_, min, max) => {
+                if (min == null || max == null) return [min, max]
+                if (min === max) return [min - 1, max + 1]
+
+                const padding = (max - min) * 0.10
+
+                return [min - padding, max + padding]
+            },
+        },
         },
 
     /**

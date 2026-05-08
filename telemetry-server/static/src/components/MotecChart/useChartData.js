@@ -88,7 +88,7 @@ export function useChartData(props) {
          */
         const results = await Promise.all(
         sigNames.map((name) =>
-            requestBuffer(name, 500)
+            requestBuffer(name, 500, props.windowSeconds ?? null)
         )
         )
 

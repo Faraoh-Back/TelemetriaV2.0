@@ -22,13 +22,13 @@ function formatValue(value) {
     return Number.isInteger(value) ? value : value.toFixed(2)
 }
 
-function SignalCard({ signalName, label, stats }) {
+function SignalCard({ signalName, label, dataClass = 'default', stats }) {
     const entry = () => signals[signalName]
     const stat = () => stats[signalName]
     const average = () => stat() ? stat().sum / stat().count : null
 
     return (
-        <div class="signal-card">
+        <div class={`signal-card signal-card--${dataClass}`}>
         <div class="signal-card__label">{label}</div>
 
         <div class="signal-card__value">

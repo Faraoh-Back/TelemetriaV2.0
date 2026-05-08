@@ -12,7 +12,7 @@
 //   (SolidJS Proxy — só o nó DOM do sinal que mudou, sem re-render)
 //
 //
-//   Componente chama requestBuffer(name, threshold)
+//   Componente chama requestBuffer(name, threshold, windowSeconds)
 //       │
 //       ▼
 //   Promise criada, reqId gerado, registrado em bufferCallbacks
@@ -86,11 +86,17 @@ const [status, setStatus]   = createStore({ state: 'disconnected', frameRate: 0 
         worker.postMessage({ cmd: 'disconnect' })
     }
 
-    export function requestBuffer(name, threshold = 500) {
+    export function requestBuffer(name, threshold = 500, windowSeconds = null) {
         return new Promise((resolve) => {
             const reqId = ++reqCounter
             bufferCallbacks.set(reqId, resolve)
-            worker.postMessage({ cmd: 'getBuffer', name, threshold, reqId })
+            worker.postMessage({
+                cmd: 'getBuffer',
+                name,
+                threshold,
+                windowSeconds,
+                reqId,
+            })
         })
     }
 

@@ -1,6 +1,7 @@
 .topbar {
-    background: var(--bg2);
+    background: linear-gradient(180deg, #15171e, var(--bg2));
     border-bottom: 1px solid var(--border);
+    border-top: 2px solid var(--brand-orange);
     padding: 14px 20px;
     display: flex;
     align-items: center;
@@ -24,7 +25,7 @@
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 20px;
-    background: rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.055);
     color: var(--text2);
 }
 
@@ -36,7 +37,7 @@
     transition: background 0.3s;
 }
 
-.ws-dot--connected  { background: var(--accent); }
+.ws-dot--connected  { background: var(--ok); }
 
 .ws-dot--error      { background: var(--red); }
 
@@ -72,6 +73,7 @@
     color: var(--text);
     background: rgba(255,255,255,0.04);
     border: 1px solid var(--border);
+    border-left: 2px solid var(--brand-orange);
     border-radius: 6px;
     font-size: 12px;
 }

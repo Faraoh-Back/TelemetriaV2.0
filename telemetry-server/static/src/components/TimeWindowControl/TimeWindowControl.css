@@ -40,7 +40,7 @@
 }
 
 .time-window-control__option--active {
-    background: rgba(31,182,142,0.14);
+    background: rgba(221,102,63,0.14);
     color: var(--accent);
 }
 

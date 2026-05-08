@@ -13,6 +13,9 @@
     justify-content: center;
     gap: 56px;
     padding: 32px;
+    background:
+        linear-gradient(135deg, rgba(221,102,63,0.16), transparent 36%),
+        linear-gradient(315deg, rgba(255,255,255,0.045), transparent 28%);
 }
 
 .login-shell {
@@ -28,24 +31,12 @@
     gap: 16px;
 }
 
-.login-brand__mark {
-    width: 54px;
-    height: 54px;
-    display: grid;
-    place-items: center;
-    color: #07110e;
-    background: var(--accent);
-    border-radius: 8px;
-    font-weight: 800;
-    font-size: 18px;
-    letter-spacing: 0;
-}
-
 .login-brand__eyebrow {
     display: block;
     margin-bottom: 4px;
-    color: var(--text2);
+    color: var(--brand-orange);
     font-size: 12px;
+    font-weight: 750;
     text-transform: uppercase;
 }
 
@@ -65,8 +56,9 @@
 .login-status {
     min-width: 0;
     padding: 14px;
-    background: rgba(255,255,255,0.035);
+    background: rgba(255,255,255,0.045);
     border: 1px solid var(--border);
+    border-top-color: rgba(221,102,63,0.34);
     border-radius: 8px;
 }
 
@@ -95,7 +87,9 @@
     padding: 40px 36px;
     background: var(--bg2);
     border: 1px solid var(--border);
+    border-top: 3px solid var(--brand-orange);
     border-radius: 8px;
+    box-shadow: 0 18px 48px rgba(0,0,0,0.28);
 }
 
 .login-card__header {
@@ -144,6 +138,7 @@
 
 .login-field__input:focus {
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(221,102,63,0.14);
 }
 
 .login-field__input:disabled {
@@ -156,7 +151,7 @@
     margin-top: 8px;
     padding: 12px;
     color: #fff;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--brand-orange), var(--brand-orange-dark));
     border: 0;
     border-radius: 8px;
     font-size: 15px;

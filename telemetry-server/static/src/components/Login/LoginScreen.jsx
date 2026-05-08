@@ -22,6 +22,7 @@
 
 import { Show, createSignal } from 'solid-js'
 import { getServerConfig } from '../../config/serverConfig.js'
+import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './LoginScreen.css'
 
 function LoginScreen({ onLogin, onUiPreview }) {
@@ -62,10 +63,10 @@ function LoginScreen({ onLogin, onUiPreview }) {
         <main class="login-screen">
             <section class="login-shell" aria-label="Acesso ao dashboard">
                 <div class="login-brand">
-                    <div class="login-brand__mark">ER</div>
+                    <BrandLogo className="brand-logo brand-logo--login" />
                     <div>
-                        <span class="login-brand__eyebrow">Telemetry Control</span>
-                        <h1 class="login-brand__title">E-Racing Telemetria</h1>
+                        <span class="login-brand__eyebrow">Unicamp E-Racing</span>
+                        <h1 class="login-brand__title">Telemetria</h1>
                     </div>
                 </div>
 

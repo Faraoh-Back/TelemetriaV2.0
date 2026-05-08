@@ -21,7 +21,7 @@
 
 .signal-card--voltage { --signal-card-color: #3d8ef0; }
 
-.signal-card--power { --signal-card-color: #a78bfa; }
+.signal-card--power { --signal-card-color: var(--brand-orange); }
 
 .signal-card--state { --signal-card-color: #8b92a8; }
 

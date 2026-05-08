@@ -2,6 +2,7 @@
     position: relative;
     background: var(--bg2);
     border: 1px solid var(--border);
+    border-top-color: rgba(221,102,63,0.38);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 12px;
@@ -45,7 +46,7 @@
     left: 4%;
     right: 4%;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(31,182,142,0.75), transparent);
+    background: linear-gradient(90deg, transparent, rgba(221,102,63,0.78), transparent);
     transform-origin: left center;
 }
 

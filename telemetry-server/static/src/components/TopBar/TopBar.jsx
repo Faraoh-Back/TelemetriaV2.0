@@ -1,4 +1,5 @@
 import { status } from '../../store.js'
+import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './TopBar.css'
 
 function TopBar({ user, sessionMode, onLogout }) {
@@ -21,7 +22,8 @@ function TopBar({ user, sessionMode, onLogout }) {
     return (
         <div class="topbar">
             <div class="topbar__left">
-                <span class="topbar__title">E-Racing Telemetria</span>
+                <BrandLogo className="brand-logo brand-logo--topbar" />
+                <span class="topbar__title">Unicamp E-Racing Telemetria</span>
 
                 <div class="ws-badge">
                     <div class={dotClass()} />

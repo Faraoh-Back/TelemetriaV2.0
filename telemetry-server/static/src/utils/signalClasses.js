@@ -12,13 +12,13 @@
  */
 
 export const DATA_CLASS_COLORS = {
-    rpm: '#1fb68e',
+    rpm: '#dd663f',
     acceleration: '#3d8ef0',
     temperature: '#e09b2f',
     voltage: '#60a5fa',
-    power: '#a78bfa',
+    power: '#f05252',
     state: '#8b92a8',
-    default: '#34d399',
+    default: '#dd663f',
 }
 
 export function inferSignalDataClass(signalName) {
@@ -36,7 +36,7 @@ export function getSignalClassColor(signalName, fallbackIndex = 0) {
     const fallbackColors = [
         DATA_CLASS_COLORS.default,
         '#f472b6',
-        '#22d3ee',
+        '#60a5fa',
         '#f59e0b',
     ]
     const dataClass = inferSignalDataClass(signalName)

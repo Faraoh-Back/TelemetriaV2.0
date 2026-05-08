@@ -15,8 +15,11 @@
  */
 
 import {
+    GAUGE_COLORS,
     START_ANGLE,
     SWEEP,
+    formatGaugeTick,
+    formatGaugeValue,
     pointerColor,
     valueToAngle,
 } from './gaugeUtils'
@@ -30,18 +33,20 @@ import {
  *       -> zonas de alerta
  *       -> ticks e labels fixos
  */
-export function drawStatic(ctx, cx, cy, r, min, max, warnMax, critMax) {
-    ctx.clearRect(0, 0, cx * 2, cy * 2)
+export function drawStatic(ctx, layout, min, max, warnMax, critMax) {
+    const { cx, cy, size } = layout
+
+    ctx.clearRect(0, 0, size, size)
 
     ctx.beginPath()
-    ctx.arc(cx, cy, r, 0, Math.PI * 2)
-    ctx.fillStyle = '#22263a'
+    ctx.arc(cx, cy, layout.faceRadius, 0, Math.PI * 2)
+    ctx.fillStyle = GAUGE_COLORS.face
     ctx.fill()
 
     ctx.beginPath()
-    ctx.arc(cx, cy, r * 0.78, START_ANGLE, START_ANGLE + SWEEP, false)
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)'
-    ctx.lineWidth = r * 0.10
+    ctx.arc(cx, cy, layout.arcRadius, START_ANGLE, START_ANGLE + SWEEP, false)
+    ctx.strokeStyle = GAUGE_COLORS.track
+    ctx.lineWidth = layout.arcWidth
     ctx.lineCap = 'round'
     ctx.stroke()
 
@@ -52,9 +57,9 @@ export function drawStatic(ctx, cx, cy, r, min, max, warnMax, critMax) {
             : START_ANGLE + SWEEP
 
         ctx.beginPath()
-        ctx.arc(cx, cy, r * 0.78, warnStart, warnEnd, false)
+        ctx.arc(cx, cy, layout.arcRadius, warnStart, warnEnd, false)
         ctx.strokeStyle = 'rgba(224,155,47,0.35)'
-        ctx.lineWidth = r * 0.10
+        ctx.lineWidth = layout.arcWidth
         ctx.stroke()
     }
 
@@ -62,39 +67,41 @@ export function drawStatic(ctx, cx, cy, r, min, max, warnMax, critMax) {
         const critStart = valueToAngle(critMax, min, max)
 
         ctx.beginPath()
-        ctx.arc(cx, cy, r * 0.78, critStart, START_ANGLE + SWEEP, false)
-        ctx.strokeStyle = 'rgba(224,82,82,0.40)'
-        ctx.lineWidth = r * 0.10
+        ctx.arc(cx, cy, layout.arcRadius, critStart, START_ANGLE + SWEEP, false)
+        ctx.strokeStyle = 'rgba(240,82,82,0.40)'
+        ctx.lineWidth = layout.arcWidth
         ctx.stroke()
     }
 
-    const ticks = 5
-
-    for (let i = 0; i <= ticks; i++) {
-        const angle = START_ANGLE + (i / ticks) * SWEEP
+    for (let i = 0; i <= layout.ticks; i++) {
+        const angle = START_ANGLE + (i / layout.ticks) * SWEEP
         const cos = Math.cos(angle)
         const sin = Math.sin(angle)
-        const r0 = r * 0.88
-        const r1 = r * 0.96
 
         ctx.beginPath()
-        ctx.moveTo(cx + cos * r0, cy + sin * r0)
-        ctx.lineTo(cx + cos * r1, cy + sin * r1)
-        ctx.strokeStyle = 'rgba(255,255,255,0.25)'
-        ctx.lineWidth = 1.5
+        ctx.moveTo(
+            cx + cos * layout.tickInnerRadius,
+            cy + sin * layout.tickInnerRadius
+        )
+        ctx.lineTo(
+            cx + cos * layout.tickOuterRadius,
+            cy + sin * layout.tickOuterRadius
+        )
+        ctx.strokeStyle = GAUGE_COLORS.tick
+        ctx.lineWidth = layout.tickWidth
         ctx.lineCap = 'butt'
         ctx.stroke()
 
-        const tickValue = min + (i / ticks) * (max - min)
-        const lx = cx + cos * (r * 0.70)
-        const ly = cy + sin * (r * 0.70)
+        const tickValue = min + (i / layout.ticks) * (max - min)
+        const lx = cx + cos * layout.tickLabelRadius
+        const ly = cy + sin * layout.tickLabelRadius
 
-        ctx.font = `${r * 0.14}px ui-monospace,Consolas,monospace`
-        ctx.fillStyle = '#8b92a8'
+        ctx.font = `${layout.tickFontSize}px ui-monospace,Consolas,monospace`
+        ctx.fillStyle = GAUGE_COLORS.tickLabel
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
         ctx.fillText(
-            Number.isInteger(tickValue) ? tickValue : tickValue.toFixed(1),
+            formatGaugeTick(tickValue, layout.compactTicks),
             lx,
             ly
         )
@@ -111,48 +118,57 @@ export function drawStatic(ctx, cx, cy, r, min, max, warnMax, critMax) {
  *       -> ponteiro
  *       -> display central
  */
-export function drawDynamic(ctx, cx, cy, r, value, min, max, unit, warnMax, critMax) {
-    ctx.clearRect(0, 0, cx * 2, cy * 2)
+export function drawDynamic(ctx, layout, value, min, max, unit, warnMax, critMax, hasSignal = true) {
+    const { cx, cy, size } = layout
+
+    ctx.clearRect(0, 0, size, size)
+
+    if (!hasSignal) {
+        ctx.font = `bold ${layout.valueFontSize}px ui-monospace,Consolas,monospace`
+        ctx.fillStyle = 'rgba(244,245,247,0.46)'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('--', cx, cy + layout.valueOffsetY)
+
+        ctx.font = `${layout.unitFontSize}px system-ui,sans-serif`
+        ctx.fillStyle = 'rgba(154,160,173,0.60)'
+        ctx.fillText(unit, cx, cy + layout.unitOffsetY)
+        return
+    }
 
     const angle = valueToAngle(value, min, max)
     const color = pointerColor(value, warnMax, critMax)
 
     ctx.beginPath()
-    ctx.arc(cx, cy, r * 0.78, START_ANGLE, angle, false)
+    ctx.arc(cx, cy, layout.arcRadius, START_ANGLE, angle, false)
     ctx.strokeStyle = color
-    ctx.lineWidth = r * 0.10
+    ctx.lineWidth = layout.arcWidth
     ctx.lineCap = 'round'
     ctx.stroke()
-
-    const pointerLength = r * 0.58
 
     ctx.beginPath()
     ctx.moveTo(cx, cy)
     ctx.lineTo(
-        cx + Math.cos(angle) * pointerLength,
-        cy + Math.sin(angle) * pointerLength
+        cx + Math.cos(angle) * layout.pointerLength,
+        cy + Math.sin(angle) * layout.pointerLength
     )
     ctx.strokeStyle = color
-    ctx.lineWidth = r * 0.035
+    ctx.lineWidth = layout.pointerWidth
     ctx.lineCap = 'round'
     ctx.stroke()
 
     ctx.beginPath()
-    ctx.arc(cx, cy, r * 0.06, 0, Math.PI * 2)
+    ctx.arc(cx, cy, layout.hubRadius, 0, Math.PI * 2)
     ctx.fillStyle = color
     ctx.fill()
 
-    ctx.font = `bold ${r * 0.26}px ui-monospace,Consolas,monospace`
-    ctx.fillStyle = '#e8eaf0'
+    ctx.font = `bold ${layout.valueFontSize}px ui-monospace,Consolas,monospace`
+    ctx.fillStyle = GAUGE_COLORS.value
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(
-        Number.isInteger(value) ? value : value.toFixed(1),
-        cx,
-        cy + r * 0.28
-    )
+    ctx.fillText(formatGaugeValue(value), cx, cy + layout.valueOffsetY)
 
-    ctx.font = `${r * 0.13}px system-ui,sans-serif`
-    ctx.fillStyle = '#8b92a8'
-    ctx.fillText(unit, cx, cy + r * 0.46)
+    ctx.font = `${layout.unitFontSize}px system-ui,sans-serif`
+    ctx.fillStyle = GAUGE_COLORS.unit
+    ctx.fillText(unit, cx, cy + layout.unitOffsetY)
 }

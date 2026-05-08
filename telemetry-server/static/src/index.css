@@ -1,15 +1,22 @@
 /* index.css — variáveis globais + reset
-   Tema escuro fixo, alinhado ao index.legacy.html */
+   Tema escuro fixo com identidade Unicamp E-Racing: preto, branco e laranja.
+   Cores semanticas continuam separadas para preservar leitura tecnica. */
 
   :root {
-      --bg:      #0f1117;
-      --bg2:     #1a1d27;
-      --bg3:     #22263a;
-      --border:  rgba(255,255,255,0.08);
-      --text:    #e8eaf0;
-      --text2:   #8b92a8;
-      --accent:  #1fb68e;
-      --red:     #e05252;
+      --bg:      #07080b;
+      --bg2:     #111319;
+      --bg3:     #191c24;
+      --bg4:     #222630;
+      --border:  rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.18);
+      --text:    #f4f5f7;
+      --text2:   #9aa0ad;
+      --brand-orange: #dd663f;
+      --brand-orange-dark: #9b3f25;
+      --brand-white: #ffffff;
+      --accent:  var(--brand-orange);
+      --red:     #f05252;
+      --ok:      #1fb68e;
       --blue:    #3d8ef0;
       --amber:   #e09b2f;
     
@@ -25,6 +32,11 @@
   
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   
-  body { min-height: 100vh; }
+  body {
+      min-height: 100vh;
+      background:
+          linear-gradient(180deg, rgba(221,102,63,0.08), transparent 220px),
+          var(--bg);
+  }
   
   #root { display: flex; flex-direction: column; min-height: 100vh; }

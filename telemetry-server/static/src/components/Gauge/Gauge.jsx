@@ -51,6 +51,7 @@
 import { createEffect, onCleanup, onMount } from 'solid-js'
 import { signals } from '../../store.js'
 import { drawDynamic, drawStatic } from './gaugeCanvas'
+import { getGaugeLayout } from './gaugeUtils'
 import './Gauge.css'
 
 function Gauge(props) {
@@ -71,15 +72,8 @@ function Gauge(props) {
      * Como as duas camadas usam a mesma escala, manter isso em uma função evita
      * divergência entre canvas estático e canvas dinâmico.
      */
-    function getGeometry() {
-        const s = size()
-
-        return {
-            size: s,
-            cx: s / 2,
-            cy: s / 2,
-            r: s * 0.46,
-        }
+    function getLayout() {
+        return getGaugeLayout(size(), min(), max())
     }
 
     /**
@@ -92,9 +86,7 @@ function Gauge(props) {
         if (!staticCanvas) return
 
         const ctx = staticCanvas.getContext('2d')
-        const { cx, cy, r } = getGeometry()
-
-        drawStatic(ctx, cx, cy, r, min(), max(), warnMax(), critMax())
+        drawStatic(ctx, getLayout(), min(), max(), warnMax(), critMax())
     }
 
     /**
@@ -109,27 +101,27 @@ function Gauge(props) {
         if (!dynamicCanvas) return
 
         const entry = signals[props.signalName]
-        const value = entry?.value ?? min()
+        const hasSignal = entry?.value != null
+        const value = hasSignal ? entry.value : min()
 
-        if (value === lastValue) return
+        const frameKey = hasSignal ? value : '__empty__'
+        if (frameKey === lastValue) return
 
-        lastValue = value
+        lastValue = frameKey
 
         const unit = entry?.unit ?? props.unit ?? ''
         const ctx = dynamicCanvas.getContext('2d')
-        const { cx, cy, r } = getGeometry()
 
         drawDynamic(
             ctx,
-            cx,
-            cy,
-            r,
+            getLayout(),
             value,
             min(),
             max(),
             unit,
             warnMax(),
-            critMax()
+            critMax(),
+            hasSignal
         )
     }
 

@@ -4,7 +4,9 @@
     gap: 18px;
     align-items: center;
     padding: 18px 20px;
-    background: var(--bg2);
+    background:
+        linear-gradient(90deg, rgba(221,102,63,0.10), transparent 44%),
+        var(--bg2);
     border-bottom: 1px solid var(--border);
 }
 
@@ -15,7 +17,7 @@
 .dashboard-empty__eyebrow {
     display: block;
     margin-bottom: 4px;
-    color: var(--accent);
+    color: var(--brand-orange);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -58,7 +60,7 @@
 }
 
 .dashboard-empty__dot--ready {
-    background: var(--accent);
+    background: var(--brand-orange);
 }
 
 @media (max-width: 760px) {

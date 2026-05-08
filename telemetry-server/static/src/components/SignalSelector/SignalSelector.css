@@ -109,12 +109,12 @@
 }
 
 .signal-row:hover {
-    border-color: rgba(31,182,142,0.45);
+    border-color: rgba(221,102,63,0.48);
 }
 
 .signal-row--selected {
     border-color: var(--accent);
-    background: rgba(31,182,142,0.10);
+    background: rgba(221,102,63,0.11);
 }
 
 .signal-row--selected .signal-row__name {
@@ -175,6 +175,7 @@
     padding: 10px;
     background: var(--bg3);
     border: 1px solid var(--border);
+    border-top-color: rgba(221,102,63,0.32);
     border-radius: 8px;
 }
 

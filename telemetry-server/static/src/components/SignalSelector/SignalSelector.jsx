@@ -24,6 +24,21 @@ import { signals } from '../../store.js'
 import { groupSignals } from '../../utils/signalGrouping'
 import './SignalSelector.css'
 
+const EMPTY_SIGNAL_GROUPS = [
+    {
+        label: 'Powertrain',
+        signals: ['act_Speed_A0', 'act_DCBusVoltage_M0', 'act_Power_A0'],
+    },
+    {
+        label: 'BMS e seguranca',
+        signals: ['Fault_BMS', 'BMS_Over_voltage', 'BMS_Cell_Overheat'],
+    },
+    {
+        label: 'Inercial',
+        signals: ['ventor_linear_acc_x', 'ventor_linear_acc_y', 'ventor_linear_acc_z'],
+    },
+]
+
 function formatValue(value) {
     if (value == null) return '—'
 
@@ -94,7 +109,29 @@ function SignalSelector(props) {
                 when={groupedSignals().length > 0}
                 fallback={
                     <div class="signal-selector__empty">
-                        Aguardando sinais da sessão
+                        <div class="signal-selector__empty-copy">
+                            <strong>Aguardando sinais da sessao</strong>
+                            <span>Os grupos abaixo indicam os canais esperados quando o stream iniciar.</span>
+                        </div>
+
+                        <div class="signal-selector__empty-groups">
+                            <For each={EMPTY_SIGNAL_GROUPS}>
+                                {(group) => (
+                                    <section class="signal-selector__empty-group">
+                                        <div class="signal-selector__empty-group-title">
+                                            {group.label}
+                                        </div>
+                                        <For each={group.signals}>
+                                            {(signal) => (
+                                                <span class="signal-selector__empty-signal">
+                                                    {signal}
+                                                </span>
+                                            )}
+                                        </For>
+                                    </section>
+                                )}
+                            </For>
+                        </div>
                     </div>
                 }
             >

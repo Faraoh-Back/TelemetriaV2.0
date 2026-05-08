@@ -55,7 +55,7 @@
  * ============================================================================
  */
 
-import { onMount, onCleanup, createEffect } from 'solid-js'
+import { For, Show, createEffect, createSignal, onCleanup, onMount } from 'solid-js'
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 
@@ -93,6 +93,7 @@ import {
 import './MotecChart.css'
 
 function MotecChart(props) {
+    const [hasChartData, setHasChartData] = createSignal(false)
     /**
      * Referência do div onde o uPlot será montado.
      */
@@ -165,6 +166,8 @@ function MotecChart(props) {
          */
         if (isDisposed || chart || !alignedTs.length) return false
 
+        setHasChartData(true)
+
         /**
          * Configuração visual do gráfico.
          */
@@ -219,6 +222,7 @@ function MotecChart(props) {
         } = await flushChart()
 
         if (alignedTs.length > 0) {
+        setHasChartData(true)
         chart.setData([
             alignedTs,
             ...valueArrays,
@@ -345,6 +349,28 @@ function MotecChart(props) {
             ref={containerRef}
             class="motec-chart-canvas"
         />
+
+        <Show when={!hasChartData()}>
+            <div class="motec-chart-empty">
+                <div class="motec-chart-empty__grid">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                </div>
+                <div class="motec-chart-empty__line motec-chart-empty__line--a" />
+                <div class="motec-chart-empty__line motec-chart-empty__line--b" />
+                <div class="motec-chart-empty__content">
+                    <strong>Sem buffer para plotar</strong>
+                    <span>Aguardando amostras de {props.label}</span>
+                    <div class="motec-chart-empty__signals">
+                        <For each={props.signals ?? []}>
+                            {(signal) => <code>{signal}</code>}
+                        </For>
+                    </div>
+                </div>
+            </div>
+        </Show>
         </div>
     )
 }

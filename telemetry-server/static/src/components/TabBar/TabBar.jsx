@@ -1,8 +1,5 @@
-import '../styles/components.css'
+import './TabBar.css'
 
-// tabs: [{ id, label, disabled? }]
-// activeTab: string (id)
-// onSelect: (id) => void
 function TabBar({ tabs, activeTab, onSelect }) {
     return (
         <div class="tabbar">

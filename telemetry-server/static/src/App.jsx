@@ -1,15 +1,16 @@
 import { onMount } from 'solid-js'
 import { For } from 'solid-js'
 import { connect, disconnect } from './store.js'
-import Topbar from './components/TopBar.jsx'
-import TabBar from './components/TabBar.jsx'
-import StatusBar from './components/StatusBar.jsx'
-import MotecChart from './components/MotecChart.jsx'
-import { DEFAULT_CHART_LAYOUT } from './config/dashboardConfig.js'
+import TopBar from './components/TopBar/TopBar.jsx'
+import TabBar from './components/TabBar/TabBar.jsx'
+import StatusBar from './components/StatusBar/StatusBar.jsx'
+import MotecChart from './components/MotecChart/MotecChart.jsx'
+import Gauge from './components/Gauge/Gauge.jsx'
+import { DEFAULT_CHART_LAYOUT, GAUGE_CONFIG } from './config/dashboardConfig.js'
 
 const TABS = [
   { id: 'analise',  label: 'Análise' },
-  { id: 'cockpit',  label: 'Dashboard / Cockpit (em breve)', disabled: true },
+  { id: 'cockpit',  label: 'Cockpit' },
 ]
 
 function App() {
@@ -25,9 +26,27 @@ function App() {
 
   return (
     <>
-      <Topbar onLogout={handleLogout} />
+      <TopBar onLogout={handleLogout} />
       <TabBar tabs={TABS} activeTab="analise" />
       <StatusBar />
+
+      <div class="gauge-row">
+        <For each={GAUGE_CONFIG}>
+          {(g) => (
+            <Gauge
+              signalName={g.signalName}
+              label={g.label}
+              min={g.min}
+              max={g.max}
+              unit={g.unit}
+              warnMax={g.warnMax}
+              critMax={g.critMax}
+              size={160}
+            />
+          )}
+        </For>
+      </div>
+
       <div class="chart-area">
         <For each={DEFAULT_CHART_LAYOUT}>
           {({ label, signals }) => (

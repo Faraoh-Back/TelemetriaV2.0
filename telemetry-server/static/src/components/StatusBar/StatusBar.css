@@ -1,0 +1,44 @@
+.status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+}
+
+.signal-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 140px;
+}
+
+.signal-card__label {
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 4px;
+}
+
+.signal-card__value {
+    font-size: 20px;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--accent);
+}
+
+.signal-card__unit {
+    font-size: 11px;
+    color: var(--text2);
+    margin-left: 2px;
+}
+
+.signal-card__stats {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text2);
+    font-family: var(--mono);
+}

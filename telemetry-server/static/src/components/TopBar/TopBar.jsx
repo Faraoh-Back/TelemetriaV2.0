@@ -1,7 +1,7 @@
-import { status } from '../store.js'
-import '../styles/components.css'
+import { status } from '../../store.js'
+import './TopBar.css'
 
-function Topbar({ onLogout }) {
+function TopBar({ onLogout }) {
     const dotClass = () => {
         const s = status.state
         if (s === 'connected')  return 'ws-dot ws-dot--connected'
@@ -30,4 +30,4 @@ function Topbar({ onLogout }) {
     )
 }
 
-export default Topbar
+export default TopBar

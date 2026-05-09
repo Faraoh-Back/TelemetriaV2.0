@@ -10,5 +10,5 @@
  *   - TopBar: marca compacta do dashboard
  */
 
-export const TEAM_LOGO_SRC = ''
+export const TEAM_LOGO_SRC = '../assets/team-logo.png'
 export const TEAM_LOGO_ALT = 'Unicamp E-Racing'

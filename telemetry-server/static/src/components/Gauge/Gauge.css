@@ -1,0 +1,24 @@
+.gauge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.gauge__canvas-stack {
+    position: relative;
+    filter: drop-shadow(0 10px 22px rgba(0,0,0,0.24));
+}
+
+.gauge__canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.gauge__label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}

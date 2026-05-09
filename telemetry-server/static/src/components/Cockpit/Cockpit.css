@@ -1,0 +1,269 @@
+.cockpit {
+    display: grid;
+    grid-template-columns: minmax(160px, 196px) minmax(420px, 1fr) minmax(160px, 196px);
+    gap: 12px;
+    height: calc(100vh - 86px);
+    min-height: 0;
+    overflow: hidden;
+    padding: 12px 16px;
+    background:
+        linear-gradient(180deg, rgba(221,102,63,0.045), transparent 240px),
+        var(--bg);
+}
+
+.cockpit__rail {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.cockpit__center {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 180px;
+    gap: 10px;
+}
+
+.cockpit__lower-grid {
+    display: grid;
+    min-height: 0;
+}
+
+.cockpit-gauge,
+.race-video,
+.track-map {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.cockpit-gauge {
+    min-width: 0;
+    padding: 8px 6px 10px;
+    display: grid;
+    place-items: center;
+}
+
+.cockpit-panel__header {
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.cockpit-panel__header span {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 650;
+    text-transform: uppercase;
+}
+
+.cockpit-panel__header strong {
+    color: var(--text2);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.race-video {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    border-top: 2px solid var(--brand-orange);
+}
+
+.race-video__frame {
+    position: relative;
+    min-height: 0;
+    height: calc(100% - 34px);
+    min-height: 0;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.04), transparent 36%),
+        #050608;
+}
+
+.race-video__media {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.race-video__empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 8px;
+    overflow: hidden;
+    color: var(--text2);
+    text-align: center;
+}
+
+.race-video__empty strong {
+    z-index: 1;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 650;
+}
+
+.race-video__empty span {
+    z-index: 1;
+    font-size: 12px;
+}
+
+.race-video__horizon {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), transparent 45%),
+        linear-gradient(90deg, transparent 49.8%, rgba(221,102,63,0.36) 50%, transparent 50.2%);
+}
+
+.race-video__car-nose {
+    position: absolute;
+    left: 50%;
+    bottom: -10%;
+    width: min(46%, 440px);
+    height: 30%;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, rgba(221,102,63,0.22), rgba(221,102,63,0.06));
+    border: 1px solid rgba(221,102,63,0.36);
+    border-bottom: 0;
+    border-radius: 48% 48% 0 0;
+}
+
+.race-video__crosshair {
+    position: absolute;
+    width: 76px;
+    height: 76px;
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 50%;
+}
+
+.race-video__crosshair::before,
+.race-video__crosshair::after {
+    content: '';
+    position: absolute;
+    background: rgba(255,255,255,0.16);
+}
+
+.race-video__crosshair::before {
+    left: 50%;
+    top: -18px;
+    width: 1px;
+    height: 112px;
+}
+
+.race-video__crosshair::after {
+    top: 50%;
+    left: -18px;
+    width: 112px;
+    height: 1px;
+}
+
+.track-map {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.track-map__body {
+    position: relative;
+    height: calc(100% - 34px);
+    min-height: 0;
+    background:
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        var(--bg);
+    background-size: 32px 32px;
+}
+
+.track-map__path {
+    position: absolute;
+    inset: 20% 14%;
+    border: 2px solid rgba(221,102,63,0.72);
+    border-left-color: transparent;
+    border-radius: 46% 34% 52% 28%;
+    transform: rotate(-8deg);
+}
+
+.track-map__position {
+    position: absolute;
+    left: 58%;
+    top: 42%;
+    width: 11px;
+    height: 11px;
+    background: var(--brand-orange);
+    border: 2px solid var(--text);
+    border-radius: 50%;
+    box-shadow: 0 0 0 6px rgba(221,102,63,0.14);
+}
+
+.track-map__label {
+    position: absolute;
+    left: 12px;
+    bottom: 10px;
+    color: var(--text2);
+    font-size: 11px;
+    font-family: var(--mono);
+}
+
+.track-map__image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+@media (max-width: 1120px) {
+    .cockpit {
+        grid-template-columns: 1fr;
+        height: auto;
+        min-height: calc(100vh - 86px);
+        overflow: visible;
+    }
+
+    .cockpit__rail {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        overflow: visible;
+    }
+
+    .cockpit__rail--left {
+        order: 2;
+    }
+
+    .cockpit__center {
+        order: 1;
+        grid-template-rows: minmax(320px, auto) 180px;
+    }
+
+    .cockpit__rail--right {
+        order: 3;
+    }
+}
+
+@media (max-width: 720px) {
+    .cockpit {
+        padding: 12px;
+    }
+
+    .cockpit__center,
+    .cockpit__lower-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cockpit__center {
+        grid-template-rows: auto 180px;
+    }
+
+    .race-video__frame {
+        min-height: 220px;
+    }
+}

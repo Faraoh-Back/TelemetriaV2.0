@@ -1,0 +1,104 @@
+.motec-chart {
+    position: relative;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top-color: rgba(221,102,63,0.38);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.motec-chart-title {
+    color: var(--text2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+}
+
+.motec-chart-canvas {
+    width: 100%;
+    min-height: 200px;
+}
+
+.motec-chart-empty {
+    position: absolute;
+    inset: 38px 12px 12px;
+    overflow: hidden;
+    background: var(--bg);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 6px;
+}
+
+.motec-chart-empty__grid {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: repeat(4, 1fr);
+}
+
+.motec-chart-empty__grid span {
+    border-top: 1px solid rgba(255,255,255,0.055);
+}
+
+.motec-chart-empty__line {
+    position: absolute;
+    left: 4%;
+    right: 4%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(221,102,63,0.78), transparent);
+    transform-origin: left center;
+}
+
+.motec-chart-empty__line--a {
+    top: 42%;
+    transform: rotate(-4deg);
+}
+
+.motec-chart-empty__line--b {
+    top: 58%;
+    background: linear-gradient(90deg, transparent, rgba(61,142,240,0.65), transparent);
+    transform: rotate(3deg);
+}
+
+.motec-chart-empty__content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px;
+    text-align: center;
+}
+
+.motec-chart-empty__content strong {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.motec-chart-empty__content span {
+    color: var(--text2);
+    font-size: 12px;
+}
+
+.motec-chart-empty__signals {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    max-width: 640px;
+}
+
+.motec-chart-empty__signals code {
+    padding: 3px 6px;
+    color: var(--text2);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 10px;
+}

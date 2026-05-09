@@ -91,8 +91,9 @@ Correções:
 
 /* ── ESTATÍSTICAS ────────────────────────────────────────────────────────── */
 .signal-card__stats {
-    display: flex;
-    gap: 6px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
     margin-top: 6px;
     font-size: 11px;
     color: var(--text2);
@@ -100,15 +101,22 @@ Correções:
 }
 
 .signal-card__stat {
-    display: inline-flex;
-    align-items: baseline;
+    display: grid;
+    justify-items: center;
     gap: 2px;
-    white-space: nowrap;
+    min-width: 0;
+}
+
+.signal-card__stat-icon {
+    color: var(--text2);
+    font-size: 12px;
+    line-height: 1;
 }
 
 .signal-card__stat-value {
     font-variant-numeric: tabular-nums;
-    min-width: 48px;           /* largura mínima para estabilidade */
-    text-align: right;
-    display: inline-block;
+    min-width: 0;
+    text-align: center;
+    display: block;
+    white-space: nowrap;
 }

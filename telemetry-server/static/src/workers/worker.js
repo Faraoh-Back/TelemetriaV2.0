@@ -74,16 +74,16 @@ import { decodeSignal } from '../utils/canDecode.js'
 const CAN_MAP = {
     // ── IMU ──────────────────────────────────────────────────────────────────
     1: [ // 0x00000001
-        { n: 'ventor_linear_acc_x',   sb: 0,  len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int' },
-        { n: 'ventor_angular_speed_x', sb: 16, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int' },
-        { n: 'ventor_linear_acc_y',   sb: 32, len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int' },
-        { n: 'ventor_angular_speed_y', sb: 48, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int' },
+        { n: 'ventor_linear_acc_x',   sb: 0,  len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int', signed: true },
+        { n: 'ventor_angular_speed_x', sb: 16, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int', signed: true },
+        { n: 'ventor_linear_acc_y',   sb: 32, len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int', signed: true },
+        { n: 'ventor_angular_speed_y', sb: 48, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int', signed: true },
     ],
     2: [ // 0x00000002
-        { n: 'ventor_linear_acc_z',   sb: 0,  len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int' },
-        { n: 'ventor_angular_speed_z', sb: 16, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int' },
-        { n: 'ventor_linear_speed_x', sb: 32, len: 16, f: 0.01, o: 0,  u: 'km/h',  t: 'int' },
-        { n: 'ventor_linear_speed_y', sb: 48, len: 16, f: 0.01, o: 0,  u: 'km/h',  t: 'int' },
+        { n: 'ventor_linear_acc_z',   sb: 0,  len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int', signed: true },
+        { n: 'ventor_angular_speed_z', sb: 16, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int', signed: true },
+        { n: 'ventor_linear_speed_x', sb: 32, len: 16, f: 0.01, o: 0,  u: 'km/h',  t: 'int', signed: true },
+        { n: 'ventor_linear_speed_y', sb: 48, len: 16, f: 0.01, o: 0,  u: 'km/h',  t: 'int', signed: true },
     ],
 
     // ── PAINEL ───────────────────────────────────────────────────────────────

@@ -20,8 +20,8 @@ export const PINNED_SIGNALS = [
 ]
 
 export const GAUGE_CONFIG = [
-    { signalName: 'act_Speed_A0', label: 'RPM A0',      min: -32000, max: 32000, unit: 'rpm' },
-    { signalName: 'act_Speed_B0', label: 'RPM B0',      min: -32000, max: 32000, unit: 'rpm' },
+    { signalName: 'act_Speed_A0', label: 'RPM A0',      min: 0,      max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
+    { signalName: 'act_Speed_B0', label: 'RPM B0',      min: 0,      max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
     { signalName: 'APS_PERC',     label: 'Acelerador',  min: 0,      max: 100,   unit: '%'   },
 ]
 

@@ -53,9 +53,18 @@ function SignalCard({ signalName, label, dataClass = 'default', stats, signalCol
             </div>
 
             <div class="signal-card__stats">
-                <span class="signal-card__stat">↑&nbsp;<span class="signal-card__stat-value">{formatValue(stat()?.max)}</span></span>
-                <span class="signal-card__stat">↓&nbsp;<span class="signal-card__stat-value">{formatValue(stat()?.min)}</span></span>
-                <span class="signal-card__stat">~&nbsp;<span class="signal-card__stat-value">{formatValue(average())}</span></span>
+                <span class="signal-card__stat">
+                    <span class="signal-card__stat-icon">↑</span>
+                    <span class="signal-card__stat-value">{formatValue(stat()?.max)}</span>
+                </span>
+                <span class="signal-card__stat">
+                    <span class="signal-card__stat-icon">↓</span>
+                    <span class="signal-card__stat-value">{formatValue(stat()?.min)}</span>
+                </span>
+                <span class="signal-card__stat">
+                    <span class="signal-card__stat-icon">~</span>
+                    <span class="signal-card__stat-value">{formatValue(average())}</span>
+                </span>
             </div>
         </div>
     )

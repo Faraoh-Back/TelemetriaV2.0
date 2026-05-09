@@ -31,7 +31,9 @@ export function extractBits(data, startBit, length) {
 export function decodeSignal(rawData, signal) {
     let raw = extractBits(rawData, signal.sb, signal.len)
 
-    if (signal.t === 'int' && signal.len > 1) {
+    const isSigned = signal.signed === true || signal.t === 'sint'
+
+    if (isSigned && signal.len > 1) {
         const signBit = 1 << (signal.len - 1)
 
         if (raw & signBit) raw = raw - (1 << signal.len)

@@ -45,6 +45,34 @@ function formatValue(value) {
     return Number.isInteger(value) ? value : value.toFixed(2)
 }
 
+function SignalRow(props) {
+    const entry = () => signals[props.signalName]
+    const isSelected = () => props.selectedSet.has(props.signalName)
+
+    return (
+        <button
+            classList={{
+                'signal-row': true,
+                'signal-row--selected': isSelected(),
+            }}
+            type="button"
+            title={props.signalName}
+            aria-pressed={isSelected()}
+            onClick={() => props.onToggleSignal?.(props.signalName)}
+        >
+            <span class="signal-row__name">
+                {props.signalName}
+            </span>
+            <span class="signal-row__value">
+                {formatValue(entry()?.value)}
+                <span class="signal-row__unit">
+                    {entry()?.unit ?? ''}
+                </span>
+            </span>
+        </button>
+    )
+}
+
 function SignalSelector(props) {
     const [query, setQuery] = createSignal('')
 
@@ -56,9 +84,7 @@ function SignalSelector(props) {
         return Object.entries(signals)
             .map(([name, entry]) => ({
                 name,
-                value: entry.value,
                 unit: entry.unit,
-                timestamp: entry.timestamp,
             }))
             .filter(({ name, unit }) => {
                 if (!normalizedQuery) return true
@@ -147,26 +173,11 @@ function SignalSelector(props) {
                                 <div class="signal-group__list">
                                     <For each={group.signals}>
                                         {(signal) => (
-                                            <button
-                                                classList={{
-                                                    'signal-row': true,
-                                                    'signal-row--selected': selectedSet().has(signal.name),
-                                                }}
-                                                type="button"
-                                                title={signal.name}
-                                                aria-pressed={selectedSet().has(signal.name)}
-                                                onClick={() => props.onToggleSignal?.(signal.name)}
-                                            >
-                                                <span class="signal-row__name">
-                                                    {signal.name}
-                                                </span>
-                                                <span class="signal-row__value">
-                                                    {formatValue(signal.value)}
-                                                    <span class="signal-row__unit">
-                                                        {signal.unit ?? ''}
-                                                    </span>
-                                                </span>
-                                            </button>
+                                            <SignalRow
+                                                signalName={signal.name}
+                                                selectedSet={selectedSet()}
+                                                onToggleSignal={props.onToggleSignal}
+                                            />
                                         )}
                                     </For>
                                 </div>

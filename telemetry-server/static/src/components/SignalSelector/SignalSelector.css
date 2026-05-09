@@ -1,19 +1,9 @@
-/* SignalSelector.css  (atualizado)
-    ─────────────────────────────────────────────────────────────────────────────
-    Correções de scroll:
-        - .signal-selector: overflow: hidden (não rola), min-height: 0
-        - .signal-selector__groups: overflow-x: auto (scroll horizontal dos grupos)
-        - .signal-group__list: overflow-y: auto, min-height: 0
-    Todos os containers flex recebem min-height: 0 para que o scroll
-    funcione corretamente dentro de layouts Flexbox.
-*/
-
 .signal-selector {
     background: var(--bg2);
     border-bottom: 1px solid var(--border);
     padding: 12px 20px;
     min-height: 0;
-    overflow: hidden;               /* container externo NÃO rola */
+    overflow: hidden;
 }
 
 .signal-selector__header {
@@ -78,12 +68,11 @@
     border-color: var(--accent);
 }
 
-/* Container dos grupos: scroll horizontal, min-height: 0 essencial para Flexbox */
 .signal-selector__groups {
     display: flex;
     gap: 10px;
     min-height: 0;
-    overflow-x: auto;              /* scroll horizontal entre grupos */
+    overflow-x: auto;
     overflow-y: hidden;
     padding-bottom: 4px;
 }
@@ -106,14 +95,13 @@
     flex-shrink: 0;
 }
 
-/* Container da lista interna: ÚNICO responsável pelo scroll vertical */
 .signal-group__list {
     display: flex;
     flex-direction: column;
     gap: 4px;
     max-height: 168px;
     min-height: 0;
-    overflow-y: auto;              /* scroll vertical por grupo */
+    overflow-y: auto;
 }
 
 .signal-row {

@@ -9,6 +9,8 @@ function CockpitGauge({ gauge, size = 168 }) {
                 min={gauge.min}
                 max={gauge.max}
                 unit={gauge.unit}
+                warnMax={gauge.warnMax}
+                critMax={gauge.critMax}
                 size={size}
             />
         </div>

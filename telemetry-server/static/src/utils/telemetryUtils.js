@@ -12,11 +12,11 @@
 
 // ─── NORMALIZAÇÃO DE RPM ──────────────────────────────────────────────────────
 
-export const RPM_CLAMP_MIN = -60000
-export const RPM_CLAMP_MAX = 60000
+export const RPM_CLAMP_MIN = 0
+export const RPM_CLAMP_MAX = 10000
 
 /**
- * Limita o valor de RPM ao intervalo [-60000, 60000].
+ * Limita o valor de RPM ao intervalo operacional do cockpit/gráficos.
  * Use este valor para o texto central do gauge.
  */
 export function clampRpm(value) {
@@ -68,7 +68,7 @@ function inferDomainType(signalName) {
 }
 
 const FIXED_DOMAINS = {
-    rpm:          [-60000, 60000],
+    rpm:          [0,      10000],
     acceleration: [-15,    15],
     temperature:  [0,      120],
     voltage:      [0,      500],

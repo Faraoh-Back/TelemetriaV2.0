@@ -32,6 +32,7 @@ export function buildUPlotOptions({ width, height, signals, cursorSync }) {
     // (indica que devemos calcular dinamicamente com os dados reais)
     const [fixedMin, fixedMax] = getYDomain(signals, null)
     const isFixedDomain = fixedMin !== null && fixedMax !== null
+    const yAxisLabelSize = isFixedDomain ? 88 : 72
 
     return {
         width,
@@ -84,6 +85,7 @@ export function buildUPlotOptions({ width, height, signals, cursorSync }) {
                     ticks.map((v) =>
                         v == null ? '' : Number(v).toFixed(2)
                     ),
+                size: yAxisLabelSize,
                 stroke: '#8b92a8',
                 ticks:  { stroke: 'rgba(255,255,255,0.06)' },
                 grid:   { stroke: 'rgba(255,255,255,0.06)' },

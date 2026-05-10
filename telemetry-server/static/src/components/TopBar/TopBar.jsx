@@ -2,9 +2,12 @@ import { status } from '../../store.js'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './TopBar.css'
 
-function TopBar({ user, sessionMode, onLogout }) {
+function TopBar(props) {
+    const isLive = () => props.telemetryMode === 'live'
+    const isStopped = () => props.telemetryMode === 'stopped'
+
     const dotClass = () => {
-        if (sessionMode === 'ui') return 'ws-dot ws-dot--preview'
+        if (props.sessionMode === 'ui') return 'ws-dot ws-dot--preview'
 
         const s = status.state
         if (s === 'connected')  return 'ws-dot ws-dot--connected'
@@ -14,10 +17,19 @@ function TopBar({ user, sessionMode, onLogout }) {
     }
 
     const connectionLabel = () => {
-        if (sessionMode === 'ui') return 'modo UI'
+        if (props.sessionMode === 'ui') return 'modo UI'
 
         return status.state
     }
+
+    const canControlTelemetry = () => props.sessionMode === 'live'
+    const collectionLabel = () => {
+        if (isLive()) return 'Tempo real'
+        if (isStopped()) return 'Historico'
+        return 'Aguardando'
+    }
+    const actionLabel = () => isLive() ? 'Encerrar coleta' : 'Iniciar coleta'
+    const telemetryAction = () => isLive() ? props.onStopTelemetry : props.onStartTelemetry
 
     return (
         <div class="topbar">
@@ -31,17 +43,42 @@ function TopBar({ user, sessionMode, onLogout }) {
                 </div>
 
                 <span class="framerate">
-                    {sessionMode === 'live' && status.frameRate > 0 ? `${status.frameRate} fr/s` : ''}
+                    {props.sessionMode === 'live' && isLive() && status.frameRate > 0
+                        ? `${status.frameRate} fr/s`
+                        : ''}
                 </span>
             </div>
 
             <div class="topbar__right">
+                {canControlTelemetry() && (
+                    <div
+                        classList={{
+                            'telemetry-control': true,
+                            'telemetry-control--live': isLive(),
+                            'telemetry-control--stopped': isStopped(),
+                        }}
+                    >
+                        <span class="telemetry-control__status">
+                            <span class="telemetry-control__dot" />
+                            {collectionLabel()}
+                        </span>
+
+                        <button
+                            class="telemetry-control__button"
+                            type="button"
+                            onClick={() => telemetryAction()?.()}
+                        >
+                            {actionLabel()}
+                        </button>
+                    </div>
+                )}
+
                 <div class="session-chip" title="Sessao atual">
                     <span class="session-chip__label">Usuario</span>
-                    <strong>{user}</strong>
+                    <strong>{props.user}</strong>
                 </div>
 
-                <button class="btn" onclick={onLogout}>Sair</button>
+                <button class="btn" onClick={props.onLogout}>Sair</button>
             </div>
         </div>
     )

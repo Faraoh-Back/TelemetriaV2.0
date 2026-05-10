@@ -1,5 +1,12 @@
 import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
-import { connect, disconnect, signals } from './store.js'
+import {
+  connect,
+  disconnect,
+  resetTelemetryData,
+  setTelemetryCollectionEnabled,
+  signals,
+  telemetrySession,
+} from './store.js'
 import { getServerConfig } from './config/serverConfig.js'
 import {
   clearStoredUiSession,
@@ -18,6 +25,7 @@ import DashboardEmptyState from './components/DashboardEmptyState/DashboardEmpty
 import './components/DashboardEmptyState/DashboardEmptyState.css'
 import TimeWindowControl from './components/TimeWindowControl/TimeWindowControl.jsx'
 import MotecChart from './components/MotecChart/MotecChart.jsx'
+import HistoryReferenceChart from './components/HistoryReferenceChart/HistoryReferenceChart.jsx'
 import Cockpit from './components/Cockpit/Cockpit.jsx'
 import { DEFAULT_CHART_LAYOUT, GAUGE_CONFIG } from './config/dashboardConfig.js'
 
@@ -26,11 +34,18 @@ const TABS = [
   { id: 'cockpit',  label: 'Cockpit' },
 ]
 
+const TELEMETRY_MODE = {
+  idle: 'idle',
+  live: 'live',
+  stopped: 'stopped',
+}
+
 function App() {
   const [session, setSession] = createSignal(null)
   const [activeTab, setActiveTab] = createSignal('analise')
   const [selectedSignals, setSelectedSignals] = createSignal([])
   const [windowSeconds, setWindowSeconds] = createSignal(30)
+  const [telemetryMode, setTelemetryMode] = createSignal(TELEMETRY_MODE.idle)
   const customChartKey = createMemo(() => selectedSignals().join('|'))
   const hasSignals = createMemo(() => Object.keys(signals).length > 0)
 
@@ -53,11 +68,15 @@ function App() {
   }
 
   function authenticateDashboard(nextSession) {
-    setSession(nextSession)
-
     if (nextSession.mode === 'live') {
       connect(buildWsUrl(nextSession.token))
+      setTelemetryCollectionEnabled(false)
+      setTelemetryMode(TELEMETRY_MODE.idle)
+    } else {
+      setTelemetryMode(TELEMETRY_MODE.idle)
     }
+
+    setSession(nextSession)
   }
 
   async function handleLogin(username, password) {
@@ -74,8 +93,24 @@ function App() {
     clearStoredUiSession()
     disconnect()
     setSession(null)
+    setTelemetryMode(TELEMETRY_MODE.idle)
     setActiveTab('analise')
     setSelectedSignals([])
+  }
+
+  function handleStartTelemetry() {
+    const currentSession = session()
+    if (!currentSession || currentSession.mode !== 'live') return
+
+    resetTelemetryData()
+    setTelemetryCollectionEnabled(true)
+    setTelemetryMode(TELEMETRY_MODE.live)
+  }
+
+  function handleStopTelemetry() {
+    setTelemetryCollectionEnabled(false)
+    setTelemetryMode(TELEMETRY_MODE.stopped)
+    setActiveTab('analise')
   }
 
   function toggleSignal(signalName) {
@@ -99,6 +134,9 @@ function App() {
       <TopBar
         user={session().username}
         sessionMode={session().mode}
+        telemetryMode={telemetryMode()}
+        onStartTelemetry={handleStartTelemetry}
+        onStopTelemetry={handleStopTelemetry}
         onLogout={handleLogout}
       />
       <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
@@ -116,33 +154,52 @@ function App() {
             <Show when={!hasSignals()}>
               <DashboardEmptyState mode={session().mode} />
             </Show>
-            <TimeWindowControl
-              value={windowSeconds()}
-              onChange={setWindowSeconds}
-            />
+            <Show when={telemetryMode() === TELEMETRY_MODE.live}>
+              <TimeWindowControl
+                value={windowSeconds()}
+                onChange={setWindowSeconds}
+              />
+            </Show>
 
             <div class="chart-area">
-              <Show when={selectedSignals().length > 0}>
-                <For each={[customChartKey()]}>
-                  {() => (
-                    <MotecChart
-                      label="Seleção customizada"
-                      signals={selectedSignals()}
-                      windowSeconds={windowSeconds()}
-                    />
-                  )}
-                </For>
-              </Show>
+              <Show
+                when={telemetryMode() === TELEMETRY_MODE.stopped}
+                fallback={
+                  <Show
+                    when={telemetryMode() === TELEMETRY_MODE.live}
+                  >
+                      <Show when={selectedSignals().length > 0}>
+                        <For each={[customChartKey()]}>
+                          {() => (
+                            <MotecChart
+                              label="Seleção customizada"
+                            signals={selectedSignals()}
+                            windowSeconds={windowSeconds()}
+                            relativeTime
+                            relativeStartTimestamp={telemetrySession.startTimestamp}
+                          />
+                          )}
+                        </For>
+                      </Show>
 
-              <For each={DEFAULT_CHART_LAYOUT}>
-                {({ label, signals }) => (
-                  <MotecChart
-                    label={label}
-                    signals={signals}
-                    windowSeconds={windowSeconds()}
-                  />
-                )}
-              </For>
+                      <For each={DEFAULT_CHART_LAYOUT}>
+                        {({ label, signals }) => (
+                          <MotecChart
+                            label={label}
+                          signals={signals}
+                          windowSeconds={windowSeconds()}
+                          relativeTime
+                          relativeStartTimestamp={telemetrySession.startTimestamp}
+                        />
+                        )}
+                      </For>
+                  </Show>
+                }
+              >
+                <HistoryReferenceChart
+                  signals={selectedSignals()}
+                />
+              </Show>
             </div>
           </>
         }

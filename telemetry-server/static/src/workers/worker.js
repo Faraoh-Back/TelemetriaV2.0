@@ -236,22 +236,54 @@ const CAN_MAP = {
     let reconnectTimer = null;
     let frameCount   = 0;
     let lastRateTs   = performance.now();
+    let telemetryCollectionEnabled = false;
+    let sessionStartTimestamp = null;
+    let sessionStopTimestamp = null;
+    let latestFrameTimestamp = null;
     
     function getOrCreateBuffer(name) {
         if (!buffers[name]) buffers[name] = new CircularBuffer(BUFFER_SIZE);
         return buffers[name];
+    }
+
+    function resetTelemetryData() {
+        for (const name of Object.keys(buffers)) delete buffers[name];
+        for (const name of Object.keys(latest)) delete latest[name];
+        frameCount = 0;
+        lastRateTs = performance.now();
+        sessionStartTimestamp = null;
+        sessionStopTimestamp = null;
+        latestFrameTimestamp = null;
+        postSessionState();
+    }
+
+    function postSessionState() {
+        self.postMessage({
+            type: 'session',
+            startTimestamp: sessionStartTimestamp,
+            stopTimestamp: sessionStopTimestamp,
+        });
     }
     
     // ─── PARSER DO FRAME BINÁRIO ──────────────────────────────────────────────────
     // Formato: [u32 can_id LE | f64 timestamp LE | u8×8 raw_data]
     
     function handleFrame(arrayBuffer) {
+        if (!telemetryCollectionEnabled) return;
         if (arrayBuffer.byteLength < 20) return;
     
         const view    = new DataView(arrayBuffer);
         const canId   = view.getUint32(0, true);       // little-endian
         const timestamp = view.getFloat64(4, true);    // little-endian
         const rawData = new Uint8Array(arrayBuffer, 12, 8);
+
+        if (sessionStartTimestamp == null) {
+        sessionStartTimestamp = timestamp;
+        sessionStopTimestamp = null;
+        postSessionState();
+        }
+
+        latestFrameTimestamp = timestamp;
     
         const signals = CAN_MAP[canId];
         if (!signals) return;
@@ -357,10 +389,31 @@ const CAN_MAP = {
         case 'connect':
             connect(data.url);
             break;
+
+        case 'setTelemetryCollectionEnabled':
+            telemetryCollectionEnabled = !!data.enabled;
+            if (telemetryCollectionEnabled) {
+            sessionStopTimestamp = null;
+            postSessionState();
+            }
+            if (!telemetryCollectionEnabled) {
+            frameCount = 0;
+            sessionStopTimestamp = latestFrameTimestamp;
+            postSessionState();
+            self.postMessage({ type: 'status', state: ws ? 'connected' : 'disconnected', frameRate: 0 });
+            }
+            break;
+
+        case 'resetTelemetryData':
+            resetTelemetryData();
+            break;
     
         case 'disconnect':
             if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
             if (ws) { ws.onclose = null; ws.close(); ws = null; }
+            telemetryCollectionEnabled = false;
+            sessionStopTimestamp = latestFrameTimestamp;
+            postSessionState();
             self.postMessage({ type: 'status', state: 'disconnected', frameRate: 0 });
             break;
     

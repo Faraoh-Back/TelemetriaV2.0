@@ -176,6 +176,7 @@ function MotecChart(props) {
         height: props.height ?? 200,
         signals: sigNames,
         cursorSync,
+        relativeTime: props.relativeTime ?? false,
         })
 
         /**
@@ -274,6 +275,8 @@ function MotecChart(props) {
         createEffect(() => {
         const sigNames = props.signals ?? []
         props.windowSeconds
+        props.relativeTime
+        props.relativeStartTimestamp
 
         /**
          * Apenas acessar a propriedade já registra

@@ -64,6 +64,79 @@
 
 .btn:hover { border-color: var(--red); color: var(--red); }
 
+.telemetry-control {
+    display: flex;
+    align-items: center;
+    min-height: 30px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.035);
+}
+
+.telemetry-control__status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    color: var(--text2);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.telemetry-control__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text2);
+}
+
+.telemetry-control--live .telemetry-control__dot {
+    background: var(--ok);
+}
+
+.telemetry-control--stopped .telemetry-control__dot {
+    background: var(--amber);
+}
+
+.telemetry-control__button {
+    align-self: stretch;
+    min-width: 72px;
+    padding: 0 12px;
+    color: var(--text);
+    background: rgba(31,182,142,0.14);
+    border: 0;
+    border-left: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.telemetry-control--live .telemetry-control__button {
+    color: var(--amber);
+    background: rgba(224,155,47,0.12);
+}
+
+.telemetry-control--stopped .telemetry-control__button {
+    color: var(--ok);
+    background: rgba(31,182,142,0.14);
+}
+
+.telemetry-control__button:hover {
+    color: var(--text);
+    background: rgba(31,182,142,0.24);
+}
+
+.telemetry-control--live .telemetry-control__button:hover {
+    color: var(--red);
+    background: rgba(240,82,82,0.14);
+}
+
+.telemetry-control--stopped .telemetry-control__button:hover {
+    color: var(--ok);
+    background: rgba(31,182,142,0.24);
+}
+
 .session-chip {
     display: flex;
     align-items: center;

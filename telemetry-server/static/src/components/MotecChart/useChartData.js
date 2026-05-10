@@ -29,7 +29,7 @@
  */
 
 import { requestBuffer } from '../../store.js'
-import { mergeBuffers } from '../../utils/chartHelpers'
+import { mergeBuffers, toRelativeTimestamps } from '../../utils/chartHelpers'
 
 /**
  * Tempo mínimo entre atualizações do gráfico.
@@ -96,9 +96,21 @@ export function useChartData(props) {
         alignedTs,
         valueArrays,
         } = mergeBuffers(results, sigNames)
+        const relativeTime = props.relativeTime ?? false
+        const relativeStartTimestamp = props.relativeStartTimestamp ?? null
+
+        if (relativeTime && relativeStartTimestamp == null) {
+            return {
+                alignedTs: new Float64Array(0),
+                valueArrays: sigNames.map(() => new Float64Array(0)),
+                sigNames,
+            }
+        }
 
         return {
-        alignedTs,
+        alignedTs: relativeTime
+            ? toRelativeTimestamps(alignedTs, relativeStartTimestamp)
+            : alignedTs,
         valueArrays,
         sigNames,
         }

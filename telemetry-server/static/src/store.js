@@ -23,7 +23,7 @@
 //       ▼
 //   bufferCallbacks.get(reqId)(data) → resolve() da Promise
 
-import { createStore } from 'solid-js/store'
+import { createStore, reconcile } from 'solid-js/store'
 
 // ─── WORKER ──────────────────────────────────────────────────────────────────
 // O Worker fica em src/workers para poder importar os utils do projeto.
@@ -36,9 +36,14 @@ const worker = new Worker(
 // ─── ESTADO REATIVO ───────────────────────────────────────────────────────────
 // signals: { [signal_name]: { value, unit, timestamp } }
 // status:  { state: 'disconnected' | 'connecting' | 'connected' | 'error', frameRate: number }
+// telemetrySession: timestamps absolutos da coleta atual.
 
 const [signals, setSignals] = createStore({})
 const [status, setStatus]   = createStore({ state: 'disconnected', frameRate: 0 })
+const [telemetrySession, setTelemetrySession] = createStore({
+    startTimestamp: null,
+    stopTimestamp: null,
+})
 
 // ─── MENSAGENS DO WORKER ──────────────────────────────────────────────────────
     worker.onmessage = ({ data }) => {
@@ -64,6 +69,13 @@ const [status, setStatus]   = createStore({ state: 'disconnected', frameRate: 0 
             latestCallback?.(data.snapshot)
             latestCallback = null
             break
+
+            case 'session':
+            setTelemetrySession({
+                startTimestamp: data.startTimestamp ?? null,
+                stopTimestamp: data.stopTimestamp ?? null,
+            })
+            break
         }
     }
 
@@ -84,6 +96,22 @@ const [status, setStatus]   = createStore({ state: 'disconnected', frameRate: 0 
 
     export function disconnect() {
         worker.postMessage({ cmd: 'disconnect' })
+    }
+
+    export function setTelemetryCollectionEnabled(enabled) {
+        worker.postMessage({
+            cmd: 'setTelemetryCollectionEnabled',
+            enabled,
+        })
+    }
+
+    export function resetTelemetryData() {
+        setSignals(reconcile({}))
+        setTelemetrySession({
+            startTimestamp: null,
+            stopTimestamp: null,
+        })
+        worker.postMessage({ cmd: 'resetTelemetryData' })
     }
 
     export function requestBuffer(name, threshold = 500, windowSeconds = null) {
@@ -107,4 +135,4 @@ const [status, setStatus]   = createStore({ state: 'disconnected', frameRate: 0 
         })
     }
 
-    export { signals, status }
+    export { signals, status, telemetrySession }

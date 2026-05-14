@@ -16,6 +16,7 @@ import {
   getValidStoredToken,
   login,
 } from './utils/auth.js'
+import { persistTelemetryLogBoundsMock } from './utils/logSessionMarks.js'
 import LoginScreen from './components/Login/LoginScreen.jsx'
 import TopBar from './components/TopBar/TopBar.jsx'
 import TabBar from './components/TabBar/TabBar.jsx'
@@ -107,8 +108,18 @@ function App() {
     setTelemetryMode(TELEMETRY_MODE.live)
   }
 
-  function handleStopTelemetry() {
-    setTelemetryCollectionEnabled(false)
+  async function handleStopTelemetry() {
+    const bounds = await setTelemetryCollectionEnabled(false)
+    const currentSession = session()
+
+    if (
+      currentSession?.mode === 'live' &&
+      bounds.log_start_unix != null &&
+      bounds.log_stop_unix != null
+    ) {
+      await persistTelemetryLogBoundsMock(bounds, currentSession.token)
+    }
+
     setTelemetryMode(TELEMETRY_MODE.stopped)
     setActiveTab('analise')
   }

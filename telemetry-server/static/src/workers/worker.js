@@ -400,6 +400,11 @@ const CAN_MAP = {
             frameCount = 0;
             sessionStopTimestamp = latestFrameTimestamp;
             postSessionState();
+            self.postMessage({
+                type: 'collection_bounds',
+                log_start_unix: sessionStartTimestamp,
+                log_stop_unix: sessionStopTimestamp,
+            });
             self.postMessage({ type: 'status', state: ws ? 'connected' : 'disconnected', frameRate: 0 });
             }
             break;

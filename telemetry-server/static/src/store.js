@@ -76,6 +76,14 @@ const [telemetrySession, setTelemetrySession] = createStore({
                 stopTimestamp: data.stopTimestamp ?? null,
             })
             break
+
+            case 'collection_bounds':
+            pendingCollectionBounds?.({
+                log_start_unix: data.log_start_unix ?? null,
+                log_stop_unix: data.log_stop_unix ?? null,
+            })
+            pendingCollectionBounds = null
+            break
         }
     }
 
@@ -86,6 +94,7 @@ const [telemetrySession, setTelemetrySession] = createStore({
     const bufferCallbacks = new Map()
     let   latestCallback  = null
     let   reqCounter      = 0
+    let   pendingCollectionBounds = null
 
     // ─── API PÚBLICA ──────────────────────────────────────────────────────────────
 
@@ -98,10 +107,29 @@ const [telemetrySession, setTelemetrySession] = createStore({
         worker.postMessage({ cmd: 'disconnect' })
     }
 
+    /**
+     * Ao desligar a coleta, resolve com os limites do log no mesmo relógio dos frames.
+     * @param {boolean} enabled
+     * @returns {Promise<{ log_start_unix: number | null, log_stop_unix: number | null }>}
+     */
     export function setTelemetryCollectionEnabled(enabled) {
-        worker.postMessage({
-            cmd: 'setTelemetryCollectionEnabled',
-            enabled,
+        if (enabled) {
+            worker.postMessage({
+                cmd: 'setTelemetryCollectionEnabled',
+                enabled: true,
+            })
+            return Promise.resolve({
+                log_start_unix: null,
+                log_stop_unix: null,
+            })
+        }
+
+        return new Promise((resolve) => {
+            pendingCollectionBounds = resolve
+            worker.postMessage({
+                cmd: 'setTelemetryCollectionEnabled',
+                enabled: false,
+            })
         })
     }
 

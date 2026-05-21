@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "mock:backend": "node scripts/mock-telemetry-server.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

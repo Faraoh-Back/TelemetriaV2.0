@@ -1,83 +1,222 @@
-import { createSignal, Show, onMount } from 'solid-js'
-import { For } from 'solid-js'
-import { connect, disconnect, status } from './store.js'
+import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
+import {
+  connect,
+  disconnect,
+  resetTelemetryData,
+  setTelemetryCollectionEnabled,
+  signals,
+  telemetrySession,
+} from './store.js'
 import { getServerConfig } from './config/serverConfig.js'
+import {
+  clearStoredUiSession,
+  clearStoredToken,
+  createUiSession,
+  getStoredUiSession,
+  getValidStoredToken,
+  login,
+} from './utils/auth.js'
+import { persistTelemetryLogBoundsMock } from './utils/logSessionMarks.js'
 import LoginScreen from './components/Login/LoginScreen.jsx'
+import TopBar from './components/TopBar/TopBar.jsx'
+import TabBar from './components/TabBar/TabBar.jsx'
 import StatusBar from './components/StatusBar/StatusBar.jsx'
+import SignalSelector from './components/SignalSelector/SignalSelector.jsx'
+import DashboardEmptyState from './components/DashboardEmptyState/DashboardEmptyState.jsx'
+import './components/DashboardEmptyState/DashboardEmptyState.css'
+import TimeWindowControl from './components/TimeWindowControl/TimeWindowControl.jsx'
 import MotecChart from './components/MotecChart/MotecChart.jsx'
-import { DEFAULT_CHART_LAYOUT } from './config/dashboardConfig.js'
+import HistoryReferenceChart from './components/HistoryReferenceChart/HistoryReferenceChart.jsx'
+import Cockpit from './components/Cockpit/Cockpit.jsx'
+import { DEFAULT_CHART_LAYOUT, GAUGE_CONFIG } from './config/dashboardConfig.js'
+
+const TABS = [
+  { id: 'analise',  label: 'Análise' },
+  { id: 'cockpit',  label: 'Cockpit' },
+]
+
+const TELEMETRY_MODE = {
+  idle: 'idle',
+  live: 'live',
+  stopped: 'stopped',
+}
 
 function App() {
-  const [authed, setAuthed] = createSignal(false)
+  const [session, setSession] = createSignal(null)
+  const [activeTab, setActiveTab] = createSignal('analise')
+  const [selectedSignals, setSelectedSignals] = createSignal([])
+  const [windowSeconds, setWindowSeconds] = createSignal(30)
+  const [telemetryMode, setTelemetryMode] = createSignal(TELEMETRY_MODE.idle)
+  const customChartKey = createMemo(() => selectedSignals().join('|'))
+  const hasSignals = createMemo(() => Object.keys(signals).length > 0)
 
   onMount(() => {
-    const token = localStorage.getItem('jwt')
-    if (!token) return
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      if (payload.exp * 1000 > Date.now()) {
-        setAuthed(true)
-        const { wsBase } = getServerConfig()
-        connect(`${wsBase}/ws?token=${token}`)
-      } else {
-        localStorage.removeItem('jwt')
-      }
-    } catch (_) {
-      localStorage.removeItem('jwt')
+    // Modo UI permite trabalhar a experiencia sem depender do backend.
+    const uiSession = getStoredUiSession()
+    if (uiSession?.mode === 'ui') {
+      setSession(uiSession)
+      return
     }
+
+    // Recupera sessoes reais ainda validas antes de exibir a area operacional.
+    const token = getValidStoredToken()
+    if (token) authenticateDashboard({ token, username: 'eracing', mode: 'live' })
   })
 
-  async function handleLogin(username, password) {
-    const { apiBase } = getServerConfig()
-    const res = await fetch(`${apiBase}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    })
-    const data = await res.json()
-    if (data.ok && data.token) {
-      localStorage.setItem('jwt', data.token)
-      setAuthed(true)
-      const { wsBase } = getServerConfig()
-      connect(`${wsBase}/ws?token=${data.token}`)
+  function buildWsUrl(token) {
+    const { wsBase } = getServerConfig()
+    return `${wsBase}/ws?token=${encodeURIComponent(token)}`
+  }
+
+  function authenticateDashboard(nextSession) {
+    if (nextSession.mode === 'live') {
+      connect(buildWsUrl(nextSession.token))
+      setTelemetryCollectionEnabled(false)
+      setTelemetryMode(TELEMETRY_MODE.idle)
     } else {
-      throw new Error(data.message || 'Credenciais inválidas.')
+      setTelemetryMode(TELEMETRY_MODE.idle)
     }
+
+    setSession(nextSession)
+  }
+
+  async function handleLogin(username, password) {
+    const token = await login(username, password)
+    authenticateDashboard({ token, username, mode: 'live' })
   }
 
   function handleUiPreview() {
-    setAuthed(true)
+    authenticateDashboard(createUiSession('eracing'))
   }
 
   function handleLogout() {
-    localStorage.removeItem('jwt')
+    clearStoredToken()
+    clearStoredUiSession()
     disconnect()
-    setAuthed(false)
+    setSession(null)
+    setTelemetryMode(TELEMETRY_MODE.idle)
+    setActiveTab('analise')
+    setSelectedSignals([])
+  }
+
+  function handleStartTelemetry() {
+    const currentSession = session()
+    if (!currentSession || currentSession.mode !== 'live') return
+
+    resetTelemetryData()
+    setTelemetryCollectionEnabled(true)
+    setTelemetryMode(TELEMETRY_MODE.live)
+  }
+
+  async function handleStopTelemetry() {
+    const bounds = await setTelemetryCollectionEnabled(false)
+    const currentSession = session()
+
+    if (
+      currentSession?.mode === 'live' &&
+      bounds.log_start_unix != null &&
+      bounds.log_stop_unix != null
+    ) {
+      await persistTelemetryLogBoundsMock(bounds, currentSession.token)
+    }
+
+    setTelemetryMode(TELEMETRY_MODE.stopped)
+    setActiveTab('analise')
+  }
+
+  function toggleSignal(signalName) {
+    setSelectedSignals((current) =>
+      current.includes(signalName)
+        ? current.filter((name) => name !== signalName)
+        : [...current, signalName]
+    )
+  }
+
+  function clearSignalSelection() {
+    setSelectedSignals([])
   }
 
   return (
-    <Show when={authed()} fallback={
-      <LoginScreen onLogin={handleLogin} onUiPreview={handleUiPreview} />
-    }>
-      <div style={{ display: 'flex', 'flex-direction': 'column', 'min-height': '100vh' }}>
-        <div style={{ padding: '8px 16px', background: 'var(--bg2)', 'border-bottom': '1px solid var(--border)', display: 'flex', 'justify-content': 'space-between', 'align-items': 'center' }}>
-          <span style={{ 'font-size': '13px', color: 'var(--text2)' }}>
-            WebSocket: <strong style={{ color: status.state === 'connected' ? 'var(--accent)' : 'var(--red)' }}>{status.state}</strong>
-            {' · '}{status.frameRate} fps
-          </span>
-          <button onclick={handleLogout} style={{ background: 'none', border: '1px solid var(--border)', 'border-radius': '6px', color: 'var(--text2)', padding: '4px 12px', cursor: 'pointer', 'font-size': '12px' }}>
-            Sair
-          </button>
-        </div>
-        <StatusBar />
-        <div style={{ padding: '16px' }}>
-          <For each={DEFAULT_CHART_LAYOUT}>
-            {({ label, signals }) => (
-              <MotecChart label={label} signals={signals} />
-            )}
-          </For>
-        </div>
-      </div>
+    <Show
+      when={session()}
+      fallback={<LoginScreen onLogin={handleLogin} onUiPreview={handleUiPreview} />}
+    >
+      {/* Dashboard fica isolado do login; daqui para baixo so existe sessao autenticada. */}
+      <TopBar
+        user={session().username}
+        sessionMode={session().mode}
+        telemetryMode={telemetryMode()}
+        onStartTelemetry={handleStartTelemetry}
+        onStopTelemetry={handleStopTelemetry}
+        onLogout={handleLogout}
+      />
+      <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
+
+      <Show
+        when={activeTab() === 'cockpit'}
+        fallback={
+          <>
+            <StatusBar />
+            <SignalSelector
+              selectedSignals={selectedSignals()}
+              onToggleSignal={toggleSignal}
+              onClearSelection={clearSignalSelection}
+            />
+            <Show when={!hasSignals()}>
+              <DashboardEmptyState mode={session().mode} />
+            </Show>
+            <Show when={telemetryMode() === TELEMETRY_MODE.live}>
+              <TimeWindowControl
+                value={windowSeconds()}
+                onChange={setWindowSeconds}
+              />
+            </Show>
+
+            <div class="chart-area">
+              <Show
+                when={telemetryMode() === TELEMETRY_MODE.stopped}
+                fallback={
+                  <Show
+                    when={telemetryMode() === TELEMETRY_MODE.live}
+                  >
+                      <Show when={selectedSignals().length > 0}>
+                        <For each={[customChartKey()]}>
+                          {() => (
+                            <MotecChart
+                              label="Seleção customizada"
+                            signals={selectedSignals()}
+                            windowSeconds={windowSeconds()}
+                            relativeTime
+                            relativeStartTimestamp={telemetrySession.startTimestamp}
+                          />
+                          )}
+                        </For>
+                      </Show>
+
+                      <For each={DEFAULT_CHART_LAYOUT}>
+                        {({ label, signals }) => (
+                          <MotecChart
+                            label={label}
+                          signals={signals}
+                          windowSeconds={windowSeconds()}
+                          relativeTime
+                          relativeStartTimestamp={telemetrySession.startTimestamp}
+                        />
+                        )}
+                      </For>
+                  </Show>
+                }
+              >
+                <HistoryReferenceChart
+                  signals={selectedSignals()}
+                />
+              </Show>
+            </div>
+          </>
+        }
+      >
+        <Cockpit gauges={GAUGE_CONFIG} />
+      </Show>
     </Show>
   )
 }

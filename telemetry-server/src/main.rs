@@ -27,7 +27,7 @@ mod decoder;
 
 // ==================== HTML ESTÁTICO ====================
 // Embutido no binário — não precisa de arquivo externo em produção
-const INDEX_HTML: &str = include_str!("../static/index.legacy.html");
+const INDEX_HTML: &str = include_str!("../static/dist/index.html");
 
 // ==================== CONFIGURAÇÕES ====================
 const TCP_PORT: u16 = 8080;
@@ -453,6 +453,12 @@ async fn handle_http_connection(
         // Upgrade para WebSocket (com validação JWT)
         handle_ws_upgrade(stream, &request, addr, ws_tx).await;
 
+    } else if first_line.starts_with("GET /assets/") 
+       || first_line.starts_with("GET /worker.js")
+       || first_line.starts_with("GET /favicon.svg")
+       || first_line.starts_with("GET /icons.svg") {
+    serve_static_file(&mut stream, first_line).await;
+
     } else if first_line.starts_with("POST /migrate") {
         handle_migrate(&mut stream, &request, &pg_pool, &sqlite_pool).await;
 
@@ -473,6 +479,37 @@ async fn serve_html(stream: &mut TcpStream) {
         body
     );
     let _ = stream.write_all(response.as_bytes()).await;
+}
+
+async fn serve_static_file(stream: &mut TcpStream, first_line: &str) {
+    let path = first_line.split_whitespace().nth(1).unwrap_or("/");
+    let file_path = format!("./static/dist{}", path);
+    
+    let content_type = if path.ends_with(".js") {
+        "application/javascript"
+    } else if path.ends_with(".css") {
+        "text/css"
+    } else if path.ends_with(".svg") {
+        "image/svg+xml"
+    } else {
+        "application/octet-stream"
+    };
+
+    match tokio::fs::read(&file_path).await {
+        Ok(bytes) => {
+            let header = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nCache-Control: max-age=3600\r\n\r\n",
+                content_type,
+                bytes.len()
+            );
+            let _ = stream.write_all(header.as_bytes()).await;
+            let _ = stream.write_all(&bytes).await;
+        }
+        Err(_) => {
+            let response = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\n\r\nNot Found";
+            let _ = stream.write_all(response.as_bytes()).await;
+        }
+    }
 }
 
 // ==================== POST /login ====================

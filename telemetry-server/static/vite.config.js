@@ -5,8 +5,5 @@ export default defineConfig({
   plugins: [solid()],
   build: {
     outDir: 'dist',
-    rollupOptions: {
-      input: 'index.vite.html',
-    },
   },
 })

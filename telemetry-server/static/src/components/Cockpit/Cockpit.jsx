@@ -25,6 +25,7 @@ function Cockpit(props) {
 
     const videoSource = () => props.videoSource
     const trackMapSource = () => props.trackMapSource
+    const trackMap = () => props.trackMap
 
     return (
         <main class="cockpit">
@@ -38,7 +39,7 @@ function Cockpit(props) {
                 <RaceVideoPanel source={videoSource()} />
 
                 <div class="cockpit__lower-grid">
-                    <TrackMapPanel source={trackMapSource()} />
+                    <TrackMapPanel source={trackMapSource()} data={trackMap()} />
                 </div>
             </section>
 

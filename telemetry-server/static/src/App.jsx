@@ -5,6 +5,7 @@ import {
   resetTelemetryData,
   setTelemetryCollectionEnabled,
   signals,
+  trackState,
   telemetrySession,
 } from './store.js'
 import { getServerConfig } from './config/serverConfig.js'
@@ -215,7 +216,7 @@ function App() {
           </>
         }
       >
-        <Cockpit gauges={GAUGE_CONFIG} />
+        <Cockpit gauges={GAUGE_CONFIG} trackMap={trackState} />
       </Show>
     </Show>
   )

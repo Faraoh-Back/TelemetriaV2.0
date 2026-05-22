@@ -40,6 +40,12 @@ const worker = new Worker(
 
 const [signals, setSignals] = createStore({})
 const [status, setStatus]   = createStore({ state: 'disconnected', frameRate: 0 })
+const [trackState, setTrackState] = createStore({
+    status: 'waiting',
+    track: null,
+    vehicle: null,
+    timestamp: null,
+})
 const [telemetrySession, setTelemetrySession] = createStore({
     startTimestamp: null,
     stopTimestamp: null,
@@ -83,6 +89,27 @@ const [telemetrySession, setTelemetrySession] = createStore({
                 log_stop_unix: data.log_stop_unix ?? null,
             })
             pendingCollectionBounds = null
+            break
+
+            case 'track':
+            if (data.payload?.type === 'track_status') {
+                setTrackState({
+                    status: data.payload.state || 'learning_first_lap',
+                    timestamp: data.payload.timestamp ?? null,
+                })
+            } else if (data.payload?.type === 'track_map') {
+                setTrackState({
+                    status: 'tracking',
+                    track: data.payload.track ?? null,
+                    timestamp: data.payload.timestamp ?? null,
+                })
+            } else if (data.payload?.type === 'track_pose') {
+                setTrackState({
+                    status: 'tracking',
+                    vehicle: data.payload.vehicle ?? null,
+                    timestamp: data.payload.timestamp ?? null,
+                })
+            }
             break
         }
     }
@@ -135,6 +162,12 @@ const [telemetrySession, setTelemetrySession] = createStore({
 
     export function resetTelemetryData() {
         setSignals(reconcile({}))
+        setTrackState({
+            status: 'waiting',
+            track: null,
+            vehicle: null,
+            timestamp: null,
+        })
         setTelemetrySession({
             startTimestamp: null,
             stopTimestamp: null,
@@ -163,4 +196,4 @@ const [telemetrySession, setTelemetrySession] = createStore({
         })
     }
 
-    export { signals, status, telemetrySession }
+    export { signals, status, telemetrySession, trackState }

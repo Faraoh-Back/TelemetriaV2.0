@@ -310,6 +310,38 @@ const CAN_MAP = {
         }
     }
 
+    function handleTextMessage(text) {
+        let payload;
+        try {
+            payload = JSON.parse(text);
+        } catch {
+            return;
+        }
+
+        if (payload.type === 'track_status' || payload.type === 'track_map' || payload.type === 'track_pose') {
+            self.postMessage({ type: 'track', payload });
+            return;
+        }
+
+        if (!telemetryCollectionEnabled || !payload.signal_name) return;
+
+        const name = payload.signal_name;
+        const value = Number(payload.value);
+        const timestamp = Number(payload.timestamp);
+        if (!Number.isFinite(value) || !Number.isFinite(timestamp)) return;
+
+        getOrCreateBuffer(name).push(timestamp, value);
+        latest[name] = { value, unit: payload.unit || '', timestamp };
+        self.postMessage({
+            type: 'signal',
+            name,
+            value,
+            unit: payload.unit || '',
+            timestamp,
+            canId: payload.can_id,
+        });
+    }
+
     // ─── JANELA TEMPORAL ─────────────────────────────────────────────────────────
     // Recorta os arrays para os últimos N segundos antes do LTTB.
     //
@@ -363,6 +395,10 @@ const CAN_MAP = {
         ws.onmessage = (event) => {
         if (event.data instanceof ArrayBuffer) {
             handleFrame(event.data);
+        } else if (typeof event.data === 'string') {
+            handleTextMessage(event.data);
+        } else if (event.data instanceof Blob) {
+            event.data.text().then(handleTextMessage).catch(() => {});
         }
         };
     

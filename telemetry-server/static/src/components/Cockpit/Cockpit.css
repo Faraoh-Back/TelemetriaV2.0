@@ -206,6 +206,29 @@
     box-shadow: 0 0 0 6px rgba(221,102,63,0.14);
 }
 
+.track-map__position--live {
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+.track-map__svg {
+    position: absolute;
+    inset: 12px;
+    width: calc(100% - 24px);
+    height: calc(100% - 24px);
+    overflow: visible;
+}
+
+.track-map__polyline {
+    fill: none;
+    stroke: #f2cc60;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 8px rgba(242,204,96,0.22));
+}
+
 .track-map__label {
     position: absolute;
     left: 12px;

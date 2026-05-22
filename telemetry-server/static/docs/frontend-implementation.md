@@ -259,6 +259,30 @@ Mock backend:
 pnpm mock:backend
 ```
 
+Teste do cockpit com mapa/tracking:
+
+```bash
+pnpm test:cockpit-map
+```
+
+Esse teste usa `scripts/test-cockpit-map.mjs` para iniciar o Vite e o mock backend juntos.
+O mock aceita qualquer login, envia frames CAN binários e também mensagens JSON
+`track_status`, `track_map` e `track_pose` pelo mesmo WebSocket.
+
+Passo a passo:
+
+1. abrir `http://localhost:5173/`;
+2. fazer login com qualquer usuário/senha;
+3. clicar em `Iniciar coleta`;
+4. abrir a aba `Cockpit`;
+5. aguardar o estado mudar de `aprendendo primeira volta` para `tracking`.
+
+Para ajustar o tempo da primeira volta simulada:
+
+```bash
+MOCK_TRACK_LAP_SEC=10 pnpm test:cockpit-map
+```
+
 Build:
 
 ```bash

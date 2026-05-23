@@ -6,9 +6,9 @@ function BrandLogo({ className = 'brand-logo' }) {
     return (
         <Show
             when={TEAM_LOGO_SRC}
-            fallback={<span class={className} aria-label={TEAM_LOGO_ALT}>E</span>}
+            fallback={<span class={`${className} brand-logo--fallback`} aria-label={TEAM_LOGO_ALT}>E</span>}
         >
-            <img class={className} src={TEAM_LOGO_SRC} alt={TEAM_LOGO_ALT} />
+            <img class={`${className} brand-logo--image`} src={TEAM_LOGO_SRC} alt={TEAM_LOGO_ALT} />
         </Show>
     )
 }

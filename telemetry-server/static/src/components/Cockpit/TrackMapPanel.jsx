@@ -1,6 +1,9 @@
-import { Show } from 'solid-js'
+import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
+import { buildTrackOverlay } from './trackMapMetrics.js'
 
-function TrackMapPanel({ source, data }) {
+function TrackMapPanel({ source, data, isTelemetryLive }) {
+    const [frozenOverlay, setFrozenOverlay] = createSignal(null)
+
     const pointsAttr = () => {
         const points = data?.track?.points ?? []
         return points
@@ -8,22 +11,34 @@ function TrackMapPanel({ source, data }) {
             .join(' ')
     }
 
-    const vehicleStyle = () => {
-        const vehicle = data?.vehicle
-        if (!vehicle) return {}
-        return {
-            left: `${vehicle.x * 100}%`,
-            top: `${(1 - vehicle.y) * 100}%`,
-        }
-    }
-
     const hasRealtimeMap = () => (data?.track?.points?.length ?? 0) > 1
+    const telemetryLive = () => Boolean(isTelemetryLive)
+    const liveOverlay = createMemo(() => buildTrackOverlay(data?.track, data?.vehicle))
+    const pausedOverlay = createMemo(() => buildTrackOverlay(data?.track, null))
+    const displayOverlay = createMemo(() => {
+        if (telemetryLive()) return liveOverlay()
+        return frozenOverlay() ?? pausedOverlay()
+    })
+
+    createEffect(() => {
+        if (!hasRealtimeMap()) {
+            setFrozenOverlay(null)
+            return
+        }
+        const overlay = liveOverlay()
+        if (!telemetryLive() || !overlay?.vehiclePoint) return
+        setFrozenOverlay(overlay)
+    })
 
     return (
         <section class="track-map" aria-label="Mapa da pista em tempo real">
             <header class="cockpit-panel__header">
                 <span>Mapa da pista</span>
-                <strong>{hasRealtimeMap() ? 'tracking' : source ? 'sincronizado' : 'aguardando volta'}</strong>
+                <strong>
+                    {hasRealtimeMap()
+                        ? telemetryLive() ? 'tracking' : 'coleta pausada'
+                        : source ? 'sincronizado' : 'aguardando volta'}
+                </strong>
             </header>
 
             <div class="track-map__body">
@@ -46,13 +61,27 @@ function TrackMapPanel({ source, data }) {
                 >
                     <svg class="track-map__svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                         <polyline class="track-map__polyline" points={pointsAttr()} />
+                        <Show when={displayOverlay()?.start}>
+                            {(point) => (
+                                <circle class="track-map__start" cx={point().x} cy={point().y} r="2.4" />
+                            )}
+                        </Show>
+                        <Show when={displayOverlay()?.vehiclePoint}>
+                            {(point) => (
+                                <circle class="track-map__vehicle" cx={point().x} cy={point().y} r="2.8" />
+                            )}
+                        </Show>
                     </svg>
-                    <Show when={data?.vehicle}>
-                        <div class="track-map__position track-map__position--live" style={vehicleStyle()} />
-                    </Show>
-                    <span class="track-map__label">
-                        {data?.track?.length_m ? `${data.track.length_m.toFixed(0)} m` : 'mapa congelado'}
-                    </span>
+                    <div class="track-map__stats">
+                        <For each={displayOverlay()?.stats ?? []}>
+                            {(stat) => (
+                                <span class="track-map__stat">
+                                    <strong>{stat.label}</strong>
+                                    <em>{stat.value}</em>
+                                </span>
+                            )}
+                        </For>
+                    </div>
                 </Show>
             </div>
         </section>

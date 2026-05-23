@@ -216,7 +216,11 @@ function App() {
           </>
         }
       >
-        <Cockpit gauges={GAUGE_CONFIG} trackMap={trackState} />
+        <Cockpit
+          gauges={GAUGE_CONFIG}
+          trackMap={trackState}
+          isTelemetryLive={telemetryMode() === TELEMETRY_MODE.live}
+        />
       </Show>
     </Show>
   )

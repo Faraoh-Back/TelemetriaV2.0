@@ -611,6 +611,7 @@ async fn handle_client(
         let can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
         let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
         let raw_data = &payload[12..20];
+        let raw_data_owned: [u8; 8] = raw_data.try_into().unwrap();
 
         // Latência real = agora no servidor - timestamp já corrigido pelo offset da Jetson
         let t_recv_srv = std::time::SystemTime::now()
@@ -656,9 +657,11 @@ async fn handle_client(
         });
 
         for signal in &processed {
-            if let Ok(json) = serde_json::to_string(signal) {
-                let _ = ws_tx.send(json);
-            }
+            let mut frame = [0u8; 20];
+            frame[0..4].copy_from_slice(&signal.can_id.to_le_bytes());
+            frame[4..12].copy_from_slice(&signal.timestamp.to_le_bytes());
+            frame[12..20].copy_from_slice(&raw_data_owned);
+            let _ = ws_tx.send(frame.to_vec());
         }
 
         let track_messages = match track_state.lock() {
@@ -696,7 +699,7 @@ async fn handle_client(
 //   qualquer outra → 404
 
 async fn run_http_ws_server(
-    ws_broadcast_tx: broadcast::Sender<String>,
+    ws_broadcast_tx: broadcast::Sender<Vec<u8>>,
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
     port: u16,
@@ -733,7 +736,7 @@ async fn run_http_ws_server(
 async fn handle_http_connection(
     mut stream: TcpStream,
     addr: std::net::SocketAddr,
-    ws_tx: broadcast::Sender<String>,
+    ws_tx: broadcast::Sender<Vec<u8>>,
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
 ) {
@@ -938,7 +941,7 @@ async fn handle_ws_upgrade(
     mut stream: TcpStream,
     request: &str,
     addr: std::net::SocketAddr,
-    ws_tx: broadcast::Sender<String>,
+    ws_tx: broadcast::Sender<Vec<u8>>,
 ) {
     // Extrai token do header Authorization: Bearer <token>
     let token = extract_query_token(request).or_else(|| extract_bearer_token(request));
@@ -994,7 +997,7 @@ async fn handle_ws_upgrade(
     loop {
         match rx.recv().await {
             Ok(json) => {
-                if send_ws_text_frame(&mut stream, &json).await.is_err() {
+                if send_ws_binary_frame(&mut stream, &json).await.is_err() {
                     info!("📱 WS desconectado: {}", addr);
                     break;
                 }
@@ -1167,6 +1170,23 @@ async fn send_ws_text_frame(stream: &mut TcpStream, msg: &str) -> Result<(), std
         frame.extend_from_slice(&(len as u64).to_be_bytes());
     }
     frame.extend_from_slice(payload);
+    stream.write_all(&frame).await
+}
+
+async fn send_ws_binary_frame(stream: &mut TcpStream, data: &[u8]) -> Result<(), std::io::Error> {
+    let len = data.len();
+    let mut frame = Vec::new();
+    frame.push(0x82u8); // FIN + opcode binary (0x2)
+    if len <= 125 {
+        frame.push(len as u8);
+    } else if len <= 65535 {
+        frame.push(126u8);
+        frame.extend_from_slice(&(len as u16).to_be_bytes());
+    } else {
+        frame.push(127u8);
+        frame.extend_from_slice(&(len as u64).to_be_bytes());
+    }
+    frame.extend_from_slice(data);
     stream.write_all(&frame).await
 }
 

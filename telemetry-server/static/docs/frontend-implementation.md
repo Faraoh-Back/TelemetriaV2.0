@@ -150,6 +150,7 @@ Componentes:
 - [CockpitGauge.jsx](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/components/Cockpit/CockpitGauge.jsx)
 - [RaceVideoPanel.jsx](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/components/Cockpit/RaceVideoPanel.jsx)
 - [TrackMapPanel.jsx](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/components/Cockpit/TrackMapPanel.jsx)
+- [trackMapMetrics.js](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/components/Cockpit/trackMapMetrics.js)
 
 O cockpit hoje ja entrega:
 
@@ -158,6 +159,31 @@ O cockpit hoje ja entrega:
 - painel de mapa.
 
 Os dois ultimos ainda dependem de dados/feeds reais do backend.
+
+### 5.1 Track map: enriquecimento e sincronia com coleta
+
+Mudancas recentes no mapa de pista:
+
+1. o marcador do carro foi mantido no mesmo `svg` da polilinha para evitar drift por proporcao;
+2. com coleta pausada, a posicao do carro fica congelada (nao continua rastreando novos `track_pose`);
+3. foi incluido marcador fixo do ponto de inicio da volta;
+4. o rodape do mapa passou a exibir metricas operacionais.
+
+Metricas exibidas hoje:
+
+- comprimento da pista (`track.length_m`);
+- distancia restante para completar a volta;
+- progresso percentual da volta;
+- velocidade instantanea;
+- rumo (heading).
+
+Calculo da distancia restante:
+
+- prioridade para projecao geometrica do carro sobre a polilinha da pista;
+- fallback para `vehicle.distance_m` quando necessario.
+
+Essa logica foi modularizada no arquivo `trackMapMetrics.js` para manter
+`TrackMapPanel.jsx` focado em renderizacao e estado de exibicao.
 
 ## 6. Sistema de gauges
 
@@ -257,6 +283,30 @@ Mock backend:
 
 ```bash
 pnpm mock:backend
+```
+
+Teste do cockpit com mapa/tracking:
+
+```bash
+pnpm test:cockpit-map
+```
+
+Esse teste usa `scripts/test-cockpit-map.mjs` para iniciar o Vite e o mock backend juntos.
+O mock aceita qualquer login, envia frames CAN binários e também mensagens JSON
+`track_status`, `track_map` e `track_pose` pelo mesmo WebSocket.
+
+Passo a passo:
+
+1. abrir `http://localhost:5173/`;
+2. fazer login com qualquer usuário/senha;
+3. clicar em `Iniciar coleta`;
+4. abrir a aba `Cockpit`;
+5. aguardar o estado mudar de `aprendendo primeira volta` para `tracking`.
+
+Para ajustar o tempo da primeira volta simulada:
+
+```bash
+MOCK_TRACK_LAP_SEC=10 pnpm test:cockpit-map
 ```
 
 Build:

@@ -3,9 +3,10 @@ import http from 'node:http'
 
 const PORT = Number(process.env.MOCK_TELEMETRY_PORT ?? 8081)
 const TICK_MS = Number(process.env.MOCK_TELEMETRY_TICK_MS ?? 50)
+const TRACK_LAP_SEC = Number(process.env.MOCK_TRACK_LAP_SEC ?? 8)
 const WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
-const clients = new Set()
+const clients = new Map()
 const startedAt = Date.now()
 
 function nowSeconds() {
@@ -158,6 +159,102 @@ function sendWsBinaryFrame(socket, payload) {
   socket.write(Buffer.concat([Buffer.from(header), payload]))
 }
 
+function sendWsTextFrame(socket, text) {
+  const payload = Buffer.from(text)
+  const header = []
+  header.push(0x81)
+
+  if (payload.length <= 125) {
+    header.push(payload.length)
+  } else if (payload.length <= 65535) {
+    header.push(126, (payload.length >> 8) & 0xff, payload.length & 0xff)
+  } else {
+    header.push(127, 0, 0, 0, 0)
+    header.push(
+      (payload.length >> 24) & 0xff,
+      (payload.length >> 16) & 0xff,
+      (payload.length >> 8) & 0xff,
+      payload.length & 0xff,
+    )
+  }
+
+  socket.write(Buffer.concat([Buffer.from(header), payload]))
+}
+
+function buildTrackPoints(count = 180) {
+  const points = []
+  for (let i = 0; i < count; i += 1) {
+    const theta = (i / (count - 1)) * Math.PI * 2
+    const radiusRipple = 1 + 0.11 * Math.sin(theta * 3.0)
+    const x = 0.5 + Math.cos(theta) * 0.38 * radiusRipple
+    const y = 0.5 + Math.sin(theta) * 0.28 * (1 + 0.07 * Math.cos(theta * 2.0))
+    points.push([Number(x.toFixed(4)), Number(y.toFixed(4))])
+  }
+  return points
+}
+
+const mockTrack = {
+  points: buildTrackPoints(),
+  bounds: { minX: -45, maxX: 45, minY: -32, maxY: 32 },
+  length_m: 286,
+}
+
+function interpolateTrackPoint(progress) {
+  const points = mockTrack.points
+  const position = progress * (points.length - 1)
+  const idx = Math.floor(position)
+  const nextIdx = (idx + 1) % points.length
+  const alpha = position - idx
+  const [x0, y0] = points[idx]
+  const [x1, y1] = points[nextIdx]
+  return {
+    x: x0 + (x1 - x0) * alpha,
+    y: y0 + (y1 - y0) * alpha,
+  }
+}
+
+function buildTrackStatus(t) {
+  return {
+    type: 'track_status',
+    state: 'learning_first_lap',
+    timestamp: nowSeconds(),
+    elapsed_sec: Number(t.toFixed(2)),
+    lap_period_sec: TRACK_LAP_SEC,
+    points: Math.max(1, Math.floor((t / TRACK_LAP_SEC) * mockTrack.points.length)),
+  }
+}
+
+function buildTrackMap() {
+  return {
+    type: 'track_map',
+    timestamp: nowSeconds(),
+    lap_period_sec: TRACK_LAP_SEC,
+    track: mockTrack,
+  }
+}
+
+function buildTrackPose(t) {
+  const trackTime = Math.max(0, t - TRACK_LAP_SEC)
+  const progress = (trackTime / 10) % 1
+  const vehicle = interpolateTrackPoint(progress)
+  const next = interpolateTrackPoint((progress + 0.01) % 1)
+  const heading = Math.atan2(next.y - vehicle.y, next.x - vehicle.x) * 180 / Math.PI
+
+  return {
+    type: 'track_pose',
+    timestamp: nowSeconds(),
+    vehicle: {
+      x: Number(vehicle.x.toFixed(4)),
+      y: Number(vehicle.y.toFixed(4)),
+      x_m: Number(((vehicle.x - 0.5) * 90).toFixed(2)),
+      y_m: Number(((vehicle.y - 0.5) * 64).toFixed(2)),
+      heading: Number(heading.toFixed(1)),
+      speed: Number(wave(t, 12, 31, 0.7).toFixed(2)),
+      distance_m: Number((trackTime * 22).toFixed(1)),
+    },
+  }
+}
+
 function handleCors(response) {
   response.setHeader('Access-Control-Allow-Origin', '*')
   response.setHeader('Access-Control-Allow-Headers', 'content-type, authorization')
@@ -212,7 +309,15 @@ server.on('upgrade', (request, socket) => {
       `Sec-WebSocket-Accept: ${accept}\r\n\r\n`,
   )
 
-  clients.add(socket)
+  clients.set(socket, { mapSent: false, connectedAt: Date.now() })
+  sendWsTextFrame(socket, JSON.stringify({
+    type: 'track_status',
+    state: 'learning_first_lap',
+    timestamp: nowSeconds(),
+    elapsed_sec: 0,
+    lap_period_sec: TRACK_LAP_SEC,
+    points: 1,
+  }))
   console.log(`WS conectado (${clients.size} cliente${clients.size === 1 ? '' : 's'})`)
 
   socket.on('close', () => {
@@ -229,10 +334,23 @@ setInterval(() => {
   if (clients.size === 0) return
 
   const frames = buildTelemetryFrames()
-  for (const client of clients) {
+  const t = (Date.now() - startedAt) / 1000
+
+  for (const [client, state] of clients) {
     if (client.destroyed) {
       clients.delete(client)
       continue
+    }
+
+    const clientElapsed = (Date.now() - state.connectedAt) / 1000
+    if (clientElapsed < TRACK_LAP_SEC) {
+      sendWsTextFrame(client, JSON.stringify(buildTrackStatus(clientElapsed)))
+    } else if (!state.mapSent) {
+      sendWsTextFrame(client, JSON.stringify(buildTrackMap()))
+      state.mapSent = true
+      sendWsTextFrame(client, JSON.stringify(buildTrackPose(clientElapsed)))
+    } else {
+      sendWsTextFrame(client, JSON.stringify(buildTrackPose(clientElapsed)))
     }
 
     for (const frame of frames) {
@@ -244,4 +362,5 @@ setInterval(() => {
 server.listen(PORT, () => {
   console.log(`Mock telemetry backend em http://localhost:${PORT}`)
   console.log(`POST /login retorna token de teste; WS /ws envia frames CAN binarios a cada ${TICK_MS}ms`)
+  console.log(`Mapa mock: primeira volta fecha em ${TRACK_LAP_SEC}s; depois envia track_pose em tempo real`)
 })

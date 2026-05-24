@@ -36,6 +36,7 @@ const TCP_PORT: u16 = 8080;
 const HTTP_WS_PORT: u16 = 8081;
 const SQLITE_PATH: &str = "sqlite:./data/historico.db";
 const CSV_DATA_PATH: &str = "./csv_data";
+const DBC_DATA_PATH: &str = "./dbc_data";
 const MAX_PG_CONNECTIONS: u32 = 20;
 const JWT_EXPIRY_HOURS: i64 = 8;
 const NTP_PORT: u16 = 9999;
@@ -1360,8 +1361,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all("./static")?;
 
     // Carrega mapa CAN
-    let decoder_map = decoder::load_can_mappings(CSV_DATA_PATH)?;
-    info!("✅ {} CAN IDs carregados do CSV", decoder_map.len());
+    let can_map_source = std::env::var("CAN_MAP_SOURCE").unwrap_or_else(|_| "csv".to_string());
+    let decoder_map = if can_map_source.eq_ignore_ascii_case("dbc") {
+        let map = decoder::load_can_mappings_from_dbc_dir(DBC_DATA_PATH)?;
+        info!("✅ {} CAN IDs carregados de DBC ({})", map.len(), DBC_DATA_PATH);
+        map
+    } else {
+        let map = decoder::load_can_mappings(CSV_DATA_PATH)?;
+        info!("✅ {} CAN IDs carregados de CSV ({})", map.len(), CSV_DATA_PATH);
+        map
+    };
 
     // Conecta TimescaleDB
     let pg_pool = PgPoolOptions::new()

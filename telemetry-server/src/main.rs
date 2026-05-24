@@ -1361,7 +1361,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all("./static")?;
 
     // Carrega mapa CAN
-    let can_map_source = std::env::var("CAN_MAP_SOURCE").unwrap_or_else(|_| "csv".to_string());
+    // Fonte CAN padrão agora é DBC. Use CAN_MAP_SOURCE=csv apenas para fallback temporário.
+    let can_map_source = std::env::var("CAN_MAP_SOURCE").unwrap_or_else(|_| "dbc".to_string());
     let decoder_map = if can_map_source.eq_ignore_ascii_case("dbc") {
         let map = decoder::load_can_mappings_from_dbc_dir(DBC_DATA_PATH)?;
         info!("✅ {} CAN IDs carregados de DBC ({})", map.len(), DBC_DATA_PATH);

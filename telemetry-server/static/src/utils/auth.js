@@ -8,7 +8,6 @@
 import { getServerConfig } from '../config/serverConfig.js'
 
 const TOKEN_KEY = 'jwt'
-const UI_SESSION_KEY = 'ui-session'
 
 function decodeJwtPayload(token) {
     const [, rawPayload] = token.split('.')
@@ -32,33 +31,6 @@ export function storeToken(token) {
 
 export function clearStoredToken() {
     localStorage.removeItem(TOKEN_KEY)
-}
-
-export function getStoredUiSession() {
-    try {
-        return JSON.parse(localStorage.getItem(UI_SESSION_KEY))
-    } catch (_) {
-        return null
-    }
-}
-
-export function storeUiSession(session) {
-    localStorage.setItem(UI_SESSION_KEY, JSON.stringify(session))
-}
-
-export function clearStoredUiSession() {
-    localStorage.removeItem(UI_SESSION_KEY)
-}
-
-export function createUiSession(username = 'eracing') {
-    const session = {
-        token: 'ui-preview-session',
-        username,
-        mode: 'ui',
-    }
-
-    storeUiSession(session)
-    return session
 }
 
 export function isTokenValid(token) {

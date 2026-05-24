@@ -5,14 +5,12 @@ import {
   resetTelemetryData,
   setTelemetryCollectionEnabled,
   signals,
+  trackState,
   telemetrySession,
 } from './store.js'
 import { getServerConfig } from './config/serverConfig.js'
 import {
-  clearStoredUiSession,
   clearStoredToken,
-  createUiSession,
-  getStoredUiSession,
   getValidStoredToken,
   login,
 } from './utils/auth.js'
@@ -51,13 +49,6 @@ function App() {
   const hasSignals = createMemo(() => Object.keys(signals).length > 0)
 
   onMount(() => {
-    // Modo UI permite trabalhar a experiencia sem depender do backend.
-    const uiSession = getStoredUiSession()
-    if (uiSession?.mode === 'ui') {
-      setSession(uiSession)
-      return
-    }
-
     // Recupera sessoes reais ainda validas antes de exibir a area operacional.
     const token = getValidStoredToken()
     if (token) authenticateDashboard({ token, username: 'eracing', mode: 'live' })
@@ -69,13 +60,9 @@ function App() {
   }
 
   function authenticateDashboard(nextSession) {
-    if (nextSession.mode === 'live') {
-      connect(buildWsUrl(nextSession.token))
-      setTelemetryCollectionEnabled(false)
-      setTelemetryMode(TELEMETRY_MODE.idle)
-    } else {
-      setTelemetryMode(TELEMETRY_MODE.idle)
-    }
+    connect(buildWsUrl(nextSession.token))
+    setTelemetryCollectionEnabled(false)
+    setTelemetryMode(TELEMETRY_MODE.idle)
 
     setSession(nextSession)
   }
@@ -85,13 +72,8 @@ function App() {
     authenticateDashboard({ token, username, mode: 'live' })
   }
 
-  function handleUiPreview() {
-    authenticateDashboard(createUiSession('eracing'))
-  }
-
   function handleLogout() {
     clearStoredToken()
-    clearStoredUiSession()
     disconnect()
     setSession(null)
     setTelemetryMode(TELEMETRY_MODE.idle)
@@ -139,7 +121,7 @@ function App() {
   return (
     <Show
       when={session()}
-      fallback={<LoginScreen onLogin={handleLogin} onUiPreview={handleUiPreview} />}
+      fallback={<LoginScreen onLogin={handleLogin} />}
     >
       {/* Dashboard fica isolado do login; daqui para baixo so existe sessao autenticada. */}
       <TopBar
@@ -163,7 +145,7 @@ function App() {
               onClearSelection={clearSignalSelection}
             />
             <Show when={!hasSignals()}>
-              <DashboardEmptyState mode={session().mode} />
+              <DashboardEmptyState />
             </Show>
             <Show when={telemetryMode() === TELEMETRY_MODE.live}>
               <TimeWindowControl
@@ -215,7 +197,11 @@ function App() {
           </>
         }
       >
-        <Cockpit gauges={GAUGE_CONFIG} />
+        <Cockpit
+          gauges={GAUGE_CONFIG}
+          trackMap={trackState}
+          isTelemetryLive={telemetryMode() === TELEMETRY_MODE.live}
+        />
       </Show>
     </Show>
   )

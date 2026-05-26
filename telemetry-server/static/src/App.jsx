@@ -15,12 +15,16 @@ import {
   getValidStoredToken,
   login,
 } from './utils/auth.js'
-import { persistTelemetryLogBoundsMock } from './utils/logSessionMarks.js'
 import {
   PERMISSIONS,
   canControlTelemetry,
   hasPermission,
 } from './utils/permissions.js'
+import {
+  persistTelemetryLogBounds,
+  startTelemetryCollection,
+  stopTelemetryCollection,
+} from './services/telemetryCollection.js'
 import LoginScreen from './components/Login/LoginScreen.jsx'
 import TopBar from './components/TopBar/TopBar.jsx'
 import TabBar from './components/TabBar/TabBar.jsx'
@@ -53,6 +57,8 @@ function App() {
   const [selectedSignals, setSelectedSignals] = createSignal([])
   const [windowSeconds, setWindowSeconds] = createSignal(30)
   const [telemetryMode, setTelemetryMode] = createSignal(TELEMETRY_MODE.idle)
+  const [telemetryActionPending, setTelemetryActionPending] = createSignal(false)
+  const [telemetryActionError, setTelemetryActionError] = createSignal('')
   const customChartKey = createMemo(() => selectedSignals().join('|'))
   const hasSignals = createMemo(() => Object.keys(signals).length > 0)
   const canStartTelemetry = createMemo(() =>
@@ -95,35 +101,80 @@ function App() {
     disconnect()
     setSession(null)
     setTelemetryMode(TELEMETRY_MODE.idle)
+    setTelemetryActionPending(false)
+    setTelemetryActionError('')
     setActiveTab('analise')
     setSelectedSignals([])
   }
 
-  function handleStartTelemetry() {
-    const currentSession = session()
-    if (!currentSession || currentSession.mode !== 'live' || !canStartTelemetry()) return
+  function handleTelemetryActionError(error) {
+    if (error.status === 401) {
+      handleLogout()
+      return
+    }
 
-    resetTelemetryData()
-    setTelemetryCollectionEnabled(true)
-    setTelemetryMode(TELEMETRY_MODE.live)
+    setTelemetryActionError(error.message || 'Nao foi possivel atualizar a coleta.')
+  }
+
+  async function handleStartTelemetry() {
+    const currentSession = session()
+    if (
+      !currentSession ||
+      currentSession.mode !== 'live' ||
+      !canStartTelemetry() ||
+      telemetryActionPending()
+    ) return
+
+    setTelemetryActionPending(true)
+    setTelemetryActionError('')
+
+    try {
+      await startTelemetryCollection(currentSession.token)
+      resetTelemetryData()
+      setTelemetryCollectionEnabled(true)
+      setTelemetryMode(TELEMETRY_MODE.live)
+    } catch (error) {
+      handleTelemetryActionError(error)
+    } finally {
+      setTelemetryActionPending(false)
+    }
   }
 
   async function handleStopTelemetry() {
-    if (!canStopTelemetry()) return
-
-    const bounds = await setTelemetryCollectionEnabled(false)
     const currentSession = session()
+    if (!currentSession || !canStopTelemetry() || telemetryActionPending()) return
 
-    if (
-      currentSession?.mode === 'live' &&
-      bounds.log_start_unix != null &&
-      bounds.log_stop_unix != null
-    ) {
-      await persistTelemetryLogBoundsMock(bounds, currentSession.token)
+    setTelemetryActionPending(true)
+    setTelemetryActionError('')
+
+    try {
+      await stopTelemetryCollection(currentSession.token)
+      const bounds = await setTelemetryCollectionEnabled(false)
+      let boundsError = null
+
+      if (
+        currentSession.mode === 'live' &&
+        bounds.log_start_unix != null &&
+        bounds.log_stop_unix != null
+      ) {
+        try {
+          await persistTelemetryLogBounds(bounds, currentSession.token)
+        } catch (error) {
+          boundsError = error
+        }
+      }
+
+      setTelemetryMode(TELEMETRY_MODE.stopped)
+      setActiveTab('analise')
+
+      if (boundsError) {
+        setTelemetryActionError(boundsError.message || 'Coleta encerrada, mas nao foi possivel registrar os limites do log.')
+      }
+    } catch (error) {
+      handleTelemetryActionError(error)
+    } finally {
+      setTelemetryActionPending(false)
     }
-
-    setTelemetryMode(TELEMETRY_MODE.stopped)
-    setActiveTab('analise')
   }
 
   function toggleSignal(signalName) {
@@ -150,11 +201,17 @@ function App() {
         sessionMode={session().mode}
         telemetryMode={telemetryMode()}
         canControlTelemetry={canUseTelemetryControls()}
+        telemetryActionPending={telemetryActionPending()}
         onStartTelemetry={handleStartTelemetry}
         onStopTelemetry={handleStopTelemetry}
         onLogout={handleLogout}
       />
       <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
+      <Show when={telemetryActionError()}>
+        <div class="app-alert app-alert--error" role="alert">
+          {telemetryActionError()}
+        </div>
+      </Show>
 
       <Show
         when={activeTab() === 'downloads'}

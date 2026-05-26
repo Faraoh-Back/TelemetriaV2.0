@@ -18,7 +18,7 @@ Arquivos principais ja existentes:
 - [src/components/TopBar/TopBar.jsx](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/components/TopBar/TopBar.jsx)
 - [src/components/TabBar/TabBar.jsx](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/components/TabBar/TabBar.jsx)
 - [src/utils/auth.js](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/utils/auth.js)
-- [src/utils/logSessionMarks.js](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/utils/logSessionMarks.js)
+- [src/services/telemetryCollection.js](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/services/telemetryCollection.js)
 - [src/config/serverConfig.js](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/src/config/serverConfig.js)
 
 Hoje:
@@ -28,8 +28,8 @@ Hoje:
 - `TabBar.jsx` recebe uma lista estatica de abas.
 - `auth.js` guarda apenas o token e valida expiracao.
 - A coleta e habilitada localmente via worker com `setTelemetryCollectionEnabled`.
-- Ao encerrar coleta, `persistTelemetryLogBoundsMock` ainda simula a persistencia
-  dos limites do log.
+- Start/stop e persistencia dos limites da coleta passam por
+  `telemetryCollection.js` antes de sincronizar o estado local.
 
 ## 2. Escopo funcional
 
@@ -290,7 +290,8 @@ diretamente.
 
 ### 4.3 Criacao do log ao encerrar coleta
 
-Substituir o mock atual em `logSessionMarks.js`.
+O frontend envia os limites da coleta por `telemetryCollection.js` depois que o
+backend aceita o encerramento administrativo e o worker local retorna os bounds.
 
 Endpoint recomendado:
 
@@ -324,16 +325,17 @@ fluxo de encerramento da coleta.
 
 ### 4.4 Start/stop no backend
 
-Hoje o frontend controla a coleta localmente no worker. Para autorizacao real,
-o backend deve expor comandos administrativos ou validar o comando equivalente
-no canal existente.
+O frontend chama comandos administrativos HTTP antes de alterar o estado local
+da coleta. O backend deve tratar esses endpoints como o contrato oficial de
+autorizacao.
 
-Endpoints recomendados:
+Endpoints definidos pelo frontend:
 
 ```http
 POST /telemetry/collection/start
 POST /telemetry/collection/stop
 Authorization: Bearer <token>
+Content-Type: application/json
 ```
 
 Semantica:
@@ -342,8 +344,27 @@ Semantica:
 - `member`: `403 Forbidden`.
 - Backend registra auditoria com usuario, horario e origem.
 
-Mesmo que o MVP mantenha start/stop local no frontend, essa protecao deve entrar
-antes de operacao real com usuarios multiplos.
+Body de start:
+
+```json
+{
+  "requested_at": "2026-05-26T12:00:00.000Z"
+}
+```
+
+Body de stop:
+
+```json
+{
+  "requested_at": "2026-05-26T12:10:00.000Z",
+  "log_start_unix": null,
+  "log_stop_unix": null
+}
+```
+
+No fluxo atual, `stop` e chamado antes de desligar a coleta local; por isso os
+bounds seguem como `null` nesse endpoint e sao enviados em seguida para
+`POST /telemetry/log-session-bounds`.
 
 ## 5. UX da aba Downloads
 
@@ -409,11 +430,11 @@ Regras no frontend:
 
 ## 7. Plano de execucao
 
-Status atualizado: a primeira entrega do frontend ja cobre sessao com perfil,
-guards de `admin/member`, aba `Downloads`, service HTTP para logs e proxy de
-desenvolvimento para `/telemetry`. As chamadas reais de start/stop e
-persistencia definitiva dos limites da coleta permanecem responsabilidade do
-backend, documentadas em
+Status atualizado: o frontend ja cobre sessao com perfil, guards de
+`admin/member`, aba `Downloads`, services HTTP para logs, start/stop
+administrativo, persistencia de bounds e proxy de desenvolvimento para
+`/telemetry`. O backend deve se adequar aos contratos definidos aqui e nas
+pendencias documentadas em
 [backend-downloads-and-roles-pending.md](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-downloads-and-roles-pending.md).
 
 ### Fase 1: Modelo de sessao e permissoes
@@ -433,10 +454,12 @@ backend, documentadas em
 3. Concluido: esconder o botao de iniciar/encerrar para `member`.
 4. Concluido: proteger handlers `handleStartTelemetry` e `handleStopTelemetry` com guards
    de permissao.
-5. Pendente do backend: implementar autorizacao real dos comandos
+5. Concluido no frontend: criar service para os comandos
    `POST /telemetry/collection/start` e `POST /telemetry/collection/stop`.
-6. Pendente no frontend apos backend: sincronizar o estado local da coleta com
-   a resposta real do backend, mantendo tratamento de `401`, `403` e `409`.
+6. Concluido no frontend: sincronizar o estado local da coleta com a resposta
+   real do backend.
+7. Pendente de validacao integrada: testar `401`, `403` e `409` contra backend
+   real.
 
 ### Fase 3: Aba Downloads
 
@@ -455,9 +478,9 @@ backend, documentadas em
 
 1. Documentado para backend: definir contrato final dos endpoints.
 2. Concluido no frontend: atualizar `vite.config.js` com proxy `/telemetry`.
-3. Pendente do backend: implementar `/telemetry/log-session-bounds`.
-4. Pendente no frontend apos backend: substituir `persistTelemetryLogBoundsMock`
-   por chamada real, sem criar contrato paralelo no front.
+3. Concluido no frontend: enviar bounds reais para `/telemetry/log-session-bounds`.
+4. Pendente do backend: implementar `/telemetry/log-session-bounds` conforme o
+   contrato do front.
 5. Pendente no frontend apos backend: validar com logs reais de formatos
    diferentes.
 6. Pendente no frontend apos backend: consolidar tratamento global de `401` e
@@ -484,8 +507,8 @@ backend, documentadas em
 
 ### Riscos
 
-- Se start/stop continuar apenas no frontend, um usuario tecnico pode tentar
-  contornar a UI. A protecao real precisa estar no backend.
+- Se o backend nao aplicar `403` nos endpoints administrativos, um usuario
+  tecnico ainda pode tentar contornar a UI.
 - Logs grandes podem consumir memoria se o download autenticado usar `Blob`.
   Para arquivos muito grandes, preferir URL assinada/temporaria servida pelo
   backend ou storage.
@@ -499,7 +522,7 @@ backend, documentadas em
 1. O backend vai devolver `role/permissions` no corpo do login, no JWT ou ambos?
 2. Os logs serao baixados por URL assinada ou por endpoint autenticado?
 3. Quais formatos iniciais precisam aparecer no filtro?
-4. O start/stop sera comando HTTP, WebSocket ou apenas marca local de sessao?
+4. O backend aceitara o contrato HTTP de start/stop definido pelo frontend?
 5. O membro pode ver todos os logs ou apenas logs de determinado escopo?
 6. Havera auditoria de downloads?
 
@@ -518,11 +541,12 @@ backend, documentadas em
 - [x] Respeitar `download_url` quando backend enviar URL pronta.
 - [x] Atualizar proxy de desenvolvimento para `/telemetry`.
 - [ ] Backend: definir contrato final de login com perfil/permissoes.
+- [x] Frontend: criar service de start/stop administrativo.
+- [x] Frontend: sincronizar start/stop local com resposta real do backend.
+- [x] Frontend: substituir mock de persistencia de bounds por chamada real.
 - [ ] Backend: implementar autorizacao real para start/stop.
 - [ ] Backend: implementar listagem e download de logs.
 - [ ] Backend: implementar persistencia de bounds da coleta.
-- [ ] Frontend: substituir mock de persistencia de bounds quando API existir.
-- [ ] Frontend: sincronizar start/stop local com resposta real do backend.
 - [ ] Frontend: consolidar tratamento de `401`, `403` e `409` nos services.
 - [ ] Frontend: validar payload real de logs e ajustar campos se necessario.
 - [ ] Validar backend com `401`, `403`, arquivo pequeno e arquivo grande.

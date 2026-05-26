@@ -131,6 +131,11 @@
     background: rgba(31,182,142,0.24);
 }
 
+.telemetry-control__button:disabled {
+    cursor: wait;
+    opacity: 0.68;
+}
+
 .telemetry-control--live .telemetry-control__button:hover {
     color: var(--red);
     background: rgba(240,82,82,0.14);

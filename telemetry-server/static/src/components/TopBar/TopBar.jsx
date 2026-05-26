@@ -21,7 +21,10 @@ function TopBar(props) {
         if (isStopped()) return 'Historico'
         return 'Aguardando'
     }
-    const actionLabel = () => isLive() ? 'Encerrar coleta' : 'Iniciar coleta'
+    const actionLabel = () => {
+        if (props.telemetryActionPending) return 'Enviando'
+        return isLive() ? 'Encerrar coleta' : 'Iniciar coleta'
+    }
     const telemetryAction = () => isLive() ? props.onStopTelemetry : props.onStartTelemetry
 
     return (
@@ -61,6 +64,7 @@ function TopBar(props) {
                         <button
                             class="telemetry-control__button"
                             type="button"
+                            disabled={props.telemetryActionPending}
                             onClick={() => telemetryAction()?.()}
                         >
                             {actionLabel()}

@@ -99,6 +99,10 @@
     background: var(--amber);
 }
 
+.telemetry-control--readonly {
+    opacity: 0.86;
+}
+
 .telemetry-control__button {
     align-self: stretch;
     min-width: 72px;
@@ -157,6 +161,13 @@
 
 .session-chip strong {
     font-weight: 600;
+}
+
+.session-chip__role {
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
 }
 
 @media (max-width: 720px) {

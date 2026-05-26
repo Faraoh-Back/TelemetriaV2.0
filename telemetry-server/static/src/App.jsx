@@ -10,11 +10,17 @@ import {
 } from './store.js'
 import { getServerConfig } from './config/serverConfig.js'
 import {
+  buildSessionFromToken,
   clearStoredToken,
   getValidStoredToken,
   login,
 } from './utils/auth.js'
 import { persistTelemetryLogBoundsMock } from './utils/logSessionMarks.js'
+import {
+  PERMISSIONS,
+  canControlTelemetry,
+  hasPermission,
+} from './utils/permissions.js'
 import LoginScreen from './components/Login/LoginScreen.jsx'
 import TopBar from './components/TopBar/TopBar.jsx'
 import TabBar from './components/TabBar/TabBar.jsx'
@@ -47,11 +53,21 @@ function App() {
   const [telemetryMode, setTelemetryMode] = createSignal(TELEMETRY_MODE.idle)
   const customChartKey = createMemo(() => selectedSignals().join('|'))
   const hasSignals = createMemo(() => Object.keys(signals).length > 0)
+  const canStartTelemetry = createMemo(() =>
+    hasPermission(session(), PERMISSIONS.telemetryStart)
+  )
+  const canStopTelemetry = createMemo(() =>
+    hasPermission(session(), PERMISSIONS.telemetryStop)
+  )
+  const canUseTelemetryControls = createMemo(() =>
+    canControlTelemetry(session())
+  )
 
   onMount(() => {
     // Recupera sessoes reais ainda validas antes de exibir a area operacional.
     const token = getValidStoredToken()
-    if (token) authenticateDashboard({ token, username: 'eracing', mode: 'live' })
+    const storedSession = token ? buildSessionFromToken(token) : null
+    if (storedSession) authenticateDashboard(storedSession)
   })
 
   function buildWsUrl(token) {
@@ -68,8 +84,8 @@ function App() {
   }
 
   async function handleLogin(username, password) {
-    const token = await login(username, password)
-    authenticateDashboard({ token, username, mode: 'live' })
+    const nextSession = await login(username, password)
+    authenticateDashboard(nextSession)
   }
 
   function handleLogout() {
@@ -83,7 +99,7 @@ function App() {
 
   function handleStartTelemetry() {
     const currentSession = session()
-    if (!currentSession || currentSession.mode !== 'live') return
+    if (!currentSession || currentSession.mode !== 'live' || !canStartTelemetry()) return
 
     resetTelemetryData()
     setTelemetryCollectionEnabled(true)
@@ -91,6 +107,8 @@ function App() {
   }
 
   async function handleStopTelemetry() {
+    if (!canStopTelemetry()) return
+
     const bounds = await setTelemetryCollectionEnabled(false)
     const currentSession = session()
 
@@ -126,8 +144,10 @@ function App() {
       {/* Dashboard fica isolado do login; daqui para baixo so existe sessao autenticada. */}
       <TopBar
         user={session().username}
+        role={session().role}
         sessionMode={session().mode}
         telemetryMode={telemetryMode()}
+        canControlTelemetry={canUseTelemetryControls()}
         onStartTelemetry={handleStartTelemetry}
         onStopTelemetry={handleStopTelemetry}
         onLogout={handleLogout}

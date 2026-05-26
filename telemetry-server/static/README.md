@@ -66,6 +66,7 @@ pnpm build
 - [Implementacao do frontend](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/frontend-implementation.md)
 - [Decisoes pendentes de telemetria](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/frontend-telemetry-decisions.md)
 - [Guia de integracao do backend](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-integration-guide.md)
+- [Plano de downloads e perfis de acesso](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/downloads-and-roles-feature-plan.md)
 
 ## Estrutura principal
 

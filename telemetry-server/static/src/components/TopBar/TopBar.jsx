@@ -5,6 +5,7 @@ import './TopBar.css'
 function TopBar(props) {
     const isLive = () => props.telemetryMode === 'live'
     const isStopped = () => props.telemetryMode === 'stopped'
+    const canControlTelemetry = () => props.canControlTelemetry ?? false
 
     const dotClass = () => {
         const s = status.state
@@ -45,27 +46,32 @@ function TopBar(props) {
                 <div
                     classList={{
                         'telemetry-control': true,
+                        'telemetry-control--readonly': !canControlTelemetry(),
                         'telemetry-control--live': isLive(),
                         'telemetry-control--stopped': isStopped(),
                     }}
+                    title={canControlTelemetry() ? 'Controle de telemetria' : 'Controle restrito a administradores'}
                 >
                     <span class="telemetry-control__status">
                         <span class="telemetry-control__dot" />
                         {collectionLabel()}
                     </span>
 
-                    <button
-                        class="telemetry-control__button"
-                        type="button"
-                        onClick={() => telemetryAction()?.()}
-                    >
-                        {actionLabel()}
-                    </button>
+                    {canControlTelemetry() && (
+                        <button
+                            class="telemetry-control__button"
+                            type="button"
+                            onClick={() => telemetryAction()?.()}
+                        >
+                            {actionLabel()}
+                        </button>
+                    )}
                 </div>
 
                 <div class="session-chip" title="Sessao atual">
                     <span class="session-chip__label">Usuario</span>
                     <strong>{props.user}</strong>
+                    <span class="session-chip__role">{props.role}</span>
                 </div>
 
                 <button class="btn" onClick={props.onLogout}>Sair</button>

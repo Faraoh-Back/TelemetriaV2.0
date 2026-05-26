@@ -32,11 +32,13 @@ import TimeWindowControl from './components/TimeWindowControl/TimeWindowControl.
 import MotecChart from './components/MotecChart/MotecChart.jsx'
 import HistoryReferenceChart from './components/HistoryReferenceChart/HistoryReferenceChart.jsx'
 import Cockpit from './components/Cockpit/Cockpit.jsx'
+import DownloadsPage from './components/Downloads/DownloadsPage.jsx'
 import { DEFAULT_CHART_LAYOUT, GAUGE_CONFIG } from './config/dashboardConfig.js'
 
 const TABS = [
   { id: 'analise',  label: 'Análise' },
   { id: 'cockpit',  label: 'Cockpit' },
+  { id: 'downloads', label: 'Downloads' },
 ]
 
 const TELEMETRY_MODE = {
@@ -155,73 +157,80 @@ function App() {
       <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
 
       <Show
-        when={activeTab() === 'cockpit'}
+        when={activeTab() === 'downloads'}
         fallback={
-          <>
-            <StatusBar />
-            <SignalSelector
-              selectedSignals={selectedSignals()}
-              onToggleSignal={toggleSignal}
-              onClearSelection={clearSignalSelection}
-            />
-            <Show when={!hasSignals()}>
-              <DashboardEmptyState />
-            </Show>
-            <Show when={telemetryMode() === TELEMETRY_MODE.live}>
-              <TimeWindowControl
-                value={windowSeconds()}
-                onChange={setWindowSeconds}
-              />
-            </Show>
-
-            <div class="chart-area">
-              <Show
-                when={telemetryMode() === TELEMETRY_MODE.stopped}
-                fallback={
-                  <Show
-                    when={telemetryMode() === TELEMETRY_MODE.live}
-                  >
-                      <Show when={selectedSignals().length > 0}>
-                        <For each={[customChartKey()]}>
-                          {() => (
-                            <MotecChart
-                              label="Seleção customizada"
-                            signals={selectedSignals()}
-                            windowSeconds={windowSeconds()}
-                            relativeTime
-                            relativeStartTimestamp={telemetrySession.startTimestamp}
-                          />
-                          )}
-                        </For>
-                      </Show>
-
-                      <For each={DEFAULT_CHART_LAYOUT}>
-                        {({ label, signals }) => (
-                          <MotecChart
-                            label={label}
-                          signals={signals}
-                          windowSeconds={windowSeconds()}
-                          relativeTime
-                          relativeStartTimestamp={telemetrySession.startTimestamp}
-                        />
-                        )}
-                      </For>
-                  </Show>
-                }
-              >
-                <HistoryReferenceChart
-                  signals={selectedSignals()}
+          <Show
+            when={activeTab() === 'cockpit'}
+            fallback={
+              <>
+                <StatusBar />
+                <SignalSelector
+                  selectedSignals={selectedSignals()}
+                  onToggleSignal={toggleSignal}
+                  onClearSelection={clearSignalSelection}
                 />
-              </Show>
-            </div>
-          </>
+                <Show when={!hasSignals()}>
+                  <DashboardEmptyState />
+                </Show>
+                <Show when={telemetryMode() === TELEMETRY_MODE.live}>
+                  <TimeWindowControl
+                    value={windowSeconds()}
+                    onChange={setWindowSeconds}
+                  />
+                </Show>
+
+                <div class="chart-area">
+                  <Show
+                    when={telemetryMode() === TELEMETRY_MODE.stopped}
+                    fallback={
+                      <Show
+                        when={telemetryMode() === TELEMETRY_MODE.live}
+                      >
+                          <Show when={selectedSignals().length > 0}>
+                            <For each={[customChartKey()]}>
+                              {() => (
+                                <MotecChart
+                                  label="Seleção customizada"
+                                signals={selectedSignals()}
+                                windowSeconds={windowSeconds()}
+                                relativeTime
+                                relativeStartTimestamp={telemetrySession.startTimestamp}
+                              />
+                              )}
+                            </For>
+                          </Show>
+
+                          <For each={DEFAULT_CHART_LAYOUT}>
+                            {({ label, signals }) => (
+                              <MotecChart
+                                label={label}
+                              signals={signals}
+                              windowSeconds={windowSeconds()}
+                              relativeTime
+                              relativeStartTimestamp={telemetrySession.startTimestamp}
+                            />
+                            )}
+                          </For>
+                      </Show>
+                    }
+                  >
+                    <HistoryReferenceChart
+                      signals={selectedSignals()}
+                    />
+                  </Show>
+                </div>
+              </>
+            }
+          >
+            <Cockpit
+              gauges={GAUGE_CONFIG}
+              trackMap={trackState}
+              isTelemetryLive={telemetryMode() === TELEMETRY_MODE.live}
+            />
+          </Show>
         }
       >
-        <Cockpit
-          gauges={GAUGE_CONFIG}
-          trackMap={trackState}
-          isTelemetryLive={telemetryMode() === TELEMETRY_MODE.live}
-        />
+        <DownloadsPage session={session()} />
       </Show>
     </Show>
   )

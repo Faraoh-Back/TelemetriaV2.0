@@ -27,6 +27,14 @@ export function decodeJwtPayload(token) {
     return JSON.parse(atob(normalizedPayload))
 }
 
+function getJwtPayload(token) {
+    try {
+        return decodeJwtPayload(token)
+    } catch (_) {
+        return null
+    }
+}
+
 export function getStoredToken() {
     return localStorage.getItem(TOKEN_KEY)
 }
@@ -42,12 +50,8 @@ export function clearStoredToken() {
 export function isTokenValid(token) {
     if (!token) return false
 
-    try {
-        const payload = decodeJwtPayload(token)
-        return Boolean(payload?.exp && payload.exp * 1000 > Date.now())
-    } catch (_) {
-        return false
-    }
+    const payload = getJwtPayload(token)
+    return Boolean(payload?.exp && payload.exp * 1000 > Date.now())
 }
 
 export function getValidStoredToken() {
@@ -71,7 +75,7 @@ function getLegacyDevSession(username, token) {
 
 export function buildSessionFromAuthData(data, fallbackUsername) {
     const token = data?.token
-    const payload = token ? decodeJwtPayload(token) : null
+    const payload = token ? getJwtPayload(token) : null
     const user = data?.user ?? {}
     const fallbackRole = import.meta.env.DEV ? ROLES.admin : ROLES.member
     const role = normalizeRole(user.role ?? payload?.role ?? fallbackRole)

@@ -118,6 +118,14 @@ Alternativa aceita:
 
 ## 4. Controle administrativo de coleta
 
+Estado atual no frontend:
+
+- `admin` ve e aciona os controles de coleta.
+- `member` nao ve comandos acionaveis de iniciar/encerrar coleta.
+- Os handlers do frontend ja possuem guard de permissao.
+- A coleta ainda e habilitada localmente no worker, porque nao existe contrato
+  backend implementado para start/stop.
+
 Endpoints recomendados:
 
 ```http
@@ -223,3 +231,16 @@ Status esperados:
 - Operacoes administrativas e downloads ficam registrados em auditoria, se o
   backend ja tiver trilha de eventos.
 
+## 8. Ordem recomendada para destravar o frontend
+
+1. Atualizar `POST /login` para retornar `user.role` e `user.permissions`.
+2. Implementar `GET /telemetry/logs` com pelo menos um payload real ou fixture
+   persistida.
+3. Implementar `GET /telemetry/logs/:id/download`.
+4. Implementar `POST /telemetry/collection/start` e
+   `POST /telemetry/collection/stop` com `403` para `member`.
+5. Implementar `POST /telemetry/log-session-bounds`.
+
+Depois dessa ordem, o frontend pode trocar o mock de bounds e sincronizar o
+estado da coleta com respostas reais, sem inventar comportamento local que
+mascare erro de autorizacao no backend.

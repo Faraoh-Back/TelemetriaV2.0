@@ -409,44 +409,59 @@ Regras no frontend:
 
 ## 7. Plano de execucao
 
+Status atualizado: a primeira entrega do frontend ja cobre sessao com perfil,
+guards de `admin/member`, aba `Downloads`, service HTTP para logs e proxy de
+desenvolvimento para `/telemetry`. As chamadas reais de start/stop e
+persistencia definitiva dos limites da coleta permanecem responsabilidade do
+backend, documentadas em
+[backend-downloads-and-roles-pending.md](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-downloads-and-roles-pending.md).
+
 ### Fase 1: Modelo de sessao e permissoes
 
-1. Criar `src/utils/permissions.js`.
-2. Atualizar `auth.js` para extrair `role` e `permissions` da resposta de login
+1. Concluido: criar `src/utils/permissions.js`.
+2. Concluido: atualizar `auth.js` para extrair `role` e `permissions` da resposta de login
    ou do JWT.
-3. Atualizar `App.jsx` para guardar `role` e `permissions` na sessao.
-4. Garantir fallback temporario para tokens antigos:
+3. Concluido: atualizar `App.jsx` para guardar `role` e `permissions` na sessao.
+4. Concluido: garantir fallback temporario para tokens antigos:
    - em desenvolvimento, assumir `admin` quando nao houver role;
    - em producao, preferir role `member` ou bloquear operacoes sensiveis.
 
 ### Fase 2: Controle administrativo de coleta
 
-1. Adicionar `canControlTelemetry` ou permissoes separadas em `App.jsx`.
-2. Passar a permissao para `TopBar`.
-3. Esconder/desabilitar botao de iniciar/encerrar para `member`.
-4. Proteger handlers `handleStartTelemetry` e `handleStopTelemetry` com guards
+1. Concluido: adicionar `canControlTelemetry` e permissoes separadas em `App.jsx`.
+2. Concluido: passar a permissao para `TopBar`.
+3. Concluido: esconder o botao de iniciar/encerrar para `member`.
+4. Concluido: proteger handlers `handleStartTelemetry` e `handleStopTelemetry` com guards
    de permissao.
-5. Quando os endpoints existirem, trocar o start/stop local por chamadas
-   autenticadas ou sincronizar ambos.
+5. Pendente do backend: implementar autorizacao real dos comandos
+   `POST /telemetry/collection/start` e `POST /telemetry/collection/stop`.
+6. Pendente no frontend apos backend: sincronizar o estado local da coleta com
+   a resposta real do backend, mantendo tratamento de `401`, `403` e `409`.
 
 ### Fase 3: Aba Downloads
 
-1. Adicionar aba `downloads` ao `TABS`.
-2. Criar `DownloadsPage` e CSS.
-3. Criar `logDownloads.js` com:
+1. Concluido: adicionar aba `downloads` ao `TABS`.
+2. Concluido: criar `DownloadsPage` e CSS.
+3. Concluido: criar `logDownloads.js` com:
    - `listTelemetryLogs(filters, token)`;
    - `downloadTelemetryLog(log, token)`.
-4. Implementar tabela/lista com estados de carregamento, erro e vazio.
-5. Implementar download por `Blob` para rota autenticada.
-6. Respeitar `download_url` quando o backend enviar URL assinada.
+4. Concluido: implementar tabela/lista com estados de carregamento, erro e vazio.
+5. Concluido: implementar download por `Blob` para rota autenticada.
+6. Concluido: respeitar `download_url` quando o backend enviar URL assinada.
+7. Pendente apos backend: validar a tabela com payload real e ajustar somente
+   detalhes de campos se o contrato final mudar.
 
 ### Fase 4: Integracao com backend
 
-1. Definir contrato final dos endpoints.
-2. Atualizar `vite.config.js` se forem necessarios novos proxies em dev.
-3. Substituir `persistTelemetryLogBoundsMock` por chamada real.
-4. Adicionar tratamento de `401` e `403` nos services.
-5. Validar com logs reais de formatos diferentes.
+1. Documentado para backend: definir contrato final dos endpoints.
+2. Concluido no frontend: atualizar `vite.config.js` com proxy `/telemetry`.
+3. Pendente do backend: implementar `/telemetry/log-session-bounds`.
+4. Pendente no frontend apos backend: substituir `persistTelemetryLogBoundsMock`
+   por chamada real, sem criar contrato paralelo no front.
+5. Pendente no frontend apos backend: validar com logs reais de formatos
+   diferentes.
+6. Pendente no frontend apos backend: consolidar tratamento global de `401` e
+   `403` nos services autenticados.
 
 ### Fase 5: Testes e validacao
 
@@ -490,15 +505,25 @@ Regras no frontend:
 
 ## 9. Checklist de implementacao
 
-- [ ] Definir contrato final de login com perfil/permissoes.
-- [ ] Criar helper de permissoes no frontend.
-- [ ] Atualizar sessao em `App.jsx`.
-- [ ] Bloquear start/stop para `member` na UI e nos handlers.
-- [ ] Adicionar aba `Downloads`.
-- [ ] Criar componentes da area de downloads.
-- [ ] Criar service HTTP para listar e baixar logs.
-- [ ] Implementar estados de loading/empty/error/downloading.
-- [ ] Substituir mock de persistencia de bounds quando API existir.
+- [x] Documentar plano de arquitetura da feature.
+- [x] Documentar pendencias do backend em arquivo dedicado.
+- [x] Criar helper de permissoes no frontend.
+- [x] Atualizar sessao em `App.jsx`.
+- [x] Bloquear start/stop para `member` na UI e nos handlers.
+- [x] Adicionar aba `Downloads`.
+- [x] Criar componentes da area de downloads.
+- [x] Criar service HTTP para listar e baixar logs.
+- [x] Implementar estados de loading/empty/error/downloading.
+- [x] Respeitar download autenticado por `Blob`.
+- [x] Respeitar `download_url` quando backend enviar URL pronta.
+- [x] Atualizar proxy de desenvolvimento para `/telemetry`.
+- [ ] Backend: definir contrato final de login com perfil/permissoes.
+- [ ] Backend: implementar autorizacao real para start/stop.
+- [ ] Backend: implementar listagem e download de logs.
+- [ ] Backend: implementar persistencia de bounds da coleta.
+- [ ] Frontend: substituir mock de persistencia de bounds quando API existir.
+- [ ] Frontend: sincronizar start/stop local com resposta real do backend.
+- [ ] Frontend: consolidar tratamento de `401`, `403` e `409` nos services.
+- [ ] Frontend: validar payload real de logs e ajustar campos se necessario.
 - [ ] Validar backend com `401`, `403`, arquivo pequeno e arquivo grande.
 - [ ] Atualizar documentacao principal se a feature entrar em producao.
-

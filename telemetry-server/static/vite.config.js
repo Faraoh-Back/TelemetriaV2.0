@@ -7,6 +7,7 @@ export default defineConfig({
     proxy: {
       '/login': 'http://localhost:8081',
       '/migrate': 'http://localhost:8081',
+      '/telemetry': 'http://localhost:8081',
     },
   },
   build: {

@@ -118,12 +118,22 @@ Alternativa aceita:
 
 ## 4. Controle administrativo de coleta
 
-Endpoints recomendados:
+Estado atual no frontend:
+
+- `admin` ve e aciona os controles de coleta.
+- `member` nao ve comandos acionaveis de iniciar/encerrar coleta.
+- Os handlers do frontend ja possuem guard de permissao.
+- O frontend chama o backend antes de iniciar ou encerrar a coleta local.
+- Depois de resposta `ok`, o worker local e sincronizado com o estado aceito
+  pelo backend.
+
+Endpoints definidos pelo frontend:
 
 ```http
 POST /telemetry/collection/start
 POST /telemetry/collection/stop
 Authorization: Bearer <token>
+Content-Type: application/json
 ```
 
 Permissoes exigidas:
@@ -139,6 +149,28 @@ Resposta minima:
   "state": "live"
 }
 ```
+
+Body de start:
+
+```json
+{
+  "requested_at": "2026-05-26T12:00:00.000Z"
+}
+```
+
+Body de stop:
+
+```json
+{
+  "requested_at": "2026-05-26T12:10:00.000Z",
+  "log_start_unix": null,
+  "log_stop_unix": null
+}
+```
+
+O stop administrativo e chamado antes de desligar o worker local. Por isso os
+bounds podem chegar como `null` nesse endpoint. Os limites reais sao enviados em
+seguida para `POST /telemetry/log-session-bounds`.
 
 Para usuario autenticado sem permissao, retornar:
 
@@ -157,7 +189,8 @@ com:
 
 ## 5. Persistencia dos limites da coleta
 
-Substituir o mock atual do frontend.
+O frontend ja envia os bounds reais por este endpoint apos o backend aceitar o
+encerramento administrativo da coleta.
 
 Endpoint:
 
@@ -223,3 +256,15 @@ Status esperados:
 - Operacoes administrativas e downloads ficam registrados em auditoria, se o
   backend ja tiver trilha de eventos.
 
+## 8. Ordem recomendada para destravar o frontend
+
+1. Atualizar `POST /login` para retornar `user.role` e `user.permissions`.
+2. Implementar `GET /telemetry/logs` com pelo menos um payload real ou fixture
+   persistida.
+3. Implementar `GET /telemetry/logs/:id/download`.
+4. Implementar `POST /telemetry/collection/start` e
+   `POST /telemetry/collection/stop` com `403` para `member`.
+5. Implementar `POST /telemetry/log-session-bounds`.
+
+Depois dessa ordem, o frontend conseguira operar o fluxo completo sem ajustes
+estruturais, restando apenas validacao integrada de payloads e erros reais.

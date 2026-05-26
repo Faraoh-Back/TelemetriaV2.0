@@ -40,3 +40,19 @@
   }
   
   #root { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .app-alert {
+      margin: 10px 20px 0;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text2);
+      background: var(--bg2);
+      font-size: 13px;
+  }
+
+  .app-alert--error {
+      color: var(--red);
+      border-color: rgba(240,82,82,0.28);
+      background: rgba(240,82,82,0.08);
+  }

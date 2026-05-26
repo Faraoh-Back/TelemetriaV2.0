@@ -56,7 +56,7 @@ function isPortInUse(port) {
 
 console.log('\nTeste do cockpit com mapa/tracking mock')
 console.log('1. Abra o URL do Vite que aparece abaixo.')
-console.log('2. Faça login com qualquer usuario/senha.')
+console.log('2. Faça login com admin para controle total ou member/membro para perfil de consumo.')
 console.log('3. Clique em iniciar telemetria e abra a aba Cockpit.')
 console.log(`4. O mapa fecha em ${MOCK_ENV.MOCK_TRACK_LAP_SEC}s e o ponto começa a andar.\n`)
 

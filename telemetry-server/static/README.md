@@ -42,7 +42,8 @@ Esse comando sobe, em paralelo:
 Fluxo esperado:
 
 1. Abra `http://localhost:5173/`.
-2. Faça login com qualquer usuário e senha.
+2. Faça login com `admin` para perfil administrador ou `member`/`membro` para
+   perfil de membro. A senha pode ser qualquer valor no mock.
 3. Clique em `Iniciar coleta`.
 4. Abra a aba `Cockpit`.
 5. O painel começa como `aprendendo primeira volta`.

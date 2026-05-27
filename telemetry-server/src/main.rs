@@ -672,7 +672,7 @@ async fn handle_client(
             }
         };
         for json in track_messages {
-            let _ = ws_tx.send(json);
+            let _ = ws_tx.send(json.into_bytes());
         }
 
         if last_log.elapsed().as_secs() >= 10 {

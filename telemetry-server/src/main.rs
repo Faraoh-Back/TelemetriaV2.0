@@ -568,7 +568,7 @@ async fn handle_client(
     addr: std::net::SocketAddr,
     pg_pool: sqlx::PgPool,
     decoder_map: decoder::DecoderMap,
-    ws_tx: broadcast::Sender<String>,
+    ws_tx: broadcast::Sender<Vec<u8>>,
     track_state: SharedTrackState,
 ) {
     info!("🚗 Carro conectado: {}", addr);

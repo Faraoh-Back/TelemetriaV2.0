@@ -1389,7 +1389,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Canal broadcast para WebSocket (buffer 10.000 msgs)
-    let (ws_tx, _) = broadcast::channel::<String>(10_000);
+    let (ws_tx, _) = broadcast::channel::<Vec<u8>>(10_000);
     let track_state = Arc::new(Mutex::new(RealtimeTrackState::new()));
 
     // Spawn servidor HTTP+WS :8081

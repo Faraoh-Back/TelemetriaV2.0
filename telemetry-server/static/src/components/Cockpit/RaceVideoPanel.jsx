@@ -21,12 +21,11 @@ function RaceVideoPanel({ source }) {
                         </div>
                     }
                 >
-                    <video
+                    <iframe
                         class="race-video__media"
                         src={source}
-                        autoplay
-                        muted
-                        playsinline
+                        allow="autoplay"
+                        frameborder="0"
                     />
                 </Show>
             </div>

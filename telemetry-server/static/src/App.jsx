@@ -220,6 +220,7 @@ function App() {
           gauges={GAUGE_CONFIG}
           trackMap={trackState}
           isTelemetryLive={telemetryMode() === TELEMETRY_MODE.live}
+          videoSource="http://143.106.207.21:8555/cam"
         />
       </Show>
     </Show>

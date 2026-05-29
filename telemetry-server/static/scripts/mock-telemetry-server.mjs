@@ -8,9 +8,114 @@ const WS_GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
 const clients = new Map()
 const startedAt = Date.now()
+const mockLogs = [
+  {
+    id: 'mock-log-001',
+    name: 'Treino mock - stint 1',
+    created_at: new Date(startedAt).toISOString(),
+    started_at: new Date(startedAt - 9 * 60_000).toISOString(),
+    ended_at: new Date(startedAt - 2 * 60_000).toISOString(),
+    duration_seconds: 420,
+    format: 'csv',
+    content_type: 'text/csv',
+    size_bytes: 4096,
+    status: 'ready',
+    download_url: null,
+    metadata: {
+      vehicle: 'EV',
+      driver: 'Mock',
+      source: 'mock-telemetry-server',
+    },
+  },
+]
 
 function nowSeconds() {
   return Date.now() / 1000
+}
+
+function base64UrlJson(payload) {
+  return Buffer.from(JSON.stringify(payload))
+    .toString('base64url')
+}
+
+function createMockToken(username, role, permissions) {
+  return [
+    base64UrlJson({ alg: 'none', typ: 'JWT' }),
+    base64UrlJson({
+      sub: username,
+      username,
+      role,
+      permissions,
+      exp: Math.floor(Date.now() / 1000) + 12 * 60 * 60,
+    }),
+    'mock-signature',
+  ].join('.')
+}
+
+function getPayloadFromRequest(request) {
+  const auth = request.headers.authorization || ''
+  const token = auth.startsWith('Bearer ') ? auth.slice('Bearer '.length) : ''
+  const [, payload] = token.split('.')
+
+  if (!payload) return null
+
+  try {
+    return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'))
+  } catch {
+    return null
+  }
+}
+
+function hasPermission(request, permission) {
+  return getPayloadFromRequest(request)?.permissions?.includes(permission) ?? false
+}
+
+function requirePermission(request, response, permission) {
+  if (hasPermission(request, permission)) return true
+
+  sendJson(response, 403, {
+    ok: false,
+    message: 'Permissao insuficiente.',
+  })
+  return false
+}
+
+function getRoleForUsername(username) {
+  return ['member', 'membro'].includes(String(username).toLowerCase())
+    ? 'member'
+    : 'admin'
+}
+
+function getPermissionsForRole(role) {
+  if (role === 'member') return ['logs:read', 'logs:download']
+
+  return [
+    'telemetry:start',
+    'telemetry:stop',
+    'logs:read',
+    'logs:download',
+  ]
+}
+
+function readJsonBody(request) {
+  return new Promise((resolve) => {
+    let body = ''
+    request.on('data', (chunk) => {
+      body += chunk
+    })
+    request.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {})
+      } catch {
+        resolve({})
+      }
+    })
+  })
+}
+
+function sendJson(response, status, payload) {
+  response.writeHead(status, { 'Content-Type': 'application/json' })
+  response.end(JSON.stringify(payload))
 }
 
 function wave(t, min, max, speed = 1, phase = 0) {
@@ -259,9 +364,10 @@ function handleCors(response) {
   response.setHeader('Access-Control-Allow-Origin', '*')
   response.setHeader('Access-Control-Allow-Headers', 'content-type, authorization')
   response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  response.setHeader('Access-Control-Expose-Headers', 'content-disposition')
 }
 
-const server = http.createServer((request, response) => {
+const server = http.createServer(async (request, response) => {
   handleCors(response)
 
   if (request.method === 'OPTIONS') {
@@ -271,8 +377,73 @@ const server = http.createServer((request, response) => {
   }
 
   if (request.method === 'POST' && request.url === '/login') {
-    response.writeHead(200, { 'Content-Type': 'application/json' })
-    response.end(JSON.stringify({ ok: true, token: 'mock-dev-token' }))
+    const body = await readJsonBody(request)
+    const username = body.username || 'admin'
+    const role = getRoleForUsername(username)
+    const permissions = getPermissionsForRole(role)
+    const token = createMockToken(username, role, permissions)
+
+    sendJson(response, 200, {
+      ok: true,
+      token,
+      user: {
+        username,
+        role,
+        permissions,
+      },
+    })
+    return
+  }
+
+  if (request.method === 'POST' && request.url === '/telemetry/collection/start') {
+    if (!requirePermission(request, response, 'telemetry:start')) return
+    sendJson(response, 200, { ok: true, state: 'live' })
+    return
+  }
+
+  if (request.method === 'POST' && request.url === '/telemetry/collection/stop') {
+    if (!requirePermission(request, response, 'telemetry:stop')) return
+    sendJson(response, 200, { ok: true, state: 'stopped' })
+    return
+  }
+
+  if (request.method === 'POST' && request.url === '/telemetry/log-session-bounds') {
+    if (!requirePermission(request, response, 'telemetry:stop')) return
+    const body = await readJsonBody(request)
+    sendJson(response, 200, {
+      ok: true,
+      id: `mock-log-${Date.now()}`,
+      status: 'processing',
+      received: body,
+    })
+    return
+  }
+
+  if (request.method === 'GET' && request.url.startsWith('/telemetry/logs')) {
+    const url = new URL(request.url, `http://${request.headers.host}`)
+    const downloadMatch = url.pathname.match(/^\/telemetry\/logs\/([^/]+)\/download$/)
+
+    if (downloadMatch) {
+      const log = mockLogs.find((item) => item.id === downloadMatch[1])
+
+      if (!log) {
+        sendJson(response, 404, { ok: false, message: 'Log nao encontrado.' })
+        return
+      }
+
+      response.writeHead(200, {
+        'Content-Type': log.content_type,
+        'Content-Disposition': `attachment; filename="${log.id}.${log.format}"`,
+      })
+      response.end('timestamp,signal,value\n0,act_Speed_A0,4200\n1,act_Speed_A0,4300\n')
+      return
+    }
+
+    sendJson(response, 200, {
+      ok: true,
+      items: mockLogs,
+      next_cursor: null,
+    })
     return
   }
 
@@ -361,6 +532,6 @@ setInterval(() => {
 
 server.listen(PORT, () => {
   console.log(`Mock telemetry backend em http://localhost:${PORT}`)
-  console.log(`POST /login retorna token de teste; WS /ws envia frames CAN binarios a cada ${TICK_MS}ms`)
+  console.log(`POST /login aceita admin ou member/membro; WS /ws envia frames CAN binarios a cada ${TICK_MS}ms`)
   console.log(`Mapa mock: primeira volta fecha em ${TRACK_LAP_SEC}s; depois envia track_pose em tempo real`)
 })

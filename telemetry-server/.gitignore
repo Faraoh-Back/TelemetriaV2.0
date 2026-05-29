@@ -11,6 +11,8 @@ target/
 __pycache__/
 *.py[cod]
 
+# Generated reports
+reports/
+
 # macOS
 .DS_Store
-

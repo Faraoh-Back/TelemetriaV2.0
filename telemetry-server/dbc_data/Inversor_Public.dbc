@@ -1,0 +1,2547 @@
+VERSION ""
+
+
+NS_ :
+
+BS_:
+
+BU_: Vector__XXX
+
+BO_ 2566848759 MOBILE14_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_14 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_14 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_14 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_14 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_14 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_14 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_14 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_14 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_14 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexInOutState1_14 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexInOutState2_14 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849015 MOBILE14_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A14 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A14 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A14 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A14 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A14 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A14 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A14 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A14 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849271 MOBILE14_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B14 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B14 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B14 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B14 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B14 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B14 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B14 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B14 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849783 MOBILE14_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_14 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_14 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_14 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_14 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_14 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_14 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_14 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_14 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_14 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_14 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_14 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_14 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848746 MOBILE1_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_1 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_1 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_1 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_1 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_1 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_1 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_1 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_1 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_1 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_1 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_1 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849002 MOBILE1_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A1 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A1 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A1 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A1 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A1 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A1 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A1 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A1 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849258 MOBILE1_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B1 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B1 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B1 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B1 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B1 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B1 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B1 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B1 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849770 MOBILE1_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_1 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_1 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_1 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_1 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_1 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_1 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_1 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_1 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_1 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_1 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_1 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_1 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848747 MOBILE2_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_2 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_2 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_2 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_2 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_2 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_2 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_2 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_2 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_2 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_2 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_2 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849003 MOBILE2_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A2 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A2 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A2 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A2 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A2 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A2 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A2 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A2 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849259 MOBILE2_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B2 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B2 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B2 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B2 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B2 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B2 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B2 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B2 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849771 MOBILE2_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_2 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_2 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_2 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_2 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_2 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_2 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_2 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_2 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_2 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_2 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_2 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_2 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848748 MOBILE3_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_3 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_3 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_3 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_3 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_3 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_3 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_3 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_3 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_3 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_3 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_3 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849004 MOBILE3_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A3 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A3 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A3 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A3 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A3 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A3 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A3 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A3 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849260 MOBILE3_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B3 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B3 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B3 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B3 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B3 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B3 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B3 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B3 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849772 MOBILE3_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_3 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_3 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_3 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_3 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_3 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_3 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_3 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_3 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_3 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_3 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_3 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_3 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848749 MOBILE4_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_4 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_4 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_4 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_4 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_4 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_4 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_4 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_4 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_4 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_4 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_4 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849005 MOBILE4_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A4 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A4 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A4 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A4 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A4 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A4 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A4 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A4 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849261 MOBILE4_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B4 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B4 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B4 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B4 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B4 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B4 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B4 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B4 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2173694030 MOBILE4_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_4 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_4 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_4 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_4 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_4 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_4 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_4 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_4 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_4 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_4 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_4 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_4 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848750 MOBILE5_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_5 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_5 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_5 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_5 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_5 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_5 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_5 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_5 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_5 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_5 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_5 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849006 MOBILE5_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A5 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A5 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A5 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A5 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A5 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A5 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A5 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A5 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849262 MOBILE5_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B5 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B5 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B5 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B5 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B5 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B5 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B5 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B5 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849774 MOBILE5_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_5 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_5 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_5 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_5 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_5 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_5 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_5 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_5 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_5 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_5 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_5 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_5 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848751 MOBILE6_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_6 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_6 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_6 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_6 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_6 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_6 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_6 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_6 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_6 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_6 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_6 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849007 MOBILE6_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A6 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A6 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A6 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A6 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A6 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A6 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A6 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A6 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849263 MOBILE6_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B6 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B6 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B6 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B6 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B6 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B6 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B6 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B6 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849775 MOBILE6_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_6 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_6 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_6 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_6 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_6 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_6 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_6 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_6 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_6 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_6 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_6 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_6 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848752 MOBILE7_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_7 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_7 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_7 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_7 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_7 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_7 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_7 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_7 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_7 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_7 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_7 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849008 MOBILE7_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A7 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A7 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A7 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A7 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A7 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A7 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A7 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A7 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849264 MOBILE7_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B7 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B7 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B7 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B7 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B7 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B7 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B7 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B7 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849776 MOBILE7_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_7 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_7 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_7 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_7 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_7 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_7 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_7 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_7 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_7 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_7 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_7 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_7 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848753 MOBILE8_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_8 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_8 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_8 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_8 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_8 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_8 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_8 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_8 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_8 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_8 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_8 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849009 MOBILE8_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A8 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A8 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A8 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A8 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A8 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A8 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A8 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A8 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849265 MOBILE8_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B8 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B8 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B8 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B8 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B8 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B8 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B8 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B8 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849777 MOBILE8_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_8 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_8 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_8 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_8 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_8 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_8 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_8 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_8 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_8 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_8 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_8 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_8 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848754 MOBILE9_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_9 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_9 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_9 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_9 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_9 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_9 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_9 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_9 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_9 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_9 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_9 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849010 MOBILE9_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A9 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A9 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A9 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A9 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A9 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A9 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A9 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A9 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849266 MOBILE9_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B9 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B9 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B9 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B9 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B9 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B9 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B9 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B9 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849778 MOBILE9_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_9 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_9 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_9 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_9 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_9 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_9 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_9 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_9 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_9 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_9 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_9 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_9 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848755 MOBILE10_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_10 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_10 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_10 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_10 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_10 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_10 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_10 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_10 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_10 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_10 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_10 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849011 MOBILE10_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A10 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A10 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A10 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A10 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A10 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A10 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A10 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A10 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849267 MOBILE10_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B10 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B10 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B10 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B10 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B10 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B10 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B10 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B10 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849779 MOBILE10_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_10 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_10 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_10 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_10 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_10 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_10 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_10 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_10 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_10 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_10 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_10 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_10 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848756 MOBILE11_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_11 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_11 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_11 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_11 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_11 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_11 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_11 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_11 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_11 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_11 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_11 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849012 MOBILE11_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A11 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A11 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A11 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A11 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A11 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A11 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A11 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A11 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849268 MOBILE11_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B11 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B11 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B11 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B11 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B11 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B11 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B11 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B11 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849780 MOBILE11_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_11 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_11 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_11 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_11 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_11 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_11 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_11 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_11 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_11 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_11 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_11 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_11 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848757 MOBILE12_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_12 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_12 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_12 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_12 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_12 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_12 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_12 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_12 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_12 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_12 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_12 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849013 MOBILE12_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A12 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A12 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A12 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A12 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A12 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A12 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A12 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A12 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849269 MOBILE12_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B12 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B12 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B12 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B12 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B12 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B12 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B12 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B12 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849781 MOBILE12_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_12 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_12 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_12 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_12 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_12 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_12 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_12 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_12 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_12 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_12 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_12 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_12 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566848758 MOBILE13_Actvals_Device: 8 Vector__XXX
+SG_ DeviceState_13 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ ErrorLamp_13 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DeviceNumber_13 : 4|4@1+ (1,0) [0|15] "" Vector__XXX
+SG_ Clamp15_Status_13 : 8|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Errorcode_13 : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+SG_ act_DCBusVoltage_13 : 32|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ act_DCBusPower_13 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_DeviceTemperature_13 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ DcLinkChargeState_13 : 10|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn1_13 : 12|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ MappedFlexIn2_13 : 14|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849014 MOBILE13_Actvals_DCUA: 8 Vector__XXX
+SG_ act_InverterStatus_A13 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_A13 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_A13 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_A13 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_A13 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_A13 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_A13 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_A13 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849270 MOBILE13_Actvals_DCUB: 8 Vector__XXX
+SG_ act_InverterStatus_B13 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_InverterReady_B13 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_ErrorStatus_B13 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_Speed_B13 : 8|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ act_Torque_B13 : 24|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+SG_ act_Power_B13 : 40|16@1+ (0.005,-160) [-160|167.675] "kW" Vector__XXX
+SG_ act_Temperature_B13 : 56|8@1+ (1,-40) [-40|215] "°C" Vector__XXX
+SG_ act_LimitationStatus_B13 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566849782 MOBILE13_Actvals_FlexInOut: 8 Vector__XXX
+SG_ act_FlexIn1_13 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn2_13 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn3_13 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexIn4_13 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut1_13 : 16|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut2_13 : 18|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut3_13 : 20|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOut4_13 : 22|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus1_13 : 24|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus2_13 : 26|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus3_13 : 28|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ act_FlexOutStatus4_13 : 30|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566852736 MOBILE_SystemMessage: 8 Vector__XXX
+SG_ SystemEnable : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ Clamp15_CAN : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ DischargeEnable : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkVoltage : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_VoltagePrechargeDemand : 24|8@1+ (4,0) [0|1020] "V" Vector__XXX
+
+
+BO_ 2566906240 MOBILE14_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_14A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_14A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_14A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_14A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_14A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_14A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566906496 MOBILE14_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_14B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_14B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_14B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_14B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_14B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_14B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566907008 MOBILE14_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_14 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_14 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_14 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_14 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566852992 MOBILE1_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_1A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_1A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_1A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_1A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_1A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_1A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566853248 MOBILE1_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_1B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_1B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_1B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_1B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_1B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_1B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566853760 MOBILE1_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_1 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_1 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_1 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_1 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566857088 MOBILE2_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_2A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_2A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_2A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_2A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_2A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_2A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566857344 MOBILE2_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_2B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_2B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_2B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_2B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_2B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_2B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566857856 MOBILE2_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_2 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_2 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_2 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_2 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566861184 MOBILE3_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_3A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_3A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_3A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_3A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_3A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_3A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566861440 MOBILE3_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_3B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_3B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_3B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_3B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_3B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_3B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566861952 MOBILE3_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_3 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_3 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_3 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_3 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566865280 MOBILE4_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_4A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_4A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_4A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_4A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_4A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_4A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566865536 MOBILE4_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_4B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_4B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_4B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_4B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_4B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_4B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566866048 MOBILE4_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_4 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_4 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_4 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_4 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566869376 MOBILE5_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_5A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_5A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_5A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_5A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_5A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_5A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566869632 MOBILE5_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_5B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_5B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_5B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_5B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_5B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_5B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566870144 MOBILE5_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_5 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_5 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_5 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_5 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566873472 MOBILE6_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_6A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_6A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_6A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_6A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_6A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_6A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566873728 MOBILE6_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_6B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_6B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_6B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_6B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_6B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_6B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566874240 MOBILE6_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_6 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_6 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_6 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_6 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566877568 MOBILE7_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_7A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_7A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_7A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_7A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_7A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_7A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566877824 MOBILE7_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_7B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_7 : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_7B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_7B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_7B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_7B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566878336 MOBILE7_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_7 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_7 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_7 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_7 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566881664 MOBILE8_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_8A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_8A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_8A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_8A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_8A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_8A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566881920 MOBILE8_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_8B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_8B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_8B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_8B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_8B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_8B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566882432 MOBILE8_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_8 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_8 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_8 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_8 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566885760 MOBILE9_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_9A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_9A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_9A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_9A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_9A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_9A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566886016 MOBILE9_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_9B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_9B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_9B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_9B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_9B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_9B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566886528 MOBILE9_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_9 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_9 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_9 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_9 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566889856 MOBILE10_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_10A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_10A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_10A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_10A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_10A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_10A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566890112 MOBILE10_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_10B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_10B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_10B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_10B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_10B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_10B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566890624 MOBILE10_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_10 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_10 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_10 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_10 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566893952 MOBILE11_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_11A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_11A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_11A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_11A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_11A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_11A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566894208 MOBILE11_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_11B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_11B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_11B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_11B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_11B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_11B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566894720 MOBILE11_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_11 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_11 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_11 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_11 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566898048 MOBILE12_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_12A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_12A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_12A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_12A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_12A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_12A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566898304 MOBILE12_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_12B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_12B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_12B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_12B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_12B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_12B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566898816 MOBILE12_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_12 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_12 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_12 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_12 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+BO_ 2566902144 MOBILE13_Setpoints_DCUA: 8 Vector__XXX
+SG_ ctrlDCU_13A : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_13A : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_13A : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_13A : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_13A : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_13A : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566902400 MOBILE13_Setpoints_DCUB: 8 Vector__XXX
+SG_ ctrlDCU_13B : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ setp_DcLinkTolerance_13B : 8|8@1+ (4,0) [0|1020] "V" Vector__XXX
+SG_ setp_MotPower_13B : 16|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_GenPower_13B : 24|8@1+ (1,0) [0|250] "%" Vector__XXX
+SG_ setp_Speed_13B : 32|16@1+ (1,-32000) [-32000|33535] "rpm" Vector__XXX
+SG_ setp_Torque_13B : 48|16@1+ (0.2,-6400) [-6400|6707] "Nm" Vector__XXX
+
+
+BO_ 2566902912 MOBILE13_Setpoints_FlexInOut: 8 Vector__XXX
+SG_ set_FlexOut1_13 : 0|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut2_13 : 2|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut3_13 : 4|2@1+ (1,0) [0|3] "" Vector__XXX
+SG_ set_FlexOut4_13 : 6|2@1+ (1,0) [0|3] "" Vector__XXX
+
+
+CM_ BO_ 2566852736 "Broadcast";
+
+BA_DEF_  "BusType" STRING ;
+BA_DEF_ BO_  "GenMsgCycleTime" INT 0 65535;
+BA_DEF_ SG_  "GenSigStartValue" FLOAT -3.4E+038 3.4E+038;
+
+BA_DEF_DEF_  "BusType" "CAN";
+BA_DEF_DEF_  "GenMsgCycleTime" 0;
+BA_DEF_DEF_  "GenSigStartValue" 0;
+
+BA_ "BusType" "CAN";
+
+BA_ "GenMsgCycleTime" BO_ 2566852736 100;
+BA_ "GenMsgCycleTime" BO_ 2566906240 100;
+BA_ "GenMsgCycleTime" BO_ 2566906496 100;
+BA_ "GenMsgCycleTime" BO_ 2566907008 100;
+BA_ "GenMsgCycleTime" BO_ 2566852992 100;
+BA_ "GenMsgCycleTime" BO_ 2566853248 100;
+BA_ "GenMsgCycleTime" BO_ 2566853760 100;
+BA_ "GenMsgCycleTime" BO_ 2566857088 100;
+BA_ "GenMsgCycleTime" BO_ 2566857344 100;
+BA_ "GenMsgCycleTime" BO_ 2566857856 100;
+BA_ "GenMsgCycleTime" BO_ 2566861184 100;
+BA_ "GenMsgCycleTime" BO_ 2566861440 100;
+BA_ "GenMsgCycleTime" BO_ 2566861952 100;
+BA_ "GenMsgCycleTime" BO_ 2566865280 100;
+BA_ "GenMsgCycleTime" BO_ 2566865536 100;
+BA_ "GenMsgCycleTime" BO_ 2566866048 100;
+BA_ "GenMsgCycleTime" BO_ 2566869376 100;
+BA_ "GenMsgCycleTime" BO_ 2566869632 100;
+BA_ "GenMsgCycleTime" BO_ 2566870144 100;
+BA_ "GenMsgCycleTime" BO_ 2566873472 100;
+BA_ "GenMsgCycleTime" BO_ 2566873728 100;
+BA_ "GenMsgCycleTime" BO_ 2566874240 100;
+BA_ "GenMsgCycleTime" BO_ 2566877568 100;
+BA_ "GenMsgCycleTime" BO_ 2566877824 100;
+BA_ "GenMsgCycleTime" BO_ 2566878336 100;
+BA_ "GenMsgCycleTime" BO_ 2566881664 100;
+BA_ "GenMsgCycleTime" BO_ 2566881920 100;
+BA_ "GenMsgCycleTime" BO_ 2566882432 100;
+BA_ "GenMsgCycleTime" BO_ 2566885760 100;
+BA_ "GenMsgCycleTime" BO_ 2566886016 100;
+BA_ "GenMsgCycleTime" BO_ 2566886528 100;
+BA_ "GenMsgCycleTime" BO_ 2566889856 100;
+BA_ "GenMsgCycleTime" BO_ 2566890112 100;
+BA_ "GenMsgCycleTime" BO_ 2566890624 100;
+BA_ "GenMsgCycleTime" BO_ 2566893952 100;
+BA_ "GenMsgCycleTime" BO_ 2566894208 100;
+BA_ "GenMsgCycleTime" BO_ 2566894720 100;
+BA_ "GenMsgCycleTime" BO_ 2566898048 100;
+BA_ "GenMsgCycleTime" BO_ 2566898304 100;
+BA_ "GenMsgCycleTime" BO_ 2566898816 100;
+BA_ "GenMsgCycleTime" BO_ 2566902144 100;
+BA_ "GenMsgCycleTime" BO_ 2566902400 100;
+BA_ "GenMsgCycleTime" BO_ 2566902912 100;
+
+BA_ "GenSigStartValue" SG_ 2566848759 DeviceState_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 ErrorLamp_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 DeviceNumber_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 Clamp15_Status_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 Errorcode_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 act_DCBusVoltage_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 act_DCBusPower_14 32000;
+BA_ "GenSigStartValue" SG_ 2566848759 act_DeviceTemperature_14 40;
+BA_ "GenSigStartValue" SG_ 2566848759 DcLinkChargeState_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 MappedFlexInOutState1_14 0;
+BA_ "GenSigStartValue" SG_ 2566848759 MappedFlexInOutState2_14 0;
+BA_ "GenSigStartValue" SG_ 2566849015 act_InverterStatus_A14 0;
+BA_ "GenSigStartValue" SG_ 2566849015 act_InverterReady_A14 0;
+BA_ "GenSigStartValue" SG_ 2566849015 act_ErrorStatus_A14 0;
+BA_ "GenSigStartValue" SG_ 2566849015 act_Speed_A14 32000;
+BA_ "GenSigStartValue" SG_ 2566849015 act_Torque_A14 32000;
+BA_ "GenSigStartValue" SG_ 2566849015 act_Power_A14 32000;
+BA_ "GenSigStartValue" SG_ 2566849015 act_Temperature_A14 40;
+BA_ "GenSigStartValue" SG_ 2566849015 act_LimitationStatus_A14 0;
+BA_ "GenSigStartValue" SG_ 2566849271 act_InverterStatus_B14 0;
+BA_ "GenSigStartValue" SG_ 2566849271 act_InverterReady_B14 0;
+BA_ "GenSigStartValue" SG_ 2566849271 act_ErrorStatus_B14 0;
+BA_ "GenSigStartValue" SG_ 2566849271 act_Speed_B14 32000;
+BA_ "GenSigStartValue" SG_ 2566849271 act_Torque_B14 32000;
+BA_ "GenSigStartValue" SG_ 2566849271 act_Power_B14 32000;
+BA_ "GenSigStartValue" SG_ 2566849271 act_Temperature_B14 40;
+BA_ "GenSigStartValue" SG_ 2566849271 act_LimitationStatus_B14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexIn1_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexIn2_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexIn3_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexIn4_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOut1_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOut2_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOut3_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOut4_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOutStatus1_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOutStatus2_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOutStatus3_14 0;
+BA_ "GenSigStartValue" SG_ 2566849783 act_FlexOutStatus4_14 0;
+BA_ "GenSigStartValue" SG_ 2566848746 DeviceState_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 ErrorLamp_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 DeviceNumber_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 Clamp15_Status_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 Errorcode_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 act_DCBusVoltage_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 act_DCBusPower_1 32000;
+BA_ "GenSigStartValue" SG_ 2566848746 act_DeviceTemperature_1 40;
+BA_ "GenSigStartValue" SG_ 2566848746 DcLinkChargeState_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 MappedFlexIn1_1 0;
+BA_ "GenSigStartValue" SG_ 2566848746 MappedFlexIn2_1 0;
+BA_ "GenSigStartValue" SG_ 2566849002 act_InverterStatus_A1 0;
+BA_ "GenSigStartValue" SG_ 2566849002 act_InverterReady_A1 0;
+BA_ "GenSigStartValue" SG_ 2566849002 act_ErrorStatus_A1 0;
+BA_ "GenSigStartValue" SG_ 2566849002 act_Speed_A1 32000;
+BA_ "GenSigStartValue" SG_ 2566849002 act_Torque_A1 32000;
+BA_ "GenSigStartValue" SG_ 2566849002 act_Power_A1 32000;
+BA_ "GenSigStartValue" SG_ 2566849002 act_Temperature_A1 40;
+BA_ "GenSigStartValue" SG_ 2566849002 act_LimitationStatus_A1 0;
+BA_ "GenSigStartValue" SG_ 2566849258 act_InverterStatus_B1 0;
+BA_ "GenSigStartValue" SG_ 2566849258 act_InverterReady_B1 0;
+BA_ "GenSigStartValue" SG_ 2566849258 act_ErrorStatus_B1 0;
+BA_ "GenSigStartValue" SG_ 2566849258 act_Speed_B1 32000;
+BA_ "GenSigStartValue" SG_ 2566849258 act_Torque_B1 32000;
+BA_ "GenSigStartValue" SG_ 2566849258 act_Power_B1 32000;
+BA_ "GenSigStartValue" SG_ 2566849258 act_Temperature_B1 40;
+BA_ "GenSigStartValue" SG_ 2566849258 act_LimitationStatus_B1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexIn1_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexIn2_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexIn3_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexIn4_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOut1_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOut2_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOut3_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOut4_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOutStatus1_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOutStatus2_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOutStatus3_1 0;
+BA_ "GenSigStartValue" SG_ 2566849770 act_FlexOutStatus4_1 0;
+BA_ "GenSigStartValue" SG_ 2566848747 DeviceState_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 ErrorLamp_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 DeviceNumber_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 Clamp15_Status_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 Errorcode_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 act_DCBusVoltage_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 act_DCBusPower_2 32000;
+BA_ "GenSigStartValue" SG_ 2566848747 act_DeviceTemperature_2 40;
+BA_ "GenSigStartValue" SG_ 2566848747 DcLinkChargeState_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 MappedFlexIn1_2 0;
+BA_ "GenSigStartValue" SG_ 2566848747 MappedFlexIn2_2 0;
+BA_ "GenSigStartValue" SG_ 2566849003 act_InverterStatus_A2 0;
+BA_ "GenSigStartValue" SG_ 2566849003 act_InverterReady_A2 0;
+BA_ "GenSigStartValue" SG_ 2566849003 act_ErrorStatus_A2 0;
+BA_ "GenSigStartValue" SG_ 2566849003 act_Speed_A2 32000;
+BA_ "GenSigStartValue" SG_ 2566849003 act_Torque_A2 32000;
+BA_ "GenSigStartValue" SG_ 2566849003 act_Power_A2 32000;
+BA_ "GenSigStartValue" SG_ 2566849003 act_Temperature_A2 40;
+BA_ "GenSigStartValue" SG_ 2566849003 act_LimitationStatus_A2 0;
+BA_ "GenSigStartValue" SG_ 2566849259 act_InverterStatus_B2 0;
+BA_ "GenSigStartValue" SG_ 2566849259 act_InverterReady_B2 0;
+BA_ "GenSigStartValue" SG_ 2566849259 act_ErrorStatus_B2 0;
+BA_ "GenSigStartValue" SG_ 2566849259 act_Speed_B2 32000;
+BA_ "GenSigStartValue" SG_ 2566849259 act_Torque_B2 32000;
+BA_ "GenSigStartValue" SG_ 2566849259 act_Power_B2 32000;
+BA_ "GenSigStartValue" SG_ 2566849259 act_Temperature_B2 40;
+BA_ "GenSigStartValue" SG_ 2566849259 act_LimitationStatus_B2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexIn1_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexIn2_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexIn3_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexIn4_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOut1_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOut2_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOut3_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOut4_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOutStatus1_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOutStatus2_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOutStatus3_2 0;
+BA_ "GenSigStartValue" SG_ 2566849771 act_FlexOutStatus4_2 0;
+BA_ "GenSigStartValue" SG_ 2566848748 DeviceState_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 ErrorLamp_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 DeviceNumber_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 Clamp15_Status_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 Errorcode_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 act_DCBusVoltage_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 act_DCBusPower_3 32000;
+BA_ "GenSigStartValue" SG_ 2566848748 act_DeviceTemperature_3 40;
+BA_ "GenSigStartValue" SG_ 2566848748 DcLinkChargeState_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 MappedFlexIn1_3 0;
+BA_ "GenSigStartValue" SG_ 2566848748 MappedFlexIn2_3 0;
+BA_ "GenSigStartValue" SG_ 2566849004 act_InverterStatus_A3 0;
+BA_ "GenSigStartValue" SG_ 2566849004 act_InverterReady_A3 0;
+BA_ "GenSigStartValue" SG_ 2566849004 act_ErrorStatus_A3 0;
+BA_ "GenSigStartValue" SG_ 2566849004 act_Speed_A3 32000;
+BA_ "GenSigStartValue" SG_ 2566849004 act_Torque_A3 32000;
+BA_ "GenSigStartValue" SG_ 2566849004 act_Power_A3 32000;
+BA_ "GenSigStartValue" SG_ 2566849004 act_Temperature_A3 40;
+BA_ "GenSigStartValue" SG_ 2566849004 act_LimitationStatus_A3 0;
+BA_ "GenSigStartValue" SG_ 2566849260 act_InverterStatus_B3 0;
+BA_ "GenSigStartValue" SG_ 2566849260 act_InverterReady_B3 0;
+BA_ "GenSigStartValue" SG_ 2566849260 act_ErrorStatus_B3 0;
+BA_ "GenSigStartValue" SG_ 2566849260 act_Speed_B3 32000;
+BA_ "GenSigStartValue" SG_ 2566849260 act_Torque_B3 32000;
+BA_ "GenSigStartValue" SG_ 2566849260 act_Power_B3 32000;
+BA_ "GenSigStartValue" SG_ 2566849260 act_Temperature_B3 40;
+BA_ "GenSigStartValue" SG_ 2566849260 act_LimitationStatus_B3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexIn1_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexIn2_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexIn3_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexIn4_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOut1_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOut2_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOut3_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOut4_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOutStatus1_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOutStatus2_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOutStatus3_3 0;
+BA_ "GenSigStartValue" SG_ 2566849772 act_FlexOutStatus4_3 0;
+BA_ "GenSigStartValue" SG_ 2566848749 DeviceState_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 ErrorLamp_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 DeviceNumber_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 Clamp15_Status_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 Errorcode_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 act_DCBusVoltage_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 act_DCBusPower_4 32000;
+BA_ "GenSigStartValue" SG_ 2566848749 act_DeviceTemperature_4 40;
+BA_ "GenSigStartValue" SG_ 2566848749 DcLinkChargeState_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 MappedFlexIn1_4 0;
+BA_ "GenSigStartValue" SG_ 2566848749 MappedFlexIn2_4 0;
+BA_ "GenSigStartValue" SG_ 2566849005 act_InverterStatus_A4 0;
+BA_ "GenSigStartValue" SG_ 2566849005 act_InverterReady_A4 0;
+BA_ "GenSigStartValue" SG_ 2566849005 act_ErrorStatus_A4 0;
+BA_ "GenSigStartValue" SG_ 2566849005 act_Speed_A4 32000;
+BA_ "GenSigStartValue" SG_ 2566849005 act_Torque_A4 32000;
+BA_ "GenSigStartValue" SG_ 2566849005 act_Power_A4 32000;
+BA_ "GenSigStartValue" SG_ 2566849005 act_Temperature_A4 40;
+BA_ "GenSigStartValue" SG_ 2566849005 act_LimitationStatus_A4 0;
+BA_ "GenSigStartValue" SG_ 2566849261 act_InverterStatus_B4 0;
+BA_ "GenSigStartValue" SG_ 2566849261 act_InverterReady_B4 0;
+BA_ "GenSigStartValue" SG_ 2566849261 act_ErrorStatus_B4 0;
+BA_ "GenSigStartValue" SG_ 2566849261 act_Speed_B4 32000;
+BA_ "GenSigStartValue" SG_ 2566849261 act_Torque_B4 32000;
+BA_ "GenSigStartValue" SG_ 2566849261 act_Power_B4 32000;
+BA_ "GenSigStartValue" SG_ 2566849261 act_Temperature_B4 40;
+BA_ "GenSigStartValue" SG_ 2566849261 act_LimitationStatus_B4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexIn1_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexIn2_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexIn3_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexIn4_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOut1_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOut2_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOut3_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOut4_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOutStatus1_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOutStatus2_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOutStatus3_4 0;
+BA_ "GenSigStartValue" SG_ 2173694030 act_FlexOutStatus4_4 0;
+BA_ "GenSigStartValue" SG_ 2566848750 DeviceState_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 ErrorLamp_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 DeviceNumber_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 Clamp15_Status_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 Errorcode_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 act_DCBusVoltage_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 act_DCBusPower_5 32000;
+BA_ "GenSigStartValue" SG_ 2566848750 act_DeviceTemperature_5 40;
+BA_ "GenSigStartValue" SG_ 2566848750 DcLinkChargeState_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 MappedFlexIn1_5 0;
+BA_ "GenSigStartValue" SG_ 2566848750 MappedFlexIn2_5 0;
+BA_ "GenSigStartValue" SG_ 2566849006 act_InverterStatus_A5 0;
+BA_ "GenSigStartValue" SG_ 2566849006 act_InverterReady_A5 0;
+BA_ "GenSigStartValue" SG_ 2566849006 act_ErrorStatus_A5 0;
+BA_ "GenSigStartValue" SG_ 2566849006 act_Speed_A5 32000;
+BA_ "GenSigStartValue" SG_ 2566849006 act_Torque_A5 32000;
+BA_ "GenSigStartValue" SG_ 2566849006 act_Power_A5 32000;
+BA_ "GenSigStartValue" SG_ 2566849006 act_Temperature_A5 40;
+BA_ "GenSigStartValue" SG_ 2566849006 act_LimitationStatus_A5 0;
+BA_ "GenSigStartValue" SG_ 2566849262 act_InverterStatus_B5 0;
+BA_ "GenSigStartValue" SG_ 2566849262 act_InverterReady_B5 0;
+BA_ "GenSigStartValue" SG_ 2566849262 act_ErrorStatus_B5 0;
+BA_ "GenSigStartValue" SG_ 2566849262 act_Speed_B5 32000;
+BA_ "GenSigStartValue" SG_ 2566849262 act_Torque_B5 32000;
+BA_ "GenSigStartValue" SG_ 2566849262 act_Power_B5 32000;
+BA_ "GenSigStartValue" SG_ 2566849262 act_Temperature_B5 40;
+BA_ "GenSigStartValue" SG_ 2566849262 act_LimitationStatus_B5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexIn1_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexIn2_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexIn3_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexIn4_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOut1_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOut2_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOut3_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOut4_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOutStatus1_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOutStatus2_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOutStatus3_5 0;
+BA_ "GenSigStartValue" SG_ 2566849774 act_FlexOutStatus4_5 0;
+BA_ "GenSigStartValue" SG_ 2566848751 DeviceState_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 ErrorLamp_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 DeviceNumber_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 Clamp15_Status_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 Errorcode_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 act_DCBusVoltage_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 act_DCBusPower_6 32000;
+BA_ "GenSigStartValue" SG_ 2566848751 act_DeviceTemperature_6 40;
+BA_ "GenSigStartValue" SG_ 2566848751 DcLinkChargeState_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 MappedFlexIn1_6 0;
+BA_ "GenSigStartValue" SG_ 2566848751 MappedFlexIn2_6 0;
+BA_ "GenSigStartValue" SG_ 2566849007 act_InverterStatus_A6 0;
+BA_ "GenSigStartValue" SG_ 2566849007 act_InverterReady_A6 0;
+BA_ "GenSigStartValue" SG_ 2566849007 act_ErrorStatus_A6 0;
+BA_ "GenSigStartValue" SG_ 2566849007 act_Speed_A6 32000;
+BA_ "GenSigStartValue" SG_ 2566849007 act_Torque_A6 32000;
+BA_ "GenSigStartValue" SG_ 2566849007 act_Power_A6 32000;
+BA_ "GenSigStartValue" SG_ 2566849007 act_Temperature_A6 40;
+BA_ "GenSigStartValue" SG_ 2566849007 act_LimitationStatus_A6 0;
+BA_ "GenSigStartValue" SG_ 2566849263 act_InverterStatus_B6 0;
+BA_ "GenSigStartValue" SG_ 2566849263 act_InverterReady_B6 0;
+BA_ "GenSigStartValue" SG_ 2566849263 act_ErrorStatus_B6 0;
+BA_ "GenSigStartValue" SG_ 2566849263 act_Speed_B6 32000;
+BA_ "GenSigStartValue" SG_ 2566849263 act_Torque_B6 32000;
+BA_ "GenSigStartValue" SG_ 2566849263 act_Power_B6 32000;
+BA_ "GenSigStartValue" SG_ 2566849263 act_Temperature_B6 40;
+BA_ "GenSigStartValue" SG_ 2566849263 act_LimitationStatus_B6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexIn1_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexIn2_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexIn3_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexIn4_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOut1_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOut2_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOut3_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOut4_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOutStatus1_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOutStatus2_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOutStatus3_6 0;
+BA_ "GenSigStartValue" SG_ 2566849775 act_FlexOutStatus4_6 0;
+BA_ "GenSigStartValue" SG_ 2566848752 DeviceState_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 ErrorLamp_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 DeviceNumber_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 Clamp15_Status_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 Errorcode_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 act_DCBusVoltage_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 act_DCBusPower_7 32000;
+BA_ "GenSigStartValue" SG_ 2566848752 act_DeviceTemperature_7 40;
+BA_ "GenSigStartValue" SG_ 2566848752 DcLinkChargeState_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 MappedFlexIn1_7 0;
+BA_ "GenSigStartValue" SG_ 2566848752 MappedFlexIn2_7 0;
+BA_ "GenSigStartValue" SG_ 2566849008 act_InverterStatus_A7 0;
+BA_ "GenSigStartValue" SG_ 2566849008 act_InverterReady_A7 0;
+BA_ "GenSigStartValue" SG_ 2566849008 act_ErrorStatus_A7 0;
+BA_ "GenSigStartValue" SG_ 2566849008 act_Speed_A7 32000;
+BA_ "GenSigStartValue" SG_ 2566849008 act_Torque_A7 32000;
+BA_ "GenSigStartValue" SG_ 2566849008 act_Power_A7 32000;
+BA_ "GenSigStartValue" SG_ 2566849008 act_Temperature_A7 40;
+BA_ "GenSigStartValue" SG_ 2566849008 act_LimitationStatus_A7 0;
+BA_ "GenSigStartValue" SG_ 2566849264 act_InverterStatus_B7 0;
+BA_ "GenSigStartValue" SG_ 2566849264 act_InverterReady_B7 0;
+BA_ "GenSigStartValue" SG_ 2566849264 act_ErrorStatus_B7 0;
+BA_ "GenSigStartValue" SG_ 2566849264 act_Speed_B7 32000;
+BA_ "GenSigStartValue" SG_ 2566849264 act_Torque_B7 32000;
+BA_ "GenSigStartValue" SG_ 2566849264 act_Power_B7 32000;
+BA_ "GenSigStartValue" SG_ 2566849264 act_Temperature_B7 40;
+BA_ "GenSigStartValue" SG_ 2566849264 act_LimitationStatus_B7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexIn1_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexIn2_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexIn3_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexIn4_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOut1_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOut2_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOut3_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOut4_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOutStatus1_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOutStatus2_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOutStatus3_7 0;
+BA_ "GenSigStartValue" SG_ 2566849776 act_FlexOutStatus4_7 0;
+BA_ "GenSigStartValue" SG_ 2566848753 DeviceState_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 ErrorLamp_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 DeviceNumber_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 Clamp15_Status_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 Errorcode_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 act_DCBusVoltage_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 act_DCBusPower_8 32000;
+BA_ "GenSigStartValue" SG_ 2566848753 act_DeviceTemperature_8 40;
+BA_ "GenSigStartValue" SG_ 2566848753 DcLinkChargeState_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 MappedFlexIn1_8 0;
+BA_ "GenSigStartValue" SG_ 2566848753 MappedFlexIn2_8 0;
+BA_ "GenSigStartValue" SG_ 2566849009 act_InverterStatus_A8 0;
+BA_ "GenSigStartValue" SG_ 2566849009 act_InverterReady_A8 0;
+BA_ "GenSigStartValue" SG_ 2566849009 act_ErrorStatus_A8 0;
+BA_ "GenSigStartValue" SG_ 2566849009 act_Speed_A8 32000;
+BA_ "GenSigStartValue" SG_ 2566849009 act_Torque_A8 32000;
+BA_ "GenSigStartValue" SG_ 2566849009 act_Power_A8 32000;
+BA_ "GenSigStartValue" SG_ 2566849009 act_Temperature_A8 40;
+BA_ "GenSigStartValue" SG_ 2566849009 act_LimitationStatus_A8 0;
+BA_ "GenSigStartValue" SG_ 2566849265 act_InverterStatus_B8 0;
+BA_ "GenSigStartValue" SG_ 2566849265 act_InverterReady_B8 0;
+BA_ "GenSigStartValue" SG_ 2566849265 act_ErrorStatus_B8 0;
+BA_ "GenSigStartValue" SG_ 2566849265 act_Speed_B8 32000;
+BA_ "GenSigStartValue" SG_ 2566849265 act_Torque_B8 32000;
+BA_ "GenSigStartValue" SG_ 2566849265 act_Power_B8 32000;
+BA_ "GenSigStartValue" SG_ 2566849265 act_Temperature_B8 40;
+BA_ "GenSigStartValue" SG_ 2566849265 act_LimitationStatus_B8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexIn1_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexIn2_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexIn3_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexIn4_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOut1_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOut2_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOut3_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOut4_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOutStatus1_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOutStatus2_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOutStatus3_8 0;
+BA_ "GenSigStartValue" SG_ 2566849777 act_FlexOutStatus4_8 0;
+BA_ "GenSigStartValue" SG_ 2566848754 DeviceState_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 ErrorLamp_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 DeviceNumber_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 Clamp15_Status_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 Errorcode_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 act_DCBusVoltage_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 act_DCBusPower_9 32000;
+BA_ "GenSigStartValue" SG_ 2566848754 act_DeviceTemperature_9 40;
+BA_ "GenSigStartValue" SG_ 2566848754 DcLinkChargeState_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 MappedFlexIn1_9 0;
+BA_ "GenSigStartValue" SG_ 2566848754 MappedFlexIn2_9 0;
+BA_ "GenSigStartValue" SG_ 2566849010 act_InverterStatus_A9 0;
+BA_ "GenSigStartValue" SG_ 2566849010 act_InverterReady_A9 0;
+BA_ "GenSigStartValue" SG_ 2566849010 act_ErrorStatus_A9 0;
+BA_ "GenSigStartValue" SG_ 2566849010 act_Speed_A9 32000;
+BA_ "GenSigStartValue" SG_ 2566849010 act_Torque_A9 32000;
+BA_ "GenSigStartValue" SG_ 2566849010 act_Power_A9 32000;
+BA_ "GenSigStartValue" SG_ 2566849010 act_Temperature_A9 40;
+BA_ "GenSigStartValue" SG_ 2566849010 act_LimitationStatus_A9 0;
+BA_ "GenSigStartValue" SG_ 2566849266 act_InverterStatus_B9 0;
+BA_ "GenSigStartValue" SG_ 2566849266 act_InverterReady_B9 0;
+BA_ "GenSigStartValue" SG_ 2566849266 act_ErrorStatus_B9 0;
+BA_ "GenSigStartValue" SG_ 2566849266 act_Speed_B9 32000;
+BA_ "GenSigStartValue" SG_ 2566849266 act_Torque_B9 32000;
+BA_ "GenSigStartValue" SG_ 2566849266 act_Power_B9 32000;
+BA_ "GenSigStartValue" SG_ 2566849266 act_Temperature_B9 40;
+BA_ "GenSigStartValue" SG_ 2566849266 act_LimitationStatus_B9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexIn1_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexIn2_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexIn3_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexIn4_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOut1_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOut2_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOut3_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOut4_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOutStatus1_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOutStatus2_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOutStatus3_9 0;
+BA_ "GenSigStartValue" SG_ 2566849778 act_FlexOutStatus4_9 0;
+BA_ "GenSigStartValue" SG_ 2566848755 DeviceState_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 ErrorLamp_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 DeviceNumber_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 Clamp15_Status_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 Errorcode_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 act_DCBusVoltage_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 act_DCBusPower_10 32000;
+BA_ "GenSigStartValue" SG_ 2566848755 act_DeviceTemperature_10 40;
+BA_ "GenSigStartValue" SG_ 2566848755 DcLinkChargeState_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 MappedFlexIn1_10 0;
+BA_ "GenSigStartValue" SG_ 2566848755 MappedFlexIn2_10 0;
+BA_ "GenSigStartValue" SG_ 2566849011 act_InverterStatus_A10 0;
+BA_ "GenSigStartValue" SG_ 2566849011 act_InverterReady_A10 0;
+BA_ "GenSigStartValue" SG_ 2566849011 act_ErrorStatus_A10 0;
+BA_ "GenSigStartValue" SG_ 2566849011 act_Speed_A10 32000;
+BA_ "GenSigStartValue" SG_ 2566849011 act_Torque_A10 32000;
+BA_ "GenSigStartValue" SG_ 2566849011 act_Power_A10 32000;
+BA_ "GenSigStartValue" SG_ 2566849011 act_Temperature_A10 40;
+BA_ "GenSigStartValue" SG_ 2566849011 act_LimitationStatus_A10 0;
+BA_ "GenSigStartValue" SG_ 2566849267 act_InverterStatus_B10 0;
+BA_ "GenSigStartValue" SG_ 2566849267 act_InverterReady_B10 0;
+BA_ "GenSigStartValue" SG_ 2566849267 act_ErrorStatus_B10 0;
+BA_ "GenSigStartValue" SG_ 2566849267 act_Speed_B10 32000;
+BA_ "GenSigStartValue" SG_ 2566849267 act_Torque_B10 32000;
+BA_ "GenSigStartValue" SG_ 2566849267 act_Power_B10 32000;
+BA_ "GenSigStartValue" SG_ 2566849267 act_Temperature_B10 40;
+BA_ "GenSigStartValue" SG_ 2566849267 act_LimitationStatus_B10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexIn1_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexIn2_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexIn3_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexIn4_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOut1_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOut2_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOut3_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOut4_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOutStatus1_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOutStatus2_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOutStatus3_10 0;
+BA_ "GenSigStartValue" SG_ 2566849779 act_FlexOutStatus4_10 0;
+BA_ "GenSigStartValue" SG_ 2566848756 DeviceState_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 ErrorLamp_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 DeviceNumber_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 Clamp15_Status_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 Errorcode_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 act_DCBusVoltage_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 act_DCBusPower_11 32000;
+BA_ "GenSigStartValue" SG_ 2566848756 act_DeviceTemperature_11 40;
+BA_ "GenSigStartValue" SG_ 2566848756 DcLinkChargeState_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 MappedFlexIn1_11 0;
+BA_ "GenSigStartValue" SG_ 2566848756 MappedFlexIn2_11 0;
+BA_ "GenSigStartValue" SG_ 2566849012 act_InverterStatus_A11 0;
+BA_ "GenSigStartValue" SG_ 2566849012 act_InverterReady_A11 0;
+BA_ "GenSigStartValue" SG_ 2566849012 act_ErrorStatus_A11 0;
+BA_ "GenSigStartValue" SG_ 2566849012 act_Speed_A11 32000;
+BA_ "GenSigStartValue" SG_ 2566849012 act_Torque_A11 32000;
+BA_ "GenSigStartValue" SG_ 2566849012 act_Power_A11 32000;
+BA_ "GenSigStartValue" SG_ 2566849012 act_Temperature_A11 40;
+BA_ "GenSigStartValue" SG_ 2566849012 act_LimitationStatus_A11 0;
+BA_ "GenSigStartValue" SG_ 2566849268 act_InverterStatus_B11 0;
+BA_ "GenSigStartValue" SG_ 2566849268 act_InverterReady_B11 0;
+BA_ "GenSigStartValue" SG_ 2566849268 act_ErrorStatus_B11 0;
+BA_ "GenSigStartValue" SG_ 2566849268 act_Speed_B11 32000;
+BA_ "GenSigStartValue" SG_ 2566849268 act_Torque_B11 32000;
+BA_ "GenSigStartValue" SG_ 2566849268 act_Power_B11 32000;
+BA_ "GenSigStartValue" SG_ 2566849268 act_Temperature_B11 40;
+BA_ "GenSigStartValue" SG_ 2566849268 act_LimitationStatus_B11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexIn1_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexIn2_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexIn3_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexIn4_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOut1_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOut2_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOut3_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOut4_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOutStatus1_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOutStatus2_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOutStatus3_11 0;
+BA_ "GenSigStartValue" SG_ 2566849780 act_FlexOutStatus4_11 0;
+BA_ "GenSigStartValue" SG_ 2566848757 DeviceState_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 ErrorLamp_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 DeviceNumber_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 Clamp15_Status_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 Errorcode_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 act_DCBusVoltage_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 act_DCBusPower_12 32000;
+BA_ "GenSigStartValue" SG_ 2566848757 act_DeviceTemperature_12 40;
+BA_ "GenSigStartValue" SG_ 2566848757 DcLinkChargeState_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 MappedFlexIn1_12 0;
+BA_ "GenSigStartValue" SG_ 2566848757 MappedFlexIn2_12 0;
+BA_ "GenSigStartValue" SG_ 2566849013 act_InverterStatus_A12 0;
+BA_ "GenSigStartValue" SG_ 2566849013 act_InverterReady_A12 0;
+BA_ "GenSigStartValue" SG_ 2566849013 act_ErrorStatus_A12 0;
+BA_ "GenSigStartValue" SG_ 2566849013 act_Speed_A12 32000;
+BA_ "GenSigStartValue" SG_ 2566849013 act_Torque_A12 32000;
+BA_ "GenSigStartValue" SG_ 2566849013 act_Power_A12 32000;
+BA_ "GenSigStartValue" SG_ 2566849013 act_Temperature_A12 40;
+BA_ "GenSigStartValue" SG_ 2566849013 act_LimitationStatus_A12 0;
+BA_ "GenSigStartValue" SG_ 2566849269 act_InverterStatus_B12 0;
+BA_ "GenSigStartValue" SG_ 2566849269 act_InverterReady_B12 0;
+BA_ "GenSigStartValue" SG_ 2566849269 act_ErrorStatus_B12 0;
+BA_ "GenSigStartValue" SG_ 2566849269 act_Speed_B12 32000;
+BA_ "GenSigStartValue" SG_ 2566849269 act_Torque_B12 32000;
+BA_ "GenSigStartValue" SG_ 2566849269 act_Power_B12 32000;
+BA_ "GenSigStartValue" SG_ 2566849269 act_Temperature_B12 40;
+BA_ "GenSigStartValue" SG_ 2566849269 act_LimitationStatus_B12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexIn1_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexIn2_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexIn3_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexIn4_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOut1_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOut2_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOut3_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOut4_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOutStatus1_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOutStatus2_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOutStatus3_12 0;
+BA_ "GenSigStartValue" SG_ 2566849781 act_FlexOutStatus4_12 0;
+BA_ "GenSigStartValue" SG_ 2566848758 DeviceState_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 ErrorLamp_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 DeviceNumber_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 Clamp15_Status_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 Errorcode_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 act_DCBusVoltage_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 act_DCBusPower_13 32000;
+BA_ "GenSigStartValue" SG_ 2566848758 act_DeviceTemperature_13 40;
+BA_ "GenSigStartValue" SG_ 2566848758 DcLinkChargeState_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 MappedFlexIn1_13 0;
+BA_ "GenSigStartValue" SG_ 2566848758 MappedFlexIn2_13 0;
+BA_ "GenSigStartValue" SG_ 2566849014 act_InverterStatus_A13 0;
+BA_ "GenSigStartValue" SG_ 2566849014 act_InverterReady_A13 0;
+BA_ "GenSigStartValue" SG_ 2566849014 act_ErrorStatus_A13 0;
+BA_ "GenSigStartValue" SG_ 2566849014 act_Speed_A13 32000;
+BA_ "GenSigStartValue" SG_ 2566849014 act_Torque_A13 32000;
+BA_ "GenSigStartValue" SG_ 2566849014 act_Power_A13 32000;
+BA_ "GenSigStartValue" SG_ 2566849014 act_Temperature_A13 40;
+BA_ "GenSigStartValue" SG_ 2566849014 act_LimitationStatus_A13 0;
+BA_ "GenSigStartValue" SG_ 2566849270 act_InverterStatus_B13 0;
+BA_ "GenSigStartValue" SG_ 2566849270 act_InverterReady_B13 0;
+BA_ "GenSigStartValue" SG_ 2566849270 act_ErrorStatus_B13 0;
+BA_ "GenSigStartValue" SG_ 2566849270 act_Speed_B13 32000;
+BA_ "GenSigStartValue" SG_ 2566849270 act_Torque_B13 32000;
+BA_ "GenSigStartValue" SG_ 2566849270 act_Power_B13 32000;
+BA_ "GenSigStartValue" SG_ 2566849270 act_Temperature_B13 40;
+BA_ "GenSigStartValue" SG_ 2566849270 act_LimitationStatus_B13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexIn1_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexIn2_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexIn3_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexIn4_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOut1_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOut2_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOut3_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOut4_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOutStatus1_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOutStatus2_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOutStatus3_13 0;
+BA_ "GenSigStartValue" SG_ 2566849782 act_FlexOutStatus4_13 0;
+BA_ "GenSigStartValue" SG_ 2566852736 SystemEnable 0;
+BA_ "GenSigStartValue" SG_ 2566852736 Clamp15_CAN 0;
+BA_ "GenSigStartValue" SG_ 2566852736 DischargeEnable 0;
+BA_ "GenSigStartValue" SG_ 2566852736 setp_DcLinkVoltage 0;
+BA_ "GenSigStartValue" SG_ 2566852736 setp_VoltagePrechargeDemand 0;
+BA_ "GenSigStartValue" SG_ 2566906240 ctrlDCU_14A 0;
+BA_ "GenSigStartValue" SG_ 2566906240 setp_DcLinkTolerance_14A 0;
+BA_ "GenSigStartValue" SG_ 2566906240 setp_MotPower_14A 0;
+BA_ "GenSigStartValue" SG_ 2566906240 setp_GenPower_14A 0;
+BA_ "GenSigStartValue" SG_ 2566906240 setp_Speed_14A 32000;
+BA_ "GenSigStartValue" SG_ 2566906240 setp_Torque_14A 32000;
+BA_ "GenSigStartValue" SG_ 2566906496 ctrlDCU_14B 0;
+BA_ "GenSigStartValue" SG_ 2566906496 setp_DcLinkTolerance_14B 0;
+BA_ "GenSigStartValue" SG_ 2566906496 setp_MotPower_14B 0;
+BA_ "GenSigStartValue" SG_ 2566906496 setp_GenPower_14B 0;
+BA_ "GenSigStartValue" SG_ 2566906496 setp_Speed_14B 32000;
+BA_ "GenSigStartValue" SG_ 2566906496 setp_Torque_14B 32000;
+BA_ "GenSigStartValue" SG_ 2566907008 set_FlexOut1_14 0;
+BA_ "GenSigStartValue" SG_ 2566907008 set_FlexOut2_14 0;
+BA_ "GenSigStartValue" SG_ 2566907008 set_FlexOut3_14 0;
+BA_ "GenSigStartValue" SG_ 2566907008 set_FlexOut4_14 0;
+BA_ "GenSigStartValue" SG_ 2566852992 ctrlDCU_1A 0;
+BA_ "GenSigStartValue" SG_ 2566852992 setp_DcLinkTolerance_1A 0;
+BA_ "GenSigStartValue" SG_ 2566852992 setp_MotPower_1A 0;
+BA_ "GenSigStartValue" SG_ 2566852992 setp_GenPower_1A 0;
+BA_ "GenSigStartValue" SG_ 2566852992 setp_Speed_1A 32000;
+BA_ "GenSigStartValue" SG_ 2566852992 setp_Torque_1A 32000;
+BA_ "GenSigStartValue" SG_ 2566853248 ctrlDCU_1B 0;
+BA_ "GenSigStartValue" SG_ 2566853248 setp_DcLinkTolerance_1B 0;
+BA_ "GenSigStartValue" SG_ 2566853248 setp_MotPower_1B 0;
+BA_ "GenSigStartValue" SG_ 2566853248 setp_GenPower_1B 0;
+BA_ "GenSigStartValue" SG_ 2566853248 setp_Speed_1B 32000;
+BA_ "GenSigStartValue" SG_ 2566853248 setp_Torque_1B 32000;
+BA_ "GenSigStartValue" SG_ 2566853760 set_FlexOut1_1 0;
+BA_ "GenSigStartValue" SG_ 2566853760 set_FlexOut2_1 0;
+BA_ "GenSigStartValue" SG_ 2566853760 set_FlexOut3_1 0;
+BA_ "GenSigStartValue" SG_ 2566853760 set_FlexOut4_1 0;
+BA_ "GenSigStartValue" SG_ 2566857088 ctrlDCU_2A 0;
+BA_ "GenSigStartValue" SG_ 2566857088 setp_DcLinkTolerance_2A 0;
+BA_ "GenSigStartValue" SG_ 2566857088 setp_MotPower_2A 0;
+BA_ "GenSigStartValue" SG_ 2566857088 setp_GenPower_2A 0;
+BA_ "GenSigStartValue" SG_ 2566857088 setp_Speed_2A 32000;
+BA_ "GenSigStartValue" SG_ 2566857088 setp_Torque_2A 32000;
+BA_ "GenSigStartValue" SG_ 2566857344 ctrlDCU_2B 0;
+BA_ "GenSigStartValue" SG_ 2566857344 setp_DcLinkTolerance_2B 0;
+BA_ "GenSigStartValue" SG_ 2566857344 setp_MotPower_2B 0;
+BA_ "GenSigStartValue" SG_ 2566857344 setp_GenPower_2B 0;
+BA_ "GenSigStartValue" SG_ 2566857344 setp_Speed_2B 32000;
+BA_ "GenSigStartValue" SG_ 2566857344 setp_Torque_2B 32000;
+BA_ "GenSigStartValue" SG_ 2566857856 set_FlexOut1_2 0;
+BA_ "GenSigStartValue" SG_ 2566857856 set_FlexOut2_2 0;
+BA_ "GenSigStartValue" SG_ 2566857856 set_FlexOut3_2 0;
+BA_ "GenSigStartValue" SG_ 2566857856 set_FlexOut4_2 0;
+BA_ "GenSigStartValue" SG_ 2566861184 ctrlDCU_3A 0;
+BA_ "GenSigStartValue" SG_ 2566861184 setp_DcLinkTolerance_3A 0;
+BA_ "GenSigStartValue" SG_ 2566861184 setp_MotPower_3A 0;
+BA_ "GenSigStartValue" SG_ 2566861184 setp_GenPower_3A 0;
+BA_ "GenSigStartValue" SG_ 2566861184 setp_Speed_3A 32000;
+BA_ "GenSigStartValue" SG_ 2566861184 setp_Torque_3A 32000;
+BA_ "GenSigStartValue" SG_ 2566861440 ctrlDCU_3B 0;
+BA_ "GenSigStartValue" SG_ 2566861440 setp_DcLinkTolerance_3B 0;
+BA_ "GenSigStartValue" SG_ 2566861440 setp_MotPower_3B 0;
+BA_ "GenSigStartValue" SG_ 2566861440 setp_GenPower_3B 0;
+BA_ "GenSigStartValue" SG_ 2566861440 setp_Speed_3B 32000;
+BA_ "GenSigStartValue" SG_ 2566861440 setp_Torque_3B 32000;
+BA_ "GenSigStartValue" SG_ 2566861952 set_FlexOut1_3 0;
+BA_ "GenSigStartValue" SG_ 2566861952 set_FlexOut2_3 0;
+BA_ "GenSigStartValue" SG_ 2566861952 set_FlexOut3_3 0;
+BA_ "GenSigStartValue" SG_ 2566861952 set_FlexOut4_3 0;
+BA_ "GenSigStartValue" SG_ 2566865280 ctrlDCU_4A 0;
+BA_ "GenSigStartValue" SG_ 2566865280 setp_DcLinkTolerance_4A 0;
+BA_ "GenSigStartValue" SG_ 2566865280 setp_MotPower_4A 0;
+BA_ "GenSigStartValue" SG_ 2566865280 setp_GenPower_4A 0;
+BA_ "GenSigStartValue" SG_ 2566865280 setp_Speed_4A 32000;
+BA_ "GenSigStartValue" SG_ 2566865280 setp_Torque_4A 32000;
+BA_ "GenSigStartValue" SG_ 2566865536 ctrlDCU_4B 0;
+BA_ "GenSigStartValue" SG_ 2566865536 setp_DcLinkTolerance_4B 0;
+BA_ "GenSigStartValue" SG_ 2566865536 setp_MotPower_4B 0;
+BA_ "GenSigStartValue" SG_ 2566865536 setp_GenPower_4B 0;
+BA_ "GenSigStartValue" SG_ 2566865536 setp_Speed_4B 32000;
+BA_ "GenSigStartValue" SG_ 2566865536 setp_Torque_4B 32000;
+BA_ "GenSigStartValue" SG_ 2566866048 set_FlexOut1_4 0;
+BA_ "GenSigStartValue" SG_ 2566866048 set_FlexOut2_4 0;
+BA_ "GenSigStartValue" SG_ 2566866048 set_FlexOut3_4 0;
+BA_ "GenSigStartValue" SG_ 2566866048 set_FlexOut4_4 0;
+BA_ "GenSigStartValue" SG_ 2566869376 ctrlDCU_5A 0;
+BA_ "GenSigStartValue" SG_ 2566869376 setp_DcLinkTolerance_5A 0;
+BA_ "GenSigStartValue" SG_ 2566869376 setp_MotPower_5A 0;
+BA_ "GenSigStartValue" SG_ 2566869376 setp_GenPower_5A 0;
+BA_ "GenSigStartValue" SG_ 2566869376 setp_Speed_5A 32000;
+BA_ "GenSigStartValue" SG_ 2566869376 setp_Torque_5A 32000;
+BA_ "GenSigStartValue" SG_ 2566869632 ctrlDCU_5B 0;
+BA_ "GenSigStartValue" SG_ 2566869632 setp_DcLinkTolerance_5B 0;
+BA_ "GenSigStartValue" SG_ 2566869632 setp_MotPower_5B 0;
+BA_ "GenSigStartValue" SG_ 2566869632 setp_GenPower_5B 0;
+BA_ "GenSigStartValue" SG_ 2566869632 setp_Speed_5B 32000;
+BA_ "GenSigStartValue" SG_ 2566869632 setp_Torque_5B 32000;
+BA_ "GenSigStartValue" SG_ 2566870144 set_FlexOut1_5 0;
+BA_ "GenSigStartValue" SG_ 2566870144 set_FlexOut2_5 0;
+BA_ "GenSigStartValue" SG_ 2566870144 set_FlexOut3_5 0;
+BA_ "GenSigStartValue" SG_ 2566870144 set_FlexOut4_5 0;
+BA_ "GenSigStartValue" SG_ 2566873472 ctrlDCU_6A 0;
+BA_ "GenSigStartValue" SG_ 2566873472 setp_DcLinkTolerance_6A 0;
+BA_ "GenSigStartValue" SG_ 2566873472 setp_MotPower_6A 0;
+BA_ "GenSigStartValue" SG_ 2566873472 setp_GenPower_6A 0;
+BA_ "GenSigStartValue" SG_ 2566873472 setp_Speed_6A 32000;
+BA_ "GenSigStartValue" SG_ 2566873472 setp_Torque_6A 32000;
+BA_ "GenSigStartValue" SG_ 2566873728 ctrlDCU_6B 0;
+BA_ "GenSigStartValue" SG_ 2566873728 setp_DcLinkTolerance_6B 0;
+BA_ "GenSigStartValue" SG_ 2566873728 setp_MotPower_6B 0;
+BA_ "GenSigStartValue" SG_ 2566873728 setp_GenPower_6B 0;
+BA_ "GenSigStartValue" SG_ 2566873728 setp_Speed_6B 32000;
+BA_ "GenSigStartValue" SG_ 2566873728 setp_Torque_6B 32000;
+BA_ "GenSigStartValue" SG_ 2566874240 set_FlexOut1_6 0;
+BA_ "GenSigStartValue" SG_ 2566874240 set_FlexOut2_6 0;
+BA_ "GenSigStartValue" SG_ 2566874240 set_FlexOut3_6 0;
+BA_ "GenSigStartValue" SG_ 2566874240 set_FlexOut4_6 0;
+BA_ "GenSigStartValue" SG_ 2566877568 ctrlDCU_7A 0;
+BA_ "GenSigStartValue" SG_ 2566877568 setp_DcLinkTolerance_7A 0;
+BA_ "GenSigStartValue" SG_ 2566877568 setp_MotPower_7A 0;
+BA_ "GenSigStartValue" SG_ 2566877568 setp_GenPower_7A 0;
+BA_ "GenSigStartValue" SG_ 2566877568 setp_Speed_7A 32000;
+BA_ "GenSigStartValue" SG_ 2566877568 setp_Torque_7A 32000;
+BA_ "GenSigStartValue" SG_ 2566877824 ctrlDCU_7B 0;
+BA_ "GenSigStartValue" SG_ 2566877824 setp_DcLinkTolerance_7 0;
+BA_ "GenSigStartValue" SG_ 2566877824 setp_MotPower_7B 0;
+BA_ "GenSigStartValue" SG_ 2566877824 setp_GenPower_7B 0;
+BA_ "GenSigStartValue" SG_ 2566877824 setp_Speed_7B 32000;
+BA_ "GenSigStartValue" SG_ 2566877824 setp_Torque_7B 32000;
+BA_ "GenSigStartValue" SG_ 2566878336 set_FlexOut1_7 0;
+BA_ "GenSigStartValue" SG_ 2566878336 set_FlexOut2_7 0;
+BA_ "GenSigStartValue" SG_ 2566878336 set_FlexOut3_7 0;
+BA_ "GenSigStartValue" SG_ 2566878336 set_FlexOut4_7 0;
+BA_ "GenSigStartValue" SG_ 2566881664 ctrlDCU_8A 0;
+BA_ "GenSigStartValue" SG_ 2566881664 setp_DcLinkTolerance_8A 0;
+BA_ "GenSigStartValue" SG_ 2566881664 setp_MotPower_8A 0;
+BA_ "GenSigStartValue" SG_ 2566881664 setp_GenPower_8A 0;
+BA_ "GenSigStartValue" SG_ 2566881664 setp_Speed_8A 32000;
+BA_ "GenSigStartValue" SG_ 2566881664 setp_Torque_8A 32000;
+BA_ "GenSigStartValue" SG_ 2566881920 ctrlDCU_8B 0;
+BA_ "GenSigStartValue" SG_ 2566881920 setp_DcLinkTolerance_8B 0;
+BA_ "GenSigStartValue" SG_ 2566881920 setp_MotPower_8B 0;
+BA_ "GenSigStartValue" SG_ 2566881920 setp_GenPower_8B 0;
+BA_ "GenSigStartValue" SG_ 2566881920 setp_Speed_8B 32000;
+BA_ "GenSigStartValue" SG_ 2566881920 setp_Torque_8B 32000;
+BA_ "GenSigStartValue" SG_ 2566882432 set_FlexOut1_8 0;
+BA_ "GenSigStartValue" SG_ 2566882432 set_FlexOut2_8 0;
+BA_ "GenSigStartValue" SG_ 2566882432 set_FlexOut3_8 0;
+BA_ "GenSigStartValue" SG_ 2566882432 set_FlexOut4_8 0;
+BA_ "GenSigStartValue" SG_ 2566885760 ctrlDCU_9A 0;
+BA_ "GenSigStartValue" SG_ 2566885760 setp_DcLinkTolerance_9A 0;
+BA_ "GenSigStartValue" SG_ 2566885760 setp_MotPower_9A 0;
+BA_ "GenSigStartValue" SG_ 2566885760 setp_GenPower_9A 0;
+BA_ "GenSigStartValue" SG_ 2566885760 setp_Speed_9A 32000;
+BA_ "GenSigStartValue" SG_ 2566885760 setp_Torque_9A 32000;
+BA_ "GenSigStartValue" SG_ 2566886016 ctrlDCU_9B 0;
+BA_ "GenSigStartValue" SG_ 2566886016 setp_DcLinkTolerance_9B 0;
+BA_ "GenSigStartValue" SG_ 2566886016 setp_MotPower_9B 0;
+BA_ "GenSigStartValue" SG_ 2566886016 setp_GenPower_9B 0;
+BA_ "GenSigStartValue" SG_ 2566886016 setp_Speed_9B 32000;
+BA_ "GenSigStartValue" SG_ 2566886016 setp_Torque_9B 32000;
+BA_ "GenSigStartValue" SG_ 2566886528 set_FlexOut1_9 0;
+BA_ "GenSigStartValue" SG_ 2566886528 set_FlexOut2_9 0;
+BA_ "GenSigStartValue" SG_ 2566886528 set_FlexOut3_9 0;
+BA_ "GenSigStartValue" SG_ 2566886528 set_FlexOut4_9 0;
+BA_ "GenSigStartValue" SG_ 2566889856 ctrlDCU_10A 0;
+BA_ "GenSigStartValue" SG_ 2566889856 setp_DcLinkTolerance_10A 0;
+BA_ "GenSigStartValue" SG_ 2566889856 setp_MotPower_10A 0;
+BA_ "GenSigStartValue" SG_ 2566889856 setp_GenPower_10A 0;
+BA_ "GenSigStartValue" SG_ 2566889856 setp_Speed_10A 32000;
+BA_ "GenSigStartValue" SG_ 2566889856 setp_Torque_10A 32000;
+BA_ "GenSigStartValue" SG_ 2566890112 ctrlDCU_10B 0;
+BA_ "GenSigStartValue" SG_ 2566890112 setp_DcLinkTolerance_10B 0;
+BA_ "GenSigStartValue" SG_ 2566890112 setp_MotPower_10B 0;
+BA_ "GenSigStartValue" SG_ 2566890112 setp_GenPower_10B 0;
+BA_ "GenSigStartValue" SG_ 2566890112 setp_Speed_10B 32000;
+BA_ "GenSigStartValue" SG_ 2566890112 setp_Torque_10B 32000;
+BA_ "GenSigStartValue" SG_ 2566890624 set_FlexOut1_10 0;
+BA_ "GenSigStartValue" SG_ 2566890624 set_FlexOut2_10 0;
+BA_ "GenSigStartValue" SG_ 2566890624 set_FlexOut3_10 0;
+BA_ "GenSigStartValue" SG_ 2566890624 set_FlexOut4_10 0;
+BA_ "GenSigStartValue" SG_ 2566893952 ctrlDCU_11A 0;
+BA_ "GenSigStartValue" SG_ 2566893952 setp_DcLinkTolerance_11A 0;
+BA_ "GenSigStartValue" SG_ 2566893952 setp_MotPower_11A 0;
+BA_ "GenSigStartValue" SG_ 2566893952 setp_GenPower_11A 0;
+BA_ "GenSigStartValue" SG_ 2566893952 setp_Speed_11A 32000;
+BA_ "GenSigStartValue" SG_ 2566893952 setp_Torque_11A 32000;
+BA_ "GenSigStartValue" SG_ 2566894208 ctrlDCU_11B 0;
+BA_ "GenSigStartValue" SG_ 2566894208 setp_DcLinkTolerance_11B 0;
+BA_ "GenSigStartValue" SG_ 2566894208 setp_MotPower_11B 0;
+BA_ "GenSigStartValue" SG_ 2566894208 setp_GenPower_11B 0;
+BA_ "GenSigStartValue" SG_ 2566894208 setp_Speed_11B 32000;
+BA_ "GenSigStartValue" SG_ 2566894208 setp_Torque_11B 32000;
+BA_ "GenSigStartValue" SG_ 2566894720 set_FlexOut1_11 0;
+BA_ "GenSigStartValue" SG_ 2566894720 set_FlexOut2_11 0;
+BA_ "GenSigStartValue" SG_ 2566894720 set_FlexOut3_11 0;
+BA_ "GenSigStartValue" SG_ 2566894720 set_FlexOut4_11 0;
+BA_ "GenSigStartValue" SG_ 2566898048 ctrlDCU_12A 0;
+BA_ "GenSigStartValue" SG_ 2566898048 setp_DcLinkTolerance_12A 0;
+BA_ "GenSigStartValue" SG_ 2566898048 setp_MotPower_12A 0;
+BA_ "GenSigStartValue" SG_ 2566898048 setp_GenPower_12A 0;
+BA_ "GenSigStartValue" SG_ 2566898048 setp_Speed_12A 32000;
+BA_ "GenSigStartValue" SG_ 2566898048 setp_Torque_12A 32000;
+BA_ "GenSigStartValue" SG_ 2566898304 ctrlDCU_12B 0;
+BA_ "GenSigStartValue" SG_ 2566898304 setp_DcLinkTolerance_12B 0;
+BA_ "GenSigStartValue" SG_ 2566898304 setp_MotPower_12B 0;
+BA_ "GenSigStartValue" SG_ 2566898304 setp_GenPower_12B 0;
+BA_ "GenSigStartValue" SG_ 2566898304 setp_Speed_12B 32000;
+BA_ "GenSigStartValue" SG_ 2566898304 setp_Torque_12B 32000;
+BA_ "GenSigStartValue" SG_ 2566898816 set_FlexOut1_12 0;
+BA_ "GenSigStartValue" SG_ 2566898816 set_FlexOut2_12 0;
+BA_ "GenSigStartValue" SG_ 2566898816 set_FlexOut3_12 0;
+BA_ "GenSigStartValue" SG_ 2566898816 set_FlexOut4_12 0;
+BA_ "GenSigStartValue" SG_ 2566902144 ctrlDCU_13A 0;
+BA_ "GenSigStartValue" SG_ 2566902144 setp_DcLinkTolerance_13A 0;
+BA_ "GenSigStartValue" SG_ 2566902144 setp_MotPower_13A 0;
+BA_ "GenSigStartValue" SG_ 2566902144 setp_GenPower_13A 0;
+BA_ "GenSigStartValue" SG_ 2566902144 setp_Speed_13A 32000;
+BA_ "GenSigStartValue" SG_ 2566902144 setp_Torque_13A 32000;
+BA_ "GenSigStartValue" SG_ 2566902400 ctrlDCU_13B 0;
+BA_ "GenSigStartValue" SG_ 2566902400 setp_DcLinkTolerance_13B 0;
+BA_ "GenSigStartValue" SG_ 2566902400 setp_MotPower_13B 0;
+BA_ "GenSigStartValue" SG_ 2566902400 setp_GenPower_13B 0;
+BA_ "GenSigStartValue" SG_ 2566902400 setp_Speed_13B 32000;
+BA_ "GenSigStartValue" SG_ 2566902400 setp_Torque_13B 32000;
+BA_ "GenSigStartValue" SG_ 2566902912 set_FlexOut1_13 0;
+BA_ "GenSigStartValue" SG_ 2566902912 set_FlexOut2_13 0;
+BA_ "GenSigStartValue" SG_ 2566902912 set_FlexOut3_13 0;
+BA_ "GenSigStartValue" SG_ 2566902912 set_FlexOut4_13 0;
+
+VAL_ 2566848759 DeviceState_14 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848759 ErrorLamp_14 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848759 DeviceNumber_14 0 "n.d." 15 "N/A" ;
+VAL_ 2566848759 Clamp15_Status_14 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848759 Errorcode_14 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848759 act_DCBusVoltage_14 255 "N.A." ;
+VAL_ 2566848759 act_DCBusPower_14 65535 "N.A." ;
+VAL_ 2566848759 act_DeviceTemperature_14 255 "N.A." ;
+VAL_ 2566848759 DcLinkChargeState_14 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848759 MappedFlexInOutState1_14 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848759 MappedFlexInOutState2_14 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849015 act_InverterStatus_A14 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849015 act_InverterReady_A14 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849015 act_ErrorStatus_A14 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849015 act_Speed_A14 65535 "N.A." ;
+VAL_ 2566849015 act_Torque_A14 65535 "N.A." ;
+VAL_ 2566849015 act_Power_A14 65535 "N.A." ;
+VAL_ 2566849015 act_Temperature_A14 255 "N.A." ;
+VAL_ 2566849015 act_LimitationStatus_A14 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849271 act_InverterStatus_B14 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849271 act_InverterReady_B14 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849271 act_ErrorStatus_B14 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849271 act_Speed_B14 65535 "N.A." ;
+VAL_ 2566849271 act_Torque_B14 65535 "N.A." ;
+VAL_ 2566849271 act_Power_B14 65535 "N.A." ;
+VAL_ 2566849271 act_Temperature_B14 255 "N.A." ;
+VAL_ 2566849271 act_LimitationStatus_B14 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexIn1_14 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexIn2_14 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexIn3_14 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexIn4_14 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOut1_14 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOut2_14 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOut3_14 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOut4_14 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOutStatus1_14 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOutStatus2_14 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOutStatus3_14 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849783 act_FlexOutStatus4_14 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848746 DeviceState_1 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848746 ErrorLamp_1 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848746 DeviceNumber_1 0 "n.d." 15 "N/A" ;
+VAL_ 2566848746 Clamp15_Status_1 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848746 Errorcode_1 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848746 act_DCBusVoltage_1 255 "N.A." ;
+VAL_ 2566848746 act_DCBusPower_1 65535 "N.A." ;
+VAL_ 2566848746 act_DeviceTemperature_1 255 "N.A." ;
+VAL_ 2566848746 DcLinkChargeState_1 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848746 MappedFlexIn1_1 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848746 MappedFlexIn2_1 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849002 act_InverterStatus_A1 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849002 act_InverterReady_A1 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849002 act_ErrorStatus_A1 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849002 act_Speed_A1 65535 "N.A." ;
+VAL_ 2566849002 act_Torque_A1 65535 "N.A." ;
+VAL_ 2566849002 act_Power_A1 65535 "N.A." ;
+VAL_ 2566849002 act_Temperature_A1 255 "N.A." ;
+VAL_ 2566849002 act_LimitationStatus_A1 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849258 act_InverterStatus_B1 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849258 act_InverterReady_B1 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849258 act_ErrorStatus_B1 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849258 act_Speed_B1 65535 "N.A." ;
+VAL_ 2566849258 act_Torque_B1 65535 "N.A." ;
+VAL_ 2566849258 act_Power_B1 65535 "N.A." ;
+VAL_ 2566849258 act_Temperature_B1 255 "N.A." ;
+VAL_ 2566849258 act_LimitationStatus_B1 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexIn1_1 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexIn2_1 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexIn3_1 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexIn4_1 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOut1_1 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOut2_1 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOut3_1 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOut4_1 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOutStatus1_1 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOutStatus2_1 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOutStatus3_1 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849770 act_FlexOutStatus4_1 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848747 DeviceState_2 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848747 ErrorLamp_2 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848747 DeviceNumber_2 0 "n.d." 15 "N/A" ;
+VAL_ 2566848747 Clamp15_Status_2 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848747 Errorcode_2 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848747 act_DCBusVoltage_2 255 "N.A." ;
+VAL_ 2566848747 act_DCBusPower_2 65535 "N.A." ;
+VAL_ 2566848747 act_DeviceTemperature_2 255 "N.A." ;
+VAL_ 2566848747 DcLinkChargeState_2 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848747 MappedFlexIn1_2 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848747 MappedFlexIn2_2 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849003 act_InverterStatus_A2 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849003 act_InverterReady_A2 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849003 act_ErrorStatus_A2 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849003 act_Speed_A2 65535 "N.A." ;
+VAL_ 2566849003 act_Torque_A2 65535 "N.A." ;
+VAL_ 2566849003 act_Power_A2 65535 "N.A." ;
+VAL_ 2566849003 act_Temperature_A2 255 "N.A." ;
+VAL_ 2566849003 act_LimitationStatus_A2 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849259 act_InverterStatus_B2 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849259 act_InverterReady_B2 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849259 act_ErrorStatus_B2 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849259 act_Speed_B2 65535 "N.A." ;
+VAL_ 2566849259 act_Torque_B2 65535 "N.A." ;
+VAL_ 2566849259 act_Power_B2 65535 "N.A." ;
+VAL_ 2566849259 act_Temperature_B2 255 "N.A." ;
+VAL_ 2566849259 act_LimitationStatus_B2 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexIn1_2 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexIn2_2 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexIn3_2 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexIn4_2 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOut1_2 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOut2_2 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOut3_2 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOut4_2 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOutStatus1_2 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOutStatus2_2 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOutStatus3_2 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849771 act_FlexOutStatus4_2 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848748 DeviceState_3 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848748 ErrorLamp_3 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848748 DeviceNumber_3 0 "n.d." 15 "N/A" ;
+VAL_ 2566848748 Clamp15_Status_3 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848748 Errorcode_3 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848748 act_DCBusVoltage_3 255 "N.A." ;
+VAL_ 2566848748 act_DCBusPower_3 65535 "N.A." ;
+VAL_ 2566848748 act_DeviceTemperature_3 255 "N.A." ;
+VAL_ 2566848748 DcLinkChargeState_3 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848748 MappedFlexIn1_3 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848748 MappedFlexIn2_3 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849004 act_InverterStatus_A3 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849004 act_InverterReady_A3 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849004 act_ErrorStatus_A3 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849004 act_Speed_A3 65535 "N.A." ;
+VAL_ 2566849004 act_Torque_A3 65535 "N.A." ;
+VAL_ 2566849004 act_Power_A3 65535 "N.A." ;
+VAL_ 2566849004 act_Temperature_A3 255 "N.A." ;
+VAL_ 2566849004 act_LimitationStatus_A3 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849260 act_InverterStatus_B3 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849260 act_InverterReady_B3 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849260 act_ErrorStatus_B3 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849260 act_Speed_B3 65535 "N.A." ;
+VAL_ 2566849260 act_Torque_B3 65535 "N.A." ;
+VAL_ 2566849260 act_Power_B3 65535 "N.A." ;
+VAL_ 2566849260 act_Temperature_B3 255 "N.A." ;
+VAL_ 2566849260 act_LimitationStatus_B3 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexIn1_3 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexIn2_3 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexIn3_3 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexIn4_3 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOut1_3 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOut2_3 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOut3_3 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOut4_3 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOutStatus1_3 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOutStatus2_3 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOutStatus3_3 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849772 act_FlexOutStatus4_3 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848749 DeviceState_4 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848749 ErrorLamp_4 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848749 DeviceNumber_4 0 "n.d." 15 "N/A" ;
+VAL_ 2566848749 Clamp15_Status_4 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848749 Errorcode_4 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848749 act_DCBusVoltage_4 255 "N.A." ;
+VAL_ 2566848749 act_DCBusPower_4 65535 "N.A." ;
+VAL_ 2566848749 act_DeviceTemperature_4 255 "N.A." ;
+VAL_ 2566848749 DcLinkChargeState_4 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848749 MappedFlexIn1_4 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848749 MappedFlexIn2_4 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849005 act_InverterStatus_A4 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849005 act_InverterReady_A4 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849005 act_ErrorStatus_A4 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849005 act_Speed_A4 65535 "N.A." ;
+VAL_ 2566849005 act_Torque_A4 65535 "N.A." ;
+VAL_ 2566849005 act_Power_A4 65535 "N.A." ;
+VAL_ 2566849005 act_Temperature_A4 255 "N.A." ;
+VAL_ 2566849005 act_LimitationStatus_A4 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849261 act_InverterStatus_B4 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849261 act_InverterReady_B4 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849261 act_ErrorStatus_B4 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849261 act_Speed_B4 65535 "N.A." ;
+VAL_ 2566849261 act_Torque_B4 65535 "N.A." ;
+VAL_ 2566849261 act_Power_B4 65535 "N.A." ;
+VAL_ 2566849261 act_Temperature_B4 255 "N.A." ;
+VAL_ 2566849261 act_LimitationStatus_B4 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexIn1_4 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexIn2_4 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexIn3_4 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexIn4_4 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOut1_4 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOut2_4 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOut3_4 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOut4_4 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOutStatus1_4 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOutStatus2_4 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOutStatus3_4 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2173694030 act_FlexOutStatus4_4 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848750 DeviceState_5 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848750 ErrorLamp_5 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848750 DeviceNumber_5 0 "n.d." 15 "N/A" ;
+VAL_ 2566848750 Clamp15_Status_5 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848750 Errorcode_5 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848750 act_DCBusVoltage_5 255 "N.A." ;
+VAL_ 2566848750 act_DCBusPower_5 65535 "N.A." ;
+VAL_ 2566848750 act_DeviceTemperature_5 255 "N.A." ;
+VAL_ 2566848750 DcLinkChargeState_5 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848750 MappedFlexIn1_5 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848750 MappedFlexIn2_5 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849006 act_InverterStatus_A5 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849006 act_InverterReady_A5 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849006 act_ErrorStatus_A5 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849006 act_Speed_A5 65535 "N.A." ;
+VAL_ 2566849006 act_Torque_A5 65535 "N.A." ;
+VAL_ 2566849006 act_Power_A5 65535 "N.A." ;
+VAL_ 2566849006 act_Temperature_A5 255 "N.A." ;
+VAL_ 2566849006 act_LimitationStatus_A5 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849262 act_InverterStatus_B5 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849262 act_InverterReady_B5 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849262 act_ErrorStatus_B5 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849262 act_Speed_B5 65535 "N.A." ;
+VAL_ 2566849262 act_Torque_B5 65535 "N.A." ;
+VAL_ 2566849262 act_Power_B5 65535 "N.A." ;
+VAL_ 2566849262 act_Temperature_B5 255 "N.A." ;
+VAL_ 2566849262 act_LimitationStatus_B5 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexIn1_5 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexIn2_5 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexIn3_5 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexIn4_5 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOut1_5 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOut2_5 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOut3_5 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOut4_5 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOutStatus1_5 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOutStatus2_5 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOutStatus3_5 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849774 act_FlexOutStatus4_5 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848751 DeviceState_6 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848751 ErrorLamp_6 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848751 DeviceNumber_6 0 "n.d." 15 "N/A" ;
+VAL_ 2566848751 Clamp15_Status_6 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848751 Errorcode_6 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848751 act_DCBusVoltage_6 255 "N.A." ;
+VAL_ 2566848751 act_DCBusPower_6 65535 "N.A." ;
+VAL_ 2566848751 act_DeviceTemperature_6 255 "N.A." ;
+VAL_ 2566848751 DcLinkChargeState_6 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848751 MappedFlexIn1_6 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848751 MappedFlexIn2_6 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849007 act_InverterStatus_A6 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849007 act_InverterReady_A6 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849007 act_ErrorStatus_A6 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849007 act_Speed_A6 65535 "N.A." ;
+VAL_ 2566849007 act_Torque_A6 65535 "N.A." ;
+VAL_ 2566849007 act_Power_A6 65535 "N.A." ;
+VAL_ 2566849007 act_Temperature_A6 255 "N.A." ;
+VAL_ 2566849007 act_LimitationStatus_A6 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849263 act_InverterStatus_B6 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849263 act_InverterReady_B6 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849263 act_ErrorStatus_B6 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849263 act_Speed_B6 65535 "N.A." ;
+VAL_ 2566849263 act_Torque_B6 65535 "N.A." ;
+VAL_ 2566849263 act_Power_B6 65535 "N.A." ;
+VAL_ 2566849263 act_Temperature_B6 255 "N.A." ;
+VAL_ 2566849263 act_LimitationStatus_B6 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexIn1_6 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexIn2_6 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexIn3_6 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexIn4_6 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOut1_6 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOut2_6 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOut3_6 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOut4_6 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOutStatus1_6 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOutStatus2_6 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOutStatus3_6 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849775 act_FlexOutStatus4_6 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848752 DeviceState_7 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848752 ErrorLamp_7 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848752 DeviceNumber_7 0 "n.d." 15 "N/A" ;
+VAL_ 2566848752 Clamp15_Status_7 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848752 Errorcode_7 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848752 act_DCBusVoltage_7 255 "N.A." ;
+VAL_ 2566848752 act_DCBusPower_7 65535 "N.A." ;
+VAL_ 2566848752 act_DeviceTemperature_7 255 "N.A." ;
+VAL_ 2566848752 DcLinkChargeState_7 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848752 MappedFlexIn1_7 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848752 MappedFlexIn2_7 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849008 act_InverterStatus_A7 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849008 act_InverterReady_A7 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849008 act_ErrorStatus_A7 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849008 act_Speed_A7 65535 "N.A." ;
+VAL_ 2566849008 act_Torque_A7 65535 "N.A." ;
+VAL_ 2566849008 act_Power_A7 65535 "N.A." ;
+VAL_ 2566849008 act_Temperature_A7 255 "N.A." ;
+VAL_ 2566849008 act_LimitationStatus_A7 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849264 act_InverterStatus_B7 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849264 act_InverterReady_B7 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849264 act_ErrorStatus_B7 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849264 act_Speed_B7 65535 "N.A." ;
+VAL_ 2566849264 act_Torque_B7 65535 "N.A." ;
+VAL_ 2566849264 act_Power_B7 65535 "N.A." ;
+VAL_ 2566849264 act_Temperature_B7 255 "N.A." ;
+VAL_ 2566849264 act_LimitationStatus_B7 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexIn1_7 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexIn2_7 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexIn3_7 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexIn4_7 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOut1_7 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOut2_7 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOut3_7 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOut4_7 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOutStatus1_7 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOutStatus2_7 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOutStatus3_7 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849776 act_FlexOutStatus4_7 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848753 DeviceState_8 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848753 ErrorLamp_8 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848753 DeviceNumber_8 0 "n.d." 15 "N/A" ;
+VAL_ 2566848753 Clamp15_Status_8 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848753 Errorcode_8 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848753 act_DCBusVoltage_8 255 "N.A." ;
+VAL_ 2566848753 act_DCBusPower_8 65535 "N.A." ;
+VAL_ 2566848753 act_DeviceTemperature_8 255 "N.A." ;
+VAL_ 2566848753 DcLinkChargeState_8 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848753 MappedFlexIn1_8 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848753 MappedFlexIn2_8 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849009 act_InverterStatus_A8 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849009 act_InverterReady_A8 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849009 act_ErrorStatus_A8 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849009 act_Speed_A8 65535 "N.A." ;
+VAL_ 2566849009 act_Torque_A8 65535 "N.A." ;
+VAL_ 2566849009 act_Power_A8 65535 "N.A." ;
+VAL_ 2566849009 act_Temperature_A8 255 "N.A." ;
+VAL_ 2566849009 act_LimitationStatus_A8 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849265 act_InverterStatus_B8 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849265 act_InverterReady_B8 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849265 act_ErrorStatus_B8 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849265 act_Speed_B8 65535 "N.A." ;
+VAL_ 2566849265 act_Torque_B8 65535 "N.A." ;
+VAL_ 2566849265 act_Power_B8 65535 "N.A." ;
+VAL_ 2566849265 act_Temperature_B8 255 "N.A." ;
+VAL_ 2566849265 act_LimitationStatus_B8 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexIn1_8 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexIn2_8 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexIn3_8 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexIn4_8 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOut1_8 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOut2_8 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOut3_8 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOut4_8 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOutStatus1_8 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOutStatus2_8 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOutStatus3_8 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849777 act_FlexOutStatus4_8 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848754 DeviceState_9 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848754 ErrorLamp_9 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848754 DeviceNumber_9 0 "n.d." 15 "N/A" ;
+VAL_ 2566848754 Clamp15_Status_9 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848754 Errorcode_9 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848754 act_DCBusVoltage_9 255 "N.A." ;
+VAL_ 2566848754 act_DCBusPower_9 65535 "N.A." ;
+VAL_ 2566848754 act_DeviceTemperature_9 255 "N.A." ;
+VAL_ 2566848754 DcLinkChargeState_9 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848754 MappedFlexIn1_9 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848754 MappedFlexIn2_9 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849010 act_InverterStatus_A9 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849010 act_InverterReady_A9 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849010 act_ErrorStatus_A9 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849010 act_Speed_A9 65535 "N.A." ;
+VAL_ 2566849010 act_Torque_A9 65535 "N.A." ;
+VAL_ 2566849010 act_Power_A9 65535 "N.A." ;
+VAL_ 2566849010 act_Temperature_A9 255 "N.A." ;
+VAL_ 2566849010 act_LimitationStatus_A9 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849266 act_InverterStatus_B9 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849266 act_InverterReady_B9 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849266 act_ErrorStatus_B9 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849266 act_Speed_B9 65535 "N.A." ;
+VAL_ 2566849266 act_Torque_B9 65535 "N.A." ;
+VAL_ 2566849266 act_Power_B9 65535 "N.A." ;
+VAL_ 2566849266 act_Temperature_B9 255 "N.A." ;
+VAL_ 2566849266 act_LimitationStatus_B9 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexIn1_9 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexIn2_9 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexIn3_9 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexIn4_9 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOut1_9 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOut2_9 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOut3_9 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOut4_9 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOutStatus1_9 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOutStatus2_9 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOutStatus3_9 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849778 act_FlexOutStatus4_9 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848755 DeviceState_10 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848755 ErrorLamp_10 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848755 DeviceNumber_10 0 "n.d." 15 "N/A" ;
+VAL_ 2566848755 Clamp15_Status_10 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848755 Errorcode_10 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848755 act_DCBusVoltage_10 255 "N.A." ;
+VAL_ 2566848755 act_DCBusPower_10 65535 "N.A." ;
+VAL_ 2566848755 act_DeviceTemperature_10 255 "N.A." ;
+VAL_ 2566848755 DcLinkChargeState_10 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848755 MappedFlexIn1_10 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848755 MappedFlexIn2_10 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849011 act_InverterStatus_A10 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849011 act_InverterReady_A10 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849011 act_ErrorStatus_A10 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849011 act_Speed_A10 65535 "N.A." ;
+VAL_ 2566849011 act_Torque_A10 65535 "N.A." ;
+VAL_ 2566849011 act_Power_A10 65535 "N.A." ;
+VAL_ 2566849011 act_Temperature_A10 255 "N.A." ;
+VAL_ 2566849011 act_LimitationStatus_A10 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849267 act_InverterStatus_B10 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849267 act_InverterReady_B10 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849267 act_ErrorStatus_B10 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849267 act_Speed_B10 65535 "N.A." ;
+VAL_ 2566849267 act_Torque_B10 65535 "N.A." ;
+VAL_ 2566849267 act_Power_B10 65535 "N.A." ;
+VAL_ 2566849267 act_Temperature_B10 255 "N.A." ;
+VAL_ 2566849267 act_LimitationStatus_B10 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexIn1_10 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexIn2_10 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexIn3_10 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexIn4_10 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOut1_10 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOut2_10 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOut3_10 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOut4_10 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOutStatus1_10 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOutStatus2_10 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOutStatus3_10 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849779 act_FlexOutStatus4_10 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848756 DeviceState_11 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848756 ErrorLamp_11 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848756 DeviceNumber_11 0 "n.d." 15 "N/A" ;
+VAL_ 2566848756 Clamp15_Status_11 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848756 Errorcode_11 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848756 act_DCBusVoltage_11 255 "N.A." ;
+VAL_ 2566848756 act_DCBusPower_11 65535 "N.A." ;
+VAL_ 2566848756 act_DeviceTemperature_11 255 "N.A." ;
+VAL_ 2566848756 DcLinkChargeState_11 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848756 MappedFlexIn1_11 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848756 MappedFlexIn2_11 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849012 act_InverterStatus_A11 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849012 act_InverterReady_A11 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849012 act_ErrorStatus_A11 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849012 act_Speed_A11 65535 "N.A." ;
+VAL_ 2566849012 act_Torque_A11 65535 "N.A." ;
+VAL_ 2566849012 act_Power_A11 65535 "N.A." ;
+VAL_ 2566849012 act_Temperature_A11 255 "N.A." ;
+VAL_ 2566849012 act_LimitationStatus_A11 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849268 act_InverterStatus_B11 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849268 act_InverterReady_B11 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849268 act_ErrorStatus_B11 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849268 act_Speed_B11 65535 "N.A." ;
+VAL_ 2566849268 act_Torque_B11 65535 "N.A." ;
+VAL_ 2566849268 act_Power_B11 65535 "N.A." ;
+VAL_ 2566849268 act_Temperature_B11 255 "N.A." ;
+VAL_ 2566849268 act_LimitationStatus_B11 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexIn1_11 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexIn2_11 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexIn3_11 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexIn4_11 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOut1_11 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOut2_11 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOut3_11 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOut4_11 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOutStatus1_11 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOutStatus2_11 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOutStatus3_11 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849780 act_FlexOutStatus4_11 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848757 DeviceState_12 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848757 ErrorLamp_12 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848757 DeviceNumber_12 0 "n.d." 15 "N/A" ;
+VAL_ 2566848757 Clamp15_Status_12 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848757 Errorcode_12 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848757 act_DCBusVoltage_12 255 "N.A." ;
+VAL_ 2566848757 act_DCBusPower_12 65535 "N.A." ;
+VAL_ 2566848757 act_DeviceTemperature_12 255 "N.A." ;
+VAL_ 2566848757 DcLinkChargeState_12 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848757 MappedFlexIn1_12 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848757 MappedFlexIn2_12 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849013 act_InverterStatus_A12 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849013 act_InverterReady_A12 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849013 act_ErrorStatus_A12 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849013 act_Speed_A12 65535 "N.A." ;
+VAL_ 2566849013 act_Torque_A12 65535 "N.A." ;
+VAL_ 2566849013 act_Power_A12 65535 "N.A." ;
+VAL_ 2566849013 act_Temperature_A12 255 "N.A." ;
+VAL_ 2566849013 act_LimitationStatus_A12 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849269 act_InverterStatus_B12 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849269 act_InverterReady_B12 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849269 act_ErrorStatus_B12 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849269 act_Speed_B12 65535 "N.A." ;
+VAL_ 2566849269 act_Torque_B12 65535 "N.A." ;
+VAL_ 2566849269 act_Power_B12 65535 "N.A." ;
+VAL_ 2566849269 act_Temperature_B12 255 "N.A." ;
+VAL_ 2566849269 act_LimitationStatus_B12 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexIn1_12 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexIn2_12 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexIn3_12 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexIn4_12 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOut1_12 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOut2_12 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOut3_12 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOut4_12 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOutStatus1_12 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOutStatus2_12 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOutStatus3_12 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849781 act_FlexOutStatus4_12 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848758 DeviceState_13 0 "Init finished" 1 "Init active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848758 ErrorLamp_13 0 "Off" 1 "On" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848758 DeviceNumber_13 0 "n.d." 15 "N/A" ;
+VAL_ 2566848758 Clamp15_Status_13 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848758 Errorcode_13 0 "NO_ERROR" 1 "ERR_INVALID_ADDR_OFFSET" 2 "WARN_WDT_RESET_OCCURRED" 3 "ERR_HW_SW_INCOMPATIBLE" 4 "ERR_FLASHDISK_INIT_FAILED" 5 "ERR_WRONG_BOOTLOADER" 6 "ERR_MC_RESET_OCCURRED" 7 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_QUICK_STOP" 8 "ERR_FAULT_OVER_FLEXIN_FAULT_REACTION_COAST_TO_STOP" 9 "ERR_CALIB_DATA_PARAM_FAILED" 10 "ERR_CALIB_DATA_INVALID" 11 "WARN_FLEX_OUT_INVALID_STATE" 19 "ERR_KL30_FLT" 20 "ERR_NO_VALID_DATASET_FOUND" 21 "ERR_SPI_INTERCOM_FAILED" 22 "ERR_MC_FWDOWNL_FAILED" 23 "ERR_MC_FW_START_FAILED" 24 "ERR_PARAM_FAILED" 25 "WARN_PUBL_CAN_RMSG_TIMEOUT" 26 "WARN_PRIV_CAN_RPDO_TIMEOUT" 27 "WARN_INVALID_SETPOINT_REC" 28 "WARN_SPI_WUC_INTERCOM_READ_FAILED" 29 "ERR_SPI_WUC_INTERCOM_CONFIG_FAILED" 30 "ERR_SPI_WUC_INTERCOM_SLEEP_FAILED" 31 "WARN_APPC_PUBLIC_CAN_SHORT_CIRCUIT" 32 "ERR_GENERAL_MC_ERROR" ;
+VAL_ 2566848758 act_DCBusVoltage_13 255 "N.A." ;
+VAL_ 2566848758 act_DCBusPower_13 65535 "N.A." ;
+VAL_ 2566848758 act_DeviceTemperature_13 255 "N.A." ;
+VAL_ 2566848758 DcLinkChargeState_13 0 "Not precharged, not discharged" 1 "Precharged" 2 "Discharged" 3 "N/A" ;
+VAL_ 2566848758 MappedFlexIn1_13 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566848758 MappedFlexIn2_13 0 "Low" 1 "High" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849014 act_InverterStatus_A13 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849014 act_InverterReady_A13 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849014 act_ErrorStatus_A13 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849014 act_Speed_A13 65535 "N.A." ;
+VAL_ 2566849014 act_Torque_A13 65535 "N.A." ;
+VAL_ 2566849014 act_Power_A13 65535 "N.A." ;
+VAL_ 2566849014 act_Temperature_A13 255 "N.A." ;
+VAL_ 2566849014 act_LimitationStatus_A13 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849270 act_InverterStatus_B13 0 "Disabled" 1 "Enabled" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849270 act_InverterReady_B13 0 "NotReady" 1 "Ready" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849270 act_ErrorStatus_B13 0 "No error" 1 "Error" 2 "Warning" 3 "N/A" ;
+VAL_ 2566849270 act_Speed_B13 65535 "N.A." ;
+VAL_ 2566849270 act_Torque_B13 65535 "N.A." ;
+VAL_ 2566849270 act_Power_B13 65535 "N.A." ;
+VAL_ 2566849270 act_Temperature_B13 255 "N.A." ;
+VAL_ 2566849270 act_LimitationStatus_B13 0 "No limit active" 1 "Limit active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexIn1_13 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexIn2_13 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexIn3_13 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexIn4_13 0 "FlexIn low" 1 "FlexIn high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOut1_13 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOut2_13 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOut3_13 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOut4_13 0 "FlexOut low" 1 "FlexOut high" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOutStatus1_13 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOutStatus2_13 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOutStatus3_13 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566849782 act_FlexOutStatus4_13 0 "No error" 1 "Error" 2 "n.d." 3 "N/A" ;
+VAL_ 2566852736 SystemEnable 0 "No enable" 1 "Enable" 2 "n.d." 3 "N/A" ;
+VAL_ 2566852736 Clamp15_CAN 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566852736 DischargeEnable 0 "No signal" 1 "Signal" 2 "n.d." 3 "N/A" ;
+VAL_ 2566906240 ctrlDCU_14A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566906496 ctrlDCU_14B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566907008 set_FlexOut1_14 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566907008 set_FlexOut2_14 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566907008 set_FlexOut3_14 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566907008 set_FlexOut4_14 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566852992 ctrlDCU_1A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566853248 ctrlDCU_1B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566853760 set_FlexOut1_1 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566853760 set_FlexOut2_1 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566853760 set_FlexOut3_1 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566853760 set_FlexOut4_1 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566857088 ctrlDCU_2A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566857344 ctrlDCU_2B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566857856 set_FlexOut1_2 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566857856 set_FlexOut2_2 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566857856 set_FlexOut3_2 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566857856 set_FlexOut4_2 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566861184 ctrlDCU_3A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566861440 ctrlDCU_3B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566861952 set_FlexOut1_3 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566861952 set_FlexOut2_3 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566861952 set_FlexOut3_3 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566861952 set_FlexOut4_3 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566865280 ctrlDCU_4A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566865536 ctrlDCU_4B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566866048 set_FlexOut1_4 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566866048 set_FlexOut2_4 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566866048 set_FlexOut3_4 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566866048 set_FlexOut4_4 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566869376 ctrlDCU_5A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566869632 ctrlDCU_5B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566870144 set_FlexOut1_5 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566870144 set_FlexOut2_5 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566870144 set_FlexOut3_5 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566870144 set_FlexOut4_5 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566873472 ctrlDCU_6A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566873728 ctrlDCU_6B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566874240 set_FlexOut1_6 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566874240 set_FlexOut2_6 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566874240 set_FlexOut3_6 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566874240 set_FlexOut4_6 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566877568 ctrlDCU_7A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566877824 ctrlDCU_7B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566878336 set_FlexOut1_7 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566878336 set_FlexOut2_7 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566878336 set_FlexOut3_7 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566878336 set_FlexOut4_7 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566881664 ctrlDCU_8A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566881920 ctrlDCU_8B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566882432 set_FlexOut1_8 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566882432 set_FlexOut2_8 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566882432 set_FlexOut3_8 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566882432 set_FlexOut4_8 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566885760 ctrlDCU_9A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566886016 ctrlDCU_9B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566886528 set_FlexOut1_9 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566886528 set_FlexOut2_9 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566886528 set_FlexOut3_9 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566886528 set_FlexOut4_9 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566889856 ctrlDCU_10A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566890112 ctrlDCU_10B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566890624 set_FlexOut1_10 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566890624 set_FlexOut2_10 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566890624 set_FlexOut3_10 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566890624 set_FlexOut4_10 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566893952 ctrlDCU_11A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566894208 ctrlDCU_11B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566894720 set_FlexOut1_11 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566894720 set_FlexOut2_11 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566894720 set_FlexOut3_11 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566894720 set_FlexOut4_11 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566898048 ctrlDCU_12A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566898304 ctrlDCU_12B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566898816 set_FlexOut1_12 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566898816 set_FlexOut2_12 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566898816 set_FlexOut3_12 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566898816 set_FlexOut4_12 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566902144 ctrlDCU_13A 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566902400 ctrlDCU_13B 0 "switch off" 1 "switch on" 2 "n.d." 3 "N/A" ;
+VAL_ 2566902912 set_FlexOut1_13 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566902912 set_FlexOut2_13 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566902912 set_FlexOut3_13 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+VAL_ 2566902912 set_FlexOut4_13 0 "FlexOut not active" 1 "FlexOut active" 2 "n.d." 3 "N/A" ;
+

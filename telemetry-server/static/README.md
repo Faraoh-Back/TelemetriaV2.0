@@ -42,7 +42,8 @@ Esse comando sobe, em paralelo:
 Fluxo esperado:
 
 1. Abra `http://localhost:5173/`.
-2. Faça login com qualquer usuário e senha.
+2. Faça login com `admin` para perfil administrador ou `member`/`membro` para
+   perfil de membro. A senha pode ser qualquer valor no mock.
 3. Clique em `Iniciar coleta`.
 4. Abra a aba `Cockpit`.
 5. O painel começa como `aprendendo primeira volta`.
@@ -66,6 +67,8 @@ pnpm build
 - [Implementacao do frontend](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/frontend-implementation.md)
 - [Decisoes pendentes de telemetria](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/frontend-telemetry-decisions.md)
 - [Guia de integracao do backend](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-integration-guide.md)
+- [Plano de downloads e perfis de acesso](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/downloads-and-roles-feature-plan.md)
+- [Pendencias do backend para downloads/perfis](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-downloads-and-roles-pending.md)
 
 ## Estrutura principal
 

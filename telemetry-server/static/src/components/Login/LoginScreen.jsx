@@ -13,10 +13,6 @@
  *       -> chama onLogin(username, password)
  *       -> exibe erro local quando a autenticacao falha
  *
- *   modo UI
- *       -> chama onUiPreview()
- *       -> libera o dashboard sem backend para trabalho visual
- *
  * A tela nao conhece WebSocket nem dashboard. Esse controle fica no App.
  */
 
@@ -25,7 +21,7 @@ import { getServerConfig } from '../../config/serverConfig.js'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
 import './LoginScreen.css'
 
-function LoginScreen({ onLogin, onUiPreview }) {
+function LoginScreen({ onLogin }) {
     const [username, setUsername] = createSignal('')
     const [password, setPassword] = createSignal('')
     const [error, setError] = createSignal('')
@@ -52,11 +48,6 @@ function LoginScreen({ onLogin, onUiPreview }) {
         } finally {
             setIsSubmitting(false)
         }
-    }
-
-    function handleUiPreview() {
-        setError('')
-        onUiPreview?.()
     }
 
     return (
@@ -123,23 +114,12 @@ function LoginScreen({ onLogin, onUiPreview }) {
                     {isSubmitting() ? 'Entrando...' : 'Entrar'}
                 </button>
 
-                <button
-                    class="login-button login-button--secondary"
-                    type="button"
-                    disabled={isSubmitting()}
-                    onClick={handleUiPreview}
-                >
-                    Modo UI
-                </button>
-
                 <Show when={error()}>
                     <div class="login-error" role="alert">
                         {error()}
                     </div>
                 </Show>
             </form>
-
-            <p class="login-footer">UI independente do backend disponivel para validacao visual.</p>
         </main>
     )
 }

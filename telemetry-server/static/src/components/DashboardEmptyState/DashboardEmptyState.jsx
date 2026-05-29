@@ -5,14 +5,12 @@
  * operador sem assumir que existe backend, carro ou stream conectado.
  */
 
-function DashboardEmptyState({ mode }) {
-    const isUiMode = mode === 'ui'
-
+function DashboardEmptyState() {
     return (
         <section class="dashboard-empty" aria-label="Estado da telemetria">
             <div class="dashboard-empty__main">
                 <span class="dashboard-empty__eyebrow">
-                    {isUiMode ? 'Preview de interface' : 'Aguardando stream'}
+                    Aguardando stream
                 </span>
                 <h2 class="dashboard-empty__title">
                     Nenhum sinal recebido nesta sessao

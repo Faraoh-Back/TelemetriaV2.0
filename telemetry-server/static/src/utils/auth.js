@@ -6,11 +6,16 @@
  */
 
 import { getServerConfig } from '../config/serverConfig.js'
+import {
+    ROLES,
+    getDefaultPermissions,
+    normalizePermissions,
+    normalizeRole,
+} from './permissions.js'
 
 const TOKEN_KEY = 'jwt'
-const UI_SESSION_KEY = 'ui-session'
 
-function decodeJwtPayload(token) {
+export function decodeJwtPayload(token) {
     const [, rawPayload] = token.split('.')
     if (!rawPayload) return null
 
@@ -20,6 +25,14 @@ function decodeJwtPayload(token) {
         .padEnd(Math.ceil(rawPayload.length / 4) * 4, '=')
 
     return JSON.parse(atob(normalizedPayload))
+}
+
+function getJwtPayload(token) {
+    try {
+        return decodeJwtPayload(token)
+    } catch (_) {
+        return null
+    }
 }
 
 export function getStoredToken() {
@@ -34,42 +47,11 @@ export function clearStoredToken() {
     localStorage.removeItem(TOKEN_KEY)
 }
 
-export function getStoredUiSession() {
-    try {
-        return JSON.parse(localStorage.getItem(UI_SESSION_KEY))
-    } catch (_) {
-        return null
-    }
-}
-
-export function storeUiSession(session) {
-    localStorage.setItem(UI_SESSION_KEY, JSON.stringify(session))
-}
-
-export function clearStoredUiSession() {
-    localStorage.removeItem(UI_SESSION_KEY)
-}
-
-export function createUiSession(username = 'eracing') {
-    const session = {
-        token: 'ui-preview-session',
-        username,
-        mode: 'ui',
-    }
-
-    storeUiSession(session)
-    return session
-}
-
 export function isTokenValid(token) {
     if (!token) return false
 
-    try {
-        const payload = decodeJwtPayload(token)
-        return Boolean(payload?.exp && payload.exp * 1000 > Date.now())
-    } catch (_) {
-        return false
-    }
+    const payload = getJwtPayload(token)
+    return Boolean(payload?.exp && payload.exp * 1000 > Date.now())
 }
 
 export function getValidStoredToken() {
@@ -79,6 +61,48 @@ export function getValidStoredToken() {
 
     clearStoredToken()
     return null
+}
+
+function getLegacyDevSession(username, token) {
+    return {
+        token,
+        username,
+        role: ROLES.admin,
+        permissions: getDefaultPermissions(ROLES.admin),
+        mode: 'live',
+    }
+}
+
+export function buildSessionFromAuthData(data, fallbackUsername) {
+    const token = data?.token
+    const payload = token ? getJwtPayload(token) : null
+    const user = data?.user ?? {}
+    const fallbackRole = import.meta.env.DEV ? ROLES.admin : ROLES.member
+    const role = normalizeRole(user.role ?? payload?.role ?? fallbackRole)
+    const username =
+        user.username ??
+        payload?.username ??
+        payload?.sub ??
+        fallbackUsername
+
+    return {
+        token,
+        username,
+        role,
+        permissions: normalizePermissions(
+            user.permissions ?? payload?.permissions,
+            role
+        ),
+        mode: 'live',
+    }
+}
+
+export function buildSessionFromToken(token, fallbackUsername = 'eracing') {
+    try {
+        return buildSessionFromAuthData({ token }, fallbackUsername)
+    } catch (_) {
+        return import.meta.env.DEV ? getLegacyDevSession(fallbackUsername, token) : null
+    }
 }
 
 export async function login(username, password) {
@@ -102,5 +126,10 @@ export async function login(username, password) {
     }
 
     storeToken(data.token)
-    return data.token
+    try {
+        return buildSessionFromAuthData(data, username)
+    } catch (_) {
+        if (import.meta.env.DEV) return getLegacyDevSession(username, data.token)
+        throw new Error('Sessao invalida retornada pelo servidor.')
+    }
 }

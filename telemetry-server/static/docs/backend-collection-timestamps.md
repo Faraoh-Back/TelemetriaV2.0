@@ -163,9 +163,9 @@ Resposta:
 - `409`: estado invalido da coleta;
 - `500`: erro inesperado de banco/servidor.
 
-Nesta etapa, os endpoints exigem apenas usuario autenticado. A regra
-`admin/member` sera implementada na proxima feature, quando o JWT e o login
-passarem a carregar role/permissoes.
+Os endpoints administrativos exigem permissoes de `admin`. A regra completa
+esta documentada em
+[backend-access-roles.md](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-access-roles.md).
 
 ## Decisao aplicada
 

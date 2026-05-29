@@ -5,6 +5,9 @@ downloads de logs e controle por perfil funcionar em producao.
 
 ## 1. Login com perfil e permissoes
 
+Status: implementado no backend. Ver
+[backend-access-roles.md](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-access-roles.md).
+
 Atualizar `POST /login` para devolver token e dados de usuario.
 
 Resposta esperada:
@@ -118,9 +121,8 @@ Alternativa aceita:
 
 ## 4. Controle administrativo de coleta
 
-Status: start/stop e persistencia de bounds foram implementados no backend
-para usuarios autenticados. A regra `403` por `admin/member` continua pendente
-e sera tratada na feature de perfis de acesso.
+Status: start/stop e persistencia de bounds foram implementados no backend com
+`403` para `member`.
 
 Estado atual no frontend:
 

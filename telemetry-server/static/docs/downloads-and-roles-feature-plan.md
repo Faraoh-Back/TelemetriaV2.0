@@ -446,6 +446,9 @@ pendencias documentadas em
 4. Concluido: garantir fallback temporario para tokens antigos:
    - em desenvolvimento, assumir `admin` quando nao houver role;
    - em producao, preferir role `member` ou bloquear operacoes sensiveis.
+5. Concluido no backend: `POST /login` retorna `user.role` e
+   `user.permissions`, e o JWT tambem carrega essas claims. Ver
+   [backend-access-roles.md](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-access-roles.md).
 
 ### Fase 2: Controle administrativo de coleta
 
@@ -460,6 +463,9 @@ pendencias documentadas em
    real do backend.
 7. Pendente de validacao integrada: testar `401`, `403` e `409` contra backend
    real.
+8. Concluido no backend: `POST /telemetry/collection/start`,
+   `POST /telemetry/collection/stop` e `POST /telemetry/log-session-bounds`
+   exigem permissoes administrativas.
 
 ### Fase 3: Aba Downloads
 
@@ -541,11 +547,11 @@ pendencias documentadas em
 - [x] Respeitar download autenticado por `Blob`.
 - [x] Respeitar `download_url` quando backend enviar URL pronta.
 - [x] Atualizar proxy de desenvolvimento para `/telemetry`.
-- [ ] Backend: definir contrato final de login com perfil/permissoes.
+- [x] Backend: definir contrato final de login com perfil/permissoes.
 - [x] Frontend: criar service de start/stop administrativo.
 - [x] Frontend: sincronizar start/stop local com resposta real do backend.
 - [x] Frontend: substituir mock de persistencia de bounds por chamada real.
-- [ ] Backend: implementar autorizacao real para start/stop.
+- [x] Backend: implementar autorizacao real para start/stop.
 - [ ] Backend: implementar listagem e download de logs.
 - [x] Backend: implementar persistencia de bounds da coleta.
 - [ ] Frontend: consolidar tratamento de `401`, `403` e `409` nos services.

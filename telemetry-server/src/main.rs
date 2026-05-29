@@ -363,6 +363,10 @@ type SharedTrackState = Arc<Mutex<RealtimeTrackState>>;
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
     sub: String,  // username
+    #[serde(default = "default_member_role")]
+    role: String,
+    #[serde(default)]
+    permissions: Vec<String>,
     iat: i64,     // issued at
     exp: i64,     // expiry
 }
@@ -394,10 +398,56 @@ struct LogSessionBoundsRequest {
 
 // ==================== JWT — GERAR E VALIDAR ====================
 
-fn generate_jwt(username: &str) -> Result<String, jsonwebtoken::errors::Error> {
+const ROLE_ADMIN: &str = "admin";
+const ROLE_MEMBER: &str = "member";
+const PERMISSION_TELEMETRY_START: &str = "telemetry:start";
+const PERMISSION_TELEMETRY_STOP: &str = "telemetry:stop";
+const PERMISSION_LOGS_READ: &str = "logs:read";
+const PERMISSION_LOGS_DOWNLOAD: &str = "logs:download";
+
+fn default_member_role() -> String {
+    ROLE_MEMBER.to_string()
+}
+
+fn normalize_role(role: &str) -> &'static str {
+    if role.eq_ignore_ascii_case(ROLE_ADMIN) {
+        ROLE_ADMIN
+    } else {
+        ROLE_MEMBER
+    }
+}
+
+fn permissions_for_role(role: &str) -> Vec<String> {
+    match normalize_role(role) {
+        ROLE_ADMIN => vec![
+            PERMISSION_TELEMETRY_START,
+            PERMISSION_TELEMETRY_STOP,
+            PERMISSION_LOGS_READ,
+            PERMISSION_LOGS_DOWNLOAD,
+        ],
+        _ => vec![PERMISSION_LOGS_READ, PERMISSION_LOGS_DOWNLOAD],
+    }
+    .into_iter()
+    .map(String::from)
+    .collect()
+}
+
+fn claims_has_permission(claims: &Claims, permission: &str) -> bool {
+    let permissions = if claims.permissions.is_empty() {
+        permissions_for_role(&claims.role)
+    } else {
+        claims.permissions.clone()
+    };
+    permissions.iter().any(|p| p == permission)
+}
+
+fn generate_jwt(username: &str, role: &str) -> Result<String, jsonwebtoken::errors::Error> {
     let now = Utc::now().timestamp();
+    let normalized_role = normalize_role(role);
     let claims = Claims {
         sub: username.to_string(),
+        role: normalized_role.to_string(),
+        permissions: permissions_for_role(normalized_role),
         iat: now,
         exp: now + (JWT_EXPIRY_HOURS * 3600),
     };
@@ -408,14 +458,19 @@ fn generate_jwt(username: &str) -> Result<String, jsonwebtoken::errors::Error> {
     )
 }
 
-fn validate_jwt(token: &str) -> bool {
+fn validate_jwt_claims(token: &str) -> Option<Claims> {
     let secret = get_jwt_secret();
     decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret.as_bytes()),
         &Validation::new(Algorithm::HS256),
     )
-    .is_ok()
+    .ok()
+    .map(|data| data.claims)
+}
+
+fn validate_jwt(token: &str) -> bool {
+    validate_jwt_claims(token).is_some()
 }
 
 // ==================== INIT TIMESCALEDB ====================
@@ -512,8 +567,21 @@ async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Error>
             id            INTEGER PRIMARY KEY AUTOINCREMENT,
             username      TEXT    NOT NULL UNIQUE,
             password_hash TEXT    NOT NULL,
+            role          TEXT    NOT NULL DEFAULT 'member',
             created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+    "#).execute(pool).await?;
+
+    sqlx::query("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'member'")
+        .execute(pool)
+        .await
+        .ok();
+
+    sqlx::query(r#"
+        UPDATE users
+        SET role = 'admin'
+        WHERE lower(username) IN ('admin', 'adm', 'administrador')
+          AND role = 'member'
     "#).execute(pool).await?;
 
     sqlx::query("PRAGMA journal_mode=WAL").execute(pool).await?;
@@ -924,7 +992,7 @@ async fn handle_login(
 
     // Busca usuário no banco
     let row = sqlx::query(
-        "SELECT password_hash FROM users WHERE username = ?"
+        "SELECT password_hash, COALESCE(role, 'member') as role FROM users WHERE username = ?"
     )
     .bind(&login_req.username)
     .fetch_optional(sqlite_pool)
@@ -933,15 +1001,26 @@ async fn handle_login(
     match row {
         Ok(Some(row)) => {
             let hash: String = row.get("password_hash");
+            let role_raw: String = row.get("role");
+            let role = normalize_role(&role_raw);
+            let permissions = permissions_for_role(role);
 
             // Verifica senha com bcrypt
             match verify(&login_req.password, &hash) {
                 Ok(true) => {
                     // Gera JWT
-                    match generate_jwt(&login_req.username) {
+                    match generate_jwt(&login_req.username, role) {
                         Ok(token) => {
-                            let json = format!(r#"{{"ok":true,"token":"{}"}}"#, token);
-                            send_json(stream, 200, &json).await;
+                            let body = json!({
+                                "ok": true,
+                                "token": token,
+                                "user": {
+                                    "username": &login_req.username,
+                                    "role": role,
+                                    "permissions": permissions,
+                                }
+                            });
+                            send_json(stream, 200, &body.to_string()).await;
                             info!("🔑 Login OK: {}", login_req.username);
                         }
                         Err(e) => {
@@ -974,8 +1053,7 @@ async fn handle_collection_start(
     request: &str,
     sqlite_pool: &SqlitePool,
 ) {
-    if !request_has_valid_jwt(request) {
-        send_json(stream, 401, r#"{"ok":false,"message":"Token necessário"}"#).await;
+    if !request_has_permission(stream, request, PERMISSION_TELEMETRY_START).await {
         return;
     }
 
@@ -1052,8 +1130,7 @@ async fn handle_collection_stop(
     request: &str,
     sqlite_pool: &SqlitePool,
 ) {
-    if !request_has_valid_jwt(request) {
-        send_json(stream, 401, r#"{"ok":false,"message":"Token necessário"}"#).await;
+    if !request_has_permission(stream, request, PERMISSION_TELEMETRY_STOP).await {
         return;
     }
 
@@ -1148,8 +1225,7 @@ async fn handle_log_session_bounds(
     request: &str,
     sqlite_pool: &SqlitePool,
 ) {
-    if !request_has_valid_jwt(request) {
-        send_json(stream, 401, r#"{"ok":false,"message":"Token necessário"}"#).await;
+    if !request_has_permission(stream, request, PERMISSION_TELEMETRY_STOP).await {
         return;
     }
 
@@ -1233,18 +1309,9 @@ async fn handle_migrate(
     pg_pool: &sqlx::PgPool,
     sqlite_pool: &SqlitePool,
 ) {
-    // Valida JWT — só usuários autenticados podem disparar migração
-    let token = extract_bearer_token(request);
-    match token {
-        None => {
-            send_json(stream, 401, r#"{"ok":false,"message":"Token necessário"}"#).await;
-            return;
-        }
-        Some(t) if !validate_jwt(&t) => {
-            send_json(stream, 401, r#"{"ok":false,"message":"Token inválido"}"#).await;
-            return;
-        }
-        Some(_) => {}
+    // Apenas admin pode disparar migração (requer telemetry:start)
+    if !request_has_permission(stream, request, PERMISSION_TELEMETRY_START).await {
+        return;
     }
 
     info!("🔄 Migração manual disparada via POST /migrate");
@@ -1366,10 +1433,33 @@ fn parse_json_body<T: for<'de> Deserialize<'de>>(request: &str) -> Result<T, u16
     serde_json::from_str(body).map_err(|_| 400)
 }
 
-fn request_has_valid_jwt(request: &str) -> bool {
-    extract_bearer_token(request)
-        .map(|token| validate_jwt(&token))
-        .unwrap_or(false)
+async fn request_has_permission(
+    stream: &mut TcpStream,
+    request: &str,
+    permission: &str,
+) -> bool {
+    let token = match extract_bearer_token(request) {
+        Some(token) => token,
+        None => {
+            send_json(stream, 401, r#"{"ok":false,"message":"Token necessário"}"#).await;
+            return false;
+        }
+    };
+
+    let claims = match validate_jwt_claims(&token) {
+        Some(claims) => claims,
+        None => {
+            send_json(stream, 401, r#"{"ok":false,"message":"Token inválido"}"#).await;
+            return false;
+        }
+    };
+
+    if !claims_has_permission(&claims, permission) {
+        send_json(stream, 403, r#"{"ok":false,"message":"Permissao insuficiente."}"#).await;
+        return false;
+    }
+
+    true
 }
 
 fn unix_seconds(dt: &DateTime<Utc>) -> f64 {

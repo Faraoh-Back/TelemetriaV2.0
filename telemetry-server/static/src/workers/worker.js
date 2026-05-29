@@ -394,7 +394,14 @@ const CAN_MAP = {
     
         ws.onmessage = (event) => {
         if (event.data instanceof ArrayBuffer) {
-            handleFrame(event.data);
+            if (event.data.byteLength === 20) {
+                // Frame CAN padrão (20 bytes fixos: 4b canId + 8b ts + 8b data)
+                handleFrame(event.data);
+            } else {
+                // Backend também manda mensagens JSON (track_map, track_pose) encapsuladas em frames binários
+                const text = new TextDecoder().decode(event.data);
+                handleTextMessage(text);
+            }
         } else if (typeof event.data === 'string') {
             handleTextMessage(event.data);
         } else if (event.data instanceof Blob) {

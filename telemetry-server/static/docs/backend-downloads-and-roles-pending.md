@@ -118,6 +118,10 @@ Alternativa aceita:
 
 ## 4. Controle administrativo de coleta
 
+Status: start/stop e persistencia de bounds foram implementados no backend
+para usuarios autenticados. A regra `403` por `admin/member` continua pendente
+e sera tratada na feature de perfis de acesso.
+
 Estado atual no frontend:
 
 - `admin` ve e aciona os controles de coleta.
@@ -188,6 +192,9 @@ com:
 ```
 
 ## 5. Persistencia dos limites da coleta
+
+Status: implementado. O processamento completo esta documentado em
+[backend-collection-timestamps.md](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-collection-timestamps.md).
 
 O frontend ja envia os bounds reais por este endpoint apos o backend aceitar o
 encerramento administrativo da coleta.

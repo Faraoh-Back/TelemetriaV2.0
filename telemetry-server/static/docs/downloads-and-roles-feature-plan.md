@@ -479,8 +479,9 @@ pendencias documentadas em
 1. Documentado para backend: definir contrato final dos endpoints.
 2. Concluido no frontend: atualizar `vite.config.js` com proxy `/telemetry`.
 3. Concluido no frontend: enviar bounds reais para `/telemetry/log-session-bounds`.
-4. Pendente do backend: implementar `/telemetry/log-session-bounds` conforme o
-   contrato do front.
+4. Concluido no backend: implementar start/stop administrativo e
+   `/telemetry/log-session-bounds` para persistir timestamps da coleta. Ver
+   [backend-collection-timestamps.md](/Users/joaogabriel/Documents/TelemetriaV2.0/telemetry-server/static/docs/backend-collection-timestamps.md).
 5. Pendente no frontend apos backend: validar com logs reais de formatos
    diferentes.
 6. Pendente no frontend apos backend: consolidar tratamento global de `401` e
@@ -546,7 +547,7 @@ pendencias documentadas em
 - [x] Frontend: substituir mock de persistencia de bounds por chamada real.
 - [ ] Backend: implementar autorizacao real para start/stop.
 - [ ] Backend: implementar listagem e download de logs.
-- [ ] Backend: implementar persistencia de bounds da coleta.
+- [x] Backend: implementar persistencia de bounds da coleta.
 - [ ] Frontend: consolidar tratamento de `401`, `403` e `409` nos services.
 - [ ] Frontend: validar payload real de logs e ajustar campos se necessario.
 - [ ] Validar backend com `401`, `403`, arquivo pequeno e arquivo grande.

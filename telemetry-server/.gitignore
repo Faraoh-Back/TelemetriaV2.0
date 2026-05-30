@@ -1,0 +1,18 @@
+# Runtime data
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Rust build output
+target/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Generated reports
+reports/
+
+# macOS
+.DS_Store

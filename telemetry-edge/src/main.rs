@@ -66,8 +66,8 @@ struct Args {
     #[arg(long, default_value = "250000")]
     bitrate1: u32,
 
-    /// Endereço do servidor (padrão: 192.168.1.100:8080)
-    #[arg(long, default_value = "192.168.1.100:8080")]
+    /// Endereço do servidor (padrão: 143.106.207.95:8080)
+    #[arg(long, default_value = "143.106.207.95:8080")]
     server: String,
 
     /// ID do dispositivo (padrão: car_001)
@@ -641,7 +641,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Mede offset de clock entre Jetson e servidor
-    let server_host = args.server.split(':').next().unwrap_or("192.168.1.100");
+    let server_host = args.server.split(':').next().unwrap_or("143.106.207.95");
     let clock_offset = if args.ntp_port > 0 {
         measure_clock_offset(server_host, args.ntp_port, args.ntp_samples).await
     } else {

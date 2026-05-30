@@ -1,0 +1,301 @@
+import { For, Show, createMemo, createSignal, onMount } from 'solid-js'
+import {
+  connect,
+  disconnect,
+  resetTelemetryData,
+  setTelemetryCollectionEnabled,
+  signals,
+  trackState,
+  telemetrySession,
+} from './store.js'
+import { getServerConfig } from './config/serverConfig.js'
+import {
+  buildSessionFromToken,
+  clearStoredToken,
+  getValidStoredToken,
+  login,
+} from './utils/auth.js'
+import {
+  PERMISSIONS,
+  canControlTelemetry,
+  hasPermission,
+} from './utils/permissions.js'
+import {
+  persistTelemetryLogBounds,
+  startTelemetryCollection,
+  stopTelemetryCollection,
+} from './services/telemetryCollection.js'
+import LoginScreen from './components/Login/LoginScreen.jsx'
+import TopBar from './components/TopBar/TopBar.jsx'
+import TabBar from './components/TabBar/TabBar.jsx'
+import StatusBar from './components/StatusBar/StatusBar.jsx'
+import SignalSelector from './components/SignalSelector/SignalSelector.jsx'
+import DashboardEmptyState from './components/DashboardEmptyState/DashboardEmptyState.jsx'
+import './components/DashboardEmptyState/DashboardEmptyState.css'
+import TimeWindowControl from './components/TimeWindowControl/TimeWindowControl.jsx'
+import MotecChart from './components/MotecChart/MotecChart.jsx'
+import HistoryReferenceChart from './components/HistoryReferenceChart/HistoryReferenceChart.jsx'
+import Cockpit from './components/Cockpit/Cockpit.jsx'
+import DownloadsPage from './components/Downloads/DownloadsPage.jsx'
+import { DEFAULT_CHART_LAYOUT, GAUGE_CONFIG } from './config/dashboardConfig.js'
+
+const TABS = [
+  { id: 'analise',  label: 'Análise' },
+  { id: 'cockpit',  label: 'Cockpit' },
+  { id: 'downloads', label: 'Downloads' },
+]
+
+const TELEMETRY_MODE = {
+  idle: 'idle',
+  live: 'live',
+  stopped: 'stopped',
+}
+
+function App() {
+  const [session, setSession] = createSignal(null)
+  const [activeTab, setActiveTab] = createSignal('analise')
+  const [selectedSignals, setSelectedSignals] = createSignal([])
+  const [windowSeconds, setWindowSeconds] = createSignal(30)
+  const [telemetryMode, setTelemetryMode] = createSignal(TELEMETRY_MODE.idle)
+  const [telemetryActionPending, setTelemetryActionPending] = createSignal(false)
+  const [telemetryActionError, setTelemetryActionError] = createSignal('')
+  const customChartKey = createMemo(() => selectedSignals().join('|'))
+  const hasSignals = createMemo(() => Object.keys(signals).length > 0)
+  const canStartTelemetry = createMemo(() =>
+    hasPermission(session(), PERMISSIONS.telemetryStart)
+  )
+  const canStopTelemetry = createMemo(() =>
+    hasPermission(session(), PERMISSIONS.telemetryStop)
+  )
+  const canUseTelemetryControls = createMemo(() =>
+    canControlTelemetry(session())
+  )
+
+  onMount(() => {
+    // Recupera sessoes reais ainda validas antes de exibir a area operacional.
+    const token = getValidStoredToken()
+    const storedSession = token ? buildSessionFromToken(token) : null
+    if (storedSession) authenticateDashboard(storedSession)
+  })
+
+  function buildWsUrl(token) {
+    const { wsBase } = getServerConfig()
+    return `${wsBase}/ws?token=${encodeURIComponent(token)}`
+  }
+
+  function authenticateDashboard(nextSession) {
+    connect(buildWsUrl(nextSession.token))
+    setTelemetryCollectionEnabled(false)
+    setTelemetryMode(TELEMETRY_MODE.idle)
+
+    setSession(nextSession)
+  }
+
+  async function handleLogin(username, password) {
+    const nextSession = await login(username, password)
+    authenticateDashboard(nextSession)
+  }
+
+  function handleLogout() {
+    clearStoredToken()
+    disconnect()
+    setSession(null)
+    setTelemetryMode(TELEMETRY_MODE.idle)
+    setTelemetryActionPending(false)
+    setTelemetryActionError('')
+    setActiveTab('analise')
+    setSelectedSignals([])
+  }
+
+  function handleTelemetryActionError(error) {
+    if (error.status === 401) {
+      handleLogout()
+      return
+    }
+
+    setTelemetryActionError(error.message || 'Nao foi possivel atualizar a coleta.')
+  }
+
+  async function handleStartTelemetry() {
+    const currentSession = session()
+    if (
+      !currentSession ||
+      currentSession.mode !== 'live' ||
+      !canStartTelemetry() ||
+      telemetryActionPending()
+    ) return
+
+    setTelemetryActionPending(true)
+    setTelemetryActionError('')
+
+    try {
+      await startTelemetryCollection(currentSession.token)
+      resetTelemetryData()
+      setTelemetryCollectionEnabled(true)
+      setTelemetryMode(TELEMETRY_MODE.live)
+    } catch (error) {
+      handleTelemetryActionError(error)
+    } finally {
+      setTelemetryActionPending(false)
+    }
+  }
+
+  async function handleStopTelemetry() {
+    const currentSession = session()
+    if (!currentSession || !canStopTelemetry() || telemetryActionPending()) return
+
+    setTelemetryActionPending(true)
+    setTelemetryActionError('')
+
+    try {
+      await stopTelemetryCollection(currentSession.token)
+      const bounds = await setTelemetryCollectionEnabled(false)
+      let boundsError = null
+
+      if (
+        currentSession.mode === 'live' &&
+        bounds.log_start_unix != null &&
+        bounds.log_stop_unix != null
+      ) {
+        try {
+          await persistTelemetryLogBounds(bounds, currentSession.token)
+        } catch (error) {
+          boundsError = error
+        }
+      }
+
+      setTelemetryMode(TELEMETRY_MODE.stopped)
+      setActiveTab('analise')
+
+      if (boundsError) {
+        setTelemetryActionError(boundsError.message || 'Coleta encerrada, mas nao foi possivel registrar os limites do log.')
+      }
+    } catch (error) {
+      handleTelemetryActionError(error)
+    } finally {
+      setTelemetryActionPending(false)
+    }
+  }
+
+  function toggleSignal(signalName) {
+    setSelectedSignals((current) =>
+      current.includes(signalName)
+        ? current.filter((name) => name !== signalName)
+        : [...current, signalName]
+    )
+  }
+
+  function clearSignalSelection() {
+    setSelectedSignals([])
+  }
+
+  return (
+    <Show
+      when={session()}
+      fallback={<LoginScreen onLogin={handleLogin} />}
+    >
+      {/* Dashboard fica isolado do login; daqui para baixo so existe sessao autenticada. */}
+      <TopBar
+        user={session().username}
+        role={session().role}
+        sessionMode={session().mode}
+        telemetryMode={telemetryMode()}
+        canControlTelemetry={canUseTelemetryControls()}
+        telemetryActionPending={telemetryActionPending()}
+        onStartTelemetry={handleStartTelemetry}
+        onStopTelemetry={handleStopTelemetry}
+        onLogout={handleLogout}
+      />
+      <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
+      <Show when={telemetryActionError()}>
+        <div class="app-alert app-alert--error" role="alert">
+          {telemetryActionError()}
+        </div>
+      </Show>
+
+      <Show
+        when={activeTab() === 'downloads'}
+        fallback={
+          <Show
+            when={activeTab() === 'cockpit'}
+            fallback={
+              <>
+                <StatusBar />
+                <SignalSelector
+                  selectedSignals={selectedSignals()}
+                  onToggleSignal={toggleSignal}
+                  onClearSelection={clearSignalSelection}
+                />
+                <Show when={!hasSignals()}>
+                  <DashboardEmptyState />
+                </Show>
+                <Show when={telemetryMode() === TELEMETRY_MODE.live}>
+                  <TimeWindowControl
+                    value={windowSeconds()}
+                    onChange={setWindowSeconds}
+                  />
+                </Show>
+
+                <div class="chart-area">
+                  <Show
+                    when={telemetryMode() === TELEMETRY_MODE.stopped}
+                    fallback={
+                      <Show
+                        when={telemetryMode() === TELEMETRY_MODE.live}
+                      >
+                          <Show when={selectedSignals().length > 0}>
+                            <For each={[customChartKey()]}>
+                              {() => (
+                                <MotecChart
+                                  label="Seleção customizada"
+                                signals={selectedSignals()}
+                                windowSeconds={windowSeconds()}
+                                relativeTime
+                                relativeStartTimestamp={telemetrySession.startTimestamp}
+                              />
+                              )}
+                            </For>
+                          </Show>
+
+                          <For each={DEFAULT_CHART_LAYOUT}>
+                            {({ label, signals }) => (
+                              <MotecChart
+                                label={label}
+                              signals={signals}
+                              windowSeconds={windowSeconds()}
+                              relativeTime
+                              relativeStartTimestamp={telemetrySession.startTimestamp}
+                            />
+                            )}
+                          </For>
+                      </Show>
+                    }
+                  >
+                    <HistoryReferenceChart
+                      signals={selectedSignals()}
+                    />
+                  </Show>
+                </div>
+              </>
+            }
+          >
+            <Cockpit
+              gauges={GAUGE_CONFIG}
+              trackMap={trackState}
+              isTelemetryLive={telemetryMode() === TELEMETRY_MODE.live}
+            />
+          </Show>
+        }
+      >
+        <Cockpit
+          gauges={GAUGE_CONFIG}
+          trackMap={trackState}
+          isTelemetryLive={telemetryMode() === TELEMETRY_MODE.live}
+          videoSource="http://143.106.207.21:8555/cam"
+        />
+        <DownloadsPage session={session()} />
+        </Show>
+  )
+}
+
+export default App

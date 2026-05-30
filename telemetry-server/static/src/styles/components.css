@@ -1,0 +1,162 @@
+/* components.css — classes compartilhadas entre os componentes do dashboard */
+
+/* ── TOPBAR ─────────────────────────────────────────────────────────────── */
+.topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.topbar__left  { display: flex; align-items: center; gap: 12px; }
+
+.topbar__title { font-size: 16px; font-weight: 600; color: var(--text); }
+
+  /* ── WS BADGE ───────────────────────────────────────────────────────────── */
+.ws-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.05);
+    color: var(--text2);
+}
+
+.ws-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text2);
+    transition: background 0.3s;
+}
+
+.ws-dot--connected { background: var(--accent); }
+
+.ws-dot--error     { background: var(--red);    }
+
+.ws-dot--connecting{ background: var(--amber);  }
+
+.framerate {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+}
+
+  /* ── BUTTON ─────────────────────────────────────────────────────────────── */
+.btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text2);
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.btn:hover           { border-color: var(--red); color: var(--red); }
+
+.btn--primary        { background: var(--accent); color: #fff; border-color: transparent; }
+
+.btn--primary:hover  { opacity: 0.88; color: #fff; border-color: transparent; }
+
+.btn:disabled        { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── TABS ───────────────────────────────────────────────────────────────── */
+.tabbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+}
+
+.tab {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text2);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+}
+
+.tab--active   { color: var(--accent); border-bottom-color: var(--accent); cursor: default; }
+
+.tab--disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── CARD (StatusBar e MotecChart) ──────────────────────────────────────── */
+.card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.card__label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+}
+
+  /* ── STATUS BAR ─────────────────────────────────────────────────────────── */
+.status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+}
+
+.signal-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    min-width: 140px;
+}
+
+.signal-card__label {
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 4px;
+}
+
+.signal-card__value {
+    font-size: 20px;
+    font-weight: 600;
+    font-family: var(--mono);
+    color: var(--accent);
+}
+
+.signal-card__unit  {
+    font-size: 11px;
+    color: var(--text2);
+}
+
+.signal-card__stats {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--text2);
+    font-family: var(--mono);
+}
+
+/* ── CHART AREA ─────────────────────────────────────────────────────────── */
+.chart-area {
+    padding: 16px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+  .motec-chart { margin-bottom: 0; } /* gap já está no chart-area */

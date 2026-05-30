@@ -1,0 +1,756 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: ExternalDevice EMUS_BMS
+
+
+BO_ 573 Charger_Control_Std: 1 Vector__XXX
+ SG_ Charger_Control : 7|8@0- (1,0) [0|2] "" Vector__XXX
+
+BO_ 2578777096 Charger_Control_Ext: 1 Vector__XXX
+ SG_ Charger_Control : 7|8@0- (1,0) [0|2] "" Vector__XXX
+
+BO_ 453 State_Of_Charge_Health_Param_Std: 8 Vector__XXX
+ SG_ SOCSOHParams_USER_SOC : 39|16@0+ (0.01,0) [0|655.35] "%" Vector__XXX
+ SG_ SOCSOHParams_SOH : 55|16@0+ (0.01,0) [0|655.35] "%" Vector__XXX
+ SG_ SOCSOHParams_SOC : 23|16@0+ (0.01,0) [0|655.35] "%" Vector__XXX
+
+BO_ 2578776080 State_Of_Charge_Health_Param_Ext: 8 Vector__XXX
+ SG_ SOCSOHParams_USER_SOC : 39|16@0+ (0.01,0) [0|655.35] "%" Vector__XXX
+ SG_ SOCSOHParams_SOH : 55|16@0+ (0.01,0) [0|655.35] "%" Vector__XXX
+ SG_ SOCSOHParams_SOC : 23|16@0+ (0.01,0) [0|655.35] "%" Vector__XXX
+
+BO_ 2566869221 Bms_Receive_Chg_Trans_Msgs: 8 Vector__XXX
+ SG_ Charger_StartingState : 35|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ Charger_InputVoltageProtection : 34|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ Charger_HighTempProtection : 33|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ Charger_HardwareFailure : 32|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ Charger_CommunicationState : 36|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ Charger_OutputCurrent : 23|16@0+ (0.1,0) [0|65535.01] "A" Vector__XXX
+ SG_ Charger_OutputVoltage : 7|16@0+ (0.1,0) [0|65535.01] "V" Vector__XXX
+
+BO_ 2550588916 Bms_Transmits_Cgh_Receive_Msgs: 8 Vector__XXX
+ SG_ Bms_MaxAllowedChrgVolt : 7|16@0+ (0.1,0) [0|65535.01] "V" Vector__XXX
+ SG_ Bms_MaxAllowedChrgCurr : 23|16@0+ (0.1,0) [0|65535.01] "A" Vector__XXX
+ SG_ Bms_Control : 39|8@0+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 450 Individual_Cell_Bal_Rate_Std_B: 8 Vector__XXX
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_7 : 63|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_6 : 55|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_5 : 47|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_4 : 39|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_3 : 31|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_2 : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_1 : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 2578776077 Indiv_Cell_Balancing_Ext_Extd_B: 8 Vector__XXX
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_1 : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_2 : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_3 : 31|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_4 : 39|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_5 : 47|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_6 : 55|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_7 : 63|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 451 Individual_Cell_Temp_Std_B: 8 Vector__XXX
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ IndividualCellTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 2578776078 Individual_Cell_Temp_Ext_B: 8 Vector__XXX
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ IndividualCellTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 449 Individual_Cell_Mod_Temp_Std_B: 8 Vector__XXX
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ IndividualCellModTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 2578776576 Indiv_Cell_Mod_Temp_Inter_Ext_A1: 8 Vector__XXX
+ SG_ IndividualCellModTemp_Data_0 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 448 Individual_Cells_Volt_Std_B: 8 Vector__XXX
+ SG_ IndividualCellVoltage_Data_7 : 63|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_6 : 55|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_5 : 47|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_4 : 39|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_3 : 31|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_2 : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_1 : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578776075 Individual_Cells_Volt_Ext_B: 8 Vector__XXX
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ IndividualCellVoltage_Data_1 : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_2 : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_3 : 31|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_4 : 39|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_5 : 47|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_6 : 55|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_7 : 63|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 438 Battery_Volt_1_Overall_Param_Std: 8 Vector__XXX
+ SG_ VoltOverallParams_TotalVolt_MSB : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ VoltOverallParams_TotalVolt_LSB : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ VoltOverallParams_TotalVolt_3rd : 55|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ VoltOverallParams_TotalVolt_2nd : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ VoltOverallParam_MinCellVoltage : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_MaxCellVoltage : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_AvrgCellVoltage : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 2578776065 Battery_Volt_1_Overall_Param_Ext: 8 EMUS_BMS
+ SG_ VoltOverallParams_TotalVolt_MSB : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ VoltOverallParams_TotalVolt_LSB : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ VoltOverallParams_TotalVolt_3rd : 55|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ VoltOverallParams_TotalVolt_2nd : 31|8@0+ (1,0) [0|2.55] "" Vector__XXX
+ SG_ VoltOverallParam_MinCellVoltage : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_MaxCellVoltage : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_AvrgCellVoltage : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 441 Overall_Parameters2_Std: 8 Vector__XXX
+ SG_ OverallParams2_NumberOfCells : 7|16@0+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 2578776068 Overall_Parameters2_Ext: 8 Vector__XXX
+ SG_ OverallParams2_NumberOfCells : 7|16@0+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 2578777872 Serial_Number_Ext: 4 EMUS_BMS
+ SG_ Serial_Number_Number : 7|32@0+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 677 Serial_Number_Std: 4 EMUS_BMS
+ SG_ Serial_Number_Number : 7|32@0+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 661 Firmware_Version_Std: 4 EMUS_BMS
+ SG_ Version_PatchVersion : 31|8@0+ (1,0) [0|65535] "" Vector__XXX
+ SG_ Version_RevisionVersion : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Version_MinorVersion : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Version_MajorVersion : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578777856 Firmware_Version_Ext: 4 EMUS_BMS
+ SG_ Version_PatchVersion : 31|8@0+ (1,0) [0|65535] "" Vector__XXX
+ SG_ Version_RevisionVersion : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Version_MinorVersion : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Version_MajorVersion : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578776070 Energy_Parameters_2_Ext: 8 EMUS_BMS
+ SG_ Energy_EstimatedConsumption : 7|16@0+ (1,0) [0|65535] "Wh" Vector__XXX
+ SG_ Energy_EstimatedEnergy : 23|16@0+ (0.01,0) [0|655.35] "kWh" Vector__XXX
+ SG_ Energy_EstimatedDistanceLeft : 39|16@0+ (0.01,0) [0|655.35] "" Vector__XXX
+ SG_ Energy_DistanceTraveled : 55|16@0+ (0.01,0) [0|655.35] "" Vector__XXX
+
+BO_ 568 Login_Set_Password_Std: 8 ExternalDevice
+ SG_ Character_0 : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Character_1 : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Character_2 : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Character_3 : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Character_4 : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Character_5 : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Character_6 : 55|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Character_7 : 63|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578776073 Battery_Volt_2_Overall_Param_Ext: 8 EMUS_BMS
+ SG_ VoltOverallParams_TotalVolt : 31|32@0+ (0.01,0) [0|429496729.5] "V" Vector__XXX
+ SG_ VoltOverallParam_MinCellVoltage : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_MaxCellVoltage : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_AvrgCellVoltage : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 2578776064 Overall_Parameters_Ext: 8 EMUS_BMS
+ SG_ OverallParams_IgnitionKey : 0|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_ChargerMains : 1|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_FastCharge : 2|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_LeakageSensor : 3|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_ChargerEnable : 8|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_HeaterEnable : 9|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_BatteryContactor : 10|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_BatteryFan : 11|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_PowerReduction : 12|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_DCDC_Control : 14|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_ContactorPreCharge : 15|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_NumberOfCells_MSB : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ OverallParams_ChargingStage : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ OverallParams_ChrgStageDurat : 39|16@0+ (1,0) [0|65535] "min" Vector__XXX
+ SG_ OverallParams_LastChargingError : 55|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ OverallParams_ChargingInterlock : 13|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_NumberOfCells_LSB : 63|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578776071 Diagnostic_Codes_Ext: 8 EMUS_BMS
+ SG_ DiagnosticCodes_VoltReadDev : 23|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MS_CanMalfRed : 36|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MS_ConfMMRed : 35|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellOvrHeatRed : 37|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ModOvrHeatRed : 34|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_DischgOvrCurrRed : 33|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_UnderVoltRed : 32|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ParStringVoltDev : 21|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellTempValid : 61|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_BatChrgFinished : 60|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_NumOfCellsValid : 59|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellBalancValid : 58|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellModTempValid : 57|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellVoltValidity : 56|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_PackVoltDev : 17|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellVoltDev : 16|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ExtTempSensLoss : 19|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_VoltExtTempValid : 22|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_Wirebreak : 20|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ChargerConnected : 10|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_PackOverVoltage : 14|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellModUnderHeat : 18|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ DiagnosticCodes_CellUnderVoltage : 0|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellOverVoltage : 1|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_DchrgOvrCurrent : 2|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ChrgOverCurrent : 3|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_Leakage : 5|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_NoCellComm : 6|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellModOverHeat : 4|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellOverHeat : 11|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_NoCurrentSensor : 12|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_PackUnderVoltage : 13|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MS_ConfError : 7|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellUnderHeat : 15|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MSIntCANError : 8|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MSCommCANErr : 9|1@0+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 2578776066 Cell_Mod_Temp_Overall_Param_Ext: 8 EMUS_BMS
+ SG_ CellModOverallPar_MinCellModTemp : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellModOverallPar_MaxCellModTemp : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellModOverallPar_AvgCellModTemp : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 2578776072 Cell_Temp_Overall_Params_Ext: 8 EMUS_BMS
+ SG_ CellOverallPar_AvgCellTemp : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellOverallPar_MaxCellTemp : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellOverallPar_MinCellTemp : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 2578776067 Cell_Balanc_Rate_Overall_Par_Ext: 8 EMUS_BMS
+ SG_ CellBalancPar_MinCellBalancRate : 7|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ CellBalancPar_MaxCellBalancRate : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ CellBalancPar_AvgCellBalancRate : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 2578777088 Configuration_Parameters_Ext: 8 EMUS_BMS
+ SG_ ConfigParams_DataMSB : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_DataLSB : 55|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_Data3rdByte : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_Data2ndByte : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_ParameterID : 7|16@0+ (1,0) [0|65535] "" Vector__XXX
+ SG_ ConfigParams_ParameterSize : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578777090 Login_Level_Ext: 8 EMUS_BMS
+ SG_ LoginLevel : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578777089 Contactor_Control_Ext: 8 ExternalDevice
+ SG_ ContactorControl_ContactorState : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578777600 Energy_Parameters_Ext: 8 EMUS_BMS
+ SG_ Energy_DistanceTraveled : 55|16@0+ (0.01,0) [0|655.35] "" Vector__XXX
+ SG_ Energy_EstimatedDistanceLeft : 39|16@0+ (0.01,0) [0|655.35] "" Vector__XXX
+ SG_ Energy_EstimatedEnergy : 23|16@0+ (0.01,0) [0|655.35] "kWh" Vector__XXX
+ SG_ Energy_EstimatedConsumption : 7|16@0+ (1,0) [0|65535] "Wh" Vector__XXX
+
+BO_ 2578777344 State_Of_Charge_Param_Ext: 8 EMUS_BMS
+ SG_ SOC_Params_EstimatedSOH : 63|8@0+ (1,0) [0|255] "%" Vector__XXX
+ SG_ SOCParams_Current : 7|16@0- (0.1,0) [-3276.8|3276.7] "A" Vector__XXX
+ SG_ SOCParams_Estimated_Charge : 23|16@0+ (0.1,0) [0|6553.5] "Ah" Vector__XXX
+ SG_ SOCParams_EstimatedUserSOC : 55|8@0+ (1,0) [0|255] "%" Vector__XXX
+
+BO_ 2578777092 Statistics_Ext: 8 EMUS_BMS
+ SG_ Statistics_DataMSB : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_Data3rdByte : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_Data2ndByte : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_DataLSB : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_Identifier : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_DataType : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578777093 Events_Ext: 8 EMUS_BMS
+ SG_ Events_Data_MSB : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_Data_LSB : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_Data_3rd_Byte : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_Data_2nd_Byte : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_EntryNumber : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_DataType : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578776320 Individual_Cells_Volt_Ext_A1: 8 EMUS_BMS
+ SG_ IndividualCellVoltage_Data_0 : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_1 : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_2 : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_3 : 31|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_4 : 39|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_5 : 47|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_6 : 55|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_7 : 63|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 2578776076 Indiv_Cell_Mod_Temp_Inter_Ext_B: 8 EMUS_BMS
+ SG_ IndividualCell_Group : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ IndividualCellModTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 2578778112 Individual_Cell_Temp_Ext_A1: 8 EMUS_BMS
+ SG_ IndividualCellTemp_Data_0 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 534 Individual_Cell_Bal_Rate_Std_A2: 8 EMUS_BMS
+ SG_ IndividualCellBalancRate_Data_8 : 7|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_15 : 63|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_14 : 55|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_13 : 47|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_12 : 39|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_11 : 31|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_10 : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_9 : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 437 Overall_Parameters_Std: 8 EMUS_BMS
+ SG_ OverallParams_NumberOfCells_LSB : 63|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ OverallParams_LastChargingError : 55|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ OverallParams_ChrgStageDurat : 39|16@0+ (1,0) [0|65535] "min" Vector__XXX
+ SG_ OverallParams_ChargingStage : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ OverallParams_NumberOfCells_MSB : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ OverallParams_ContactorPreCharge : 15|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_DCDC_Control : 14|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_ChargingInterlock : 13|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_PowerReduction : 12|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_BatteryFan : 11|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_BatteryContactor : 10|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_HeaterEnable : 9|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_ChargerEnable : 8|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_LeakageSensor : 3|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_FastCharge : 2|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_ChargerMains : 1|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ OverallParams_IgnitionKey : 0|1@0+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 444 Diagnostic_Codes_Std: 8 EMUS_BMS
+ SG_ DiagnosticCodes_VoltReadDev : 23|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MS_CanMalfRed : 36|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MS_ConfMMRed : 35|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellOvrHeatRed : 37|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ModOvrHeatRed : 34|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_DischgOvrCurrRed : 33|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_UnderVoltRed : 32|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ParStringVoltDev : 21|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellTempValid : 56|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_BatChrgFinished : 61|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_NumOfCellsValid : 60|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellBalancValid : 59|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellModTempValid : 58|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellVoltValidity : 57|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_PackVoltDev : 17|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellVoltDev : 16|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ExtTempSensLoss : 19|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_VoltExtTempValid : 22|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_Wirebreak : 20|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ChargerConnected : 10|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_PackOverVoltage : 14|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellModUnderHeat : 18|1@0+ (1,0) [0|0] "" Vector__XXX
+ SG_ DiagnosticCodes_PackUnderVoltage : 13|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_NoCurrentSensor : 12|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellOverHeat : 11|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MSCommCANErr : 9|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MSIntCANError : 8|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellUnderHeat : 15|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellModOverHeat : 4|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_MS_ConfError : 7|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_NoCellComm : 6|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_Leakage : 5|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_ChrgOverCurrent : 3|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_DchrgOvrCurrent : 2|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellOverVoltage : 1|1@0+ (1,0) [0|1] "" Vector__XXX
+ SG_ DiagnosticCodes_CellUnderVoltage : 0|1@0+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 446 Battery_Volt_2_Overall_Param_Std: 8 EMUS_BMS
+ SG_ VoltOverallParams_TotalVolt : 31|32@0+ (0.01,0) [0|42949672.95] "V" Vector__XXX
+ SG_ VoltOverallParam_AvrgCellVoltage : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_MaxCellVoltage : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ VoltOverallParam_MinCellVoltage : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 439 Cell_Mod_Temp_Overall_Param_Std: 8 EMUS_BMS
+ SG_ CellModOverallPar_AvgCellModTemp : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellModOverallPar_MaxCellModTemp : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellModOverallPar_MinCellModTemp : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 445 Cell_Temp_Overall_Param_Std: 8 EMUS_BMS
+ SG_ CellOverallPar_MinCellTemp : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellOverallPar_MaxCellTemp : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ CellOverallPar_AvgCellTemp : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 440 Cell_Balanc_Rate_Overall_Par_Std: 8 EMUS_BMS
+ SG_ CellBalancPar_AvgCellBalancRate : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ CellBalancPar_MaxCellBalancRate : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ CellBalancPar_MinCellBalancRate : 7|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 469 Individual_Cells_Voltages_Std_A1: 8 EMUS_BMS
+ SG_ IndividualCellVoltage_Data_7 : 63|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_6 : 55|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_5 : 47|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_4 : 39|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_3 : 31|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_2 : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_1 : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_0 : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 501 Individual_Cell_Mod_Temp_Std_A1: 8 EMUS_BMS
+ SG_ IndividualCellModTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_0 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 565 Configuration_Parameters_Std: 8 EMUS_BMS
+ SG_ ConfigParams_DataMSB : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_DataLSB : 55|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_Data3rdByte : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_Data2ndByte : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_ParameterSize : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ ConfigParams_ParameterID : 7|16@0+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 693 Individual_Cell_Temp_Std_A1: 8 EMUS_BMS
+ SG_ IndividualCellTemp_Data_7 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_6 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_5 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_4 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_3 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_2 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_1 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_0 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 533 Individual_Cell_Bal_Rate_Std_A1: 8 EMUS_BMS
+ SG_ IndividualCellBalancRate_Data_7 : 63|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_6 : 55|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_5 : 47|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_4 : 39|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_3 : 31|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_2 : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_1 : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_0 : 7|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 566 Contactor_Control_Std: 8 ExternalDevice
+ SG_ ContactorControl_ContactorState : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 443 Energy_Parameters_Std: 8 EMUS_BMS
+ SG_ Energy_DistanceTraveled : 55|16@0+ (0.01,0) [0|655.35] "" Vector__XXX
+ SG_ Energy_EstimatedDistanceLeft : 39|16@0+ (0.01,0) [0|655.35] "" Vector__XXX
+ SG_ Energy_EstimatedEnergy : 23|16@0+ (0.01,0) [0|655.35] "kWh" Vector__XXX
+ SG_ Energy_EstimatedConsumption : 7|16@0+ (1,0) [0|65535] "Wh" Vector__XXX
+
+BO_ 570 Events_Std: 8 EMUS_BMS
+ SG_ Events_Data_MSB : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_Data_LSB : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_Data_3rd_Byte : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_Data_2nd_Byte : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_DataType : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Events_EntryNumber : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 567 Login_Level_Std: 8 EMUS_BMS
+ SG_ LoginLevel : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 442 State_Of_Charge_Param_Std: 8 EMUS_BMS
+ SG_ SOC_Params_EstimatedSOH : 63|8@0+ (1,0) [0|255] "%" Vector__XXX
+ SG_ SOCParams_Estimated_Charge : 23|16@0+ (0.1,0) [0|6553.5] "Ah" Vector__XXX
+ SG_ SOCParams_EstimatedUserSOC : 55|8@0+ (1,0) [0|255] "%" Vector__XXX
+ SG_ SOCParams_Current : 7|16@0- (0.1,0) [-3276.8|3276.7] "A" Vector__XXX
+
+BO_ 569 Statistics_Std: 8 EMUS_BMS
+ SG_ Statistics_Identifier : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_Data3rdByte : 31|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_Data2ndByte : 39|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_DataLSB : 47|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_DataMSB : 23|8@0+ (1,0) [0|255] "" Vector__XXX
+ SG_ Statistics_DataType : 15|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2578776321 Individual_Cells_Volt_Ext_A2: 8 EMUS_BMS
+ SG_ IndividualCellVoltage_Data_15 : 63|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_14 : 55|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_13 : 47|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_12 : 39|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_11 : 31|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_10 : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_9 : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_8 : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 470 Individual_Cells_Voltages_Std_A2: 8 EMUS_BMS
+ SG_ IndividualCellVoltage_Data_15 : 63|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_14 : 55|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_13 : 47|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_12 : 39|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_11 : 31|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_10 : 23|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_9 : 15|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+ SG_ IndividualCellVoltage_Data_8 : 7|8@0+ (0.01,2) [2|4.55] "V" Vector__XXX
+
+BO_ 2578776833 Indiv_Cell_Balancing_Ext_Extd_A2: 8 EMUS_BMS
+ SG_ IndividualCellBalancRate_Data_15 : 63|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_14 : 55|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_13 : 47|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_12 : 39|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_11 : 31|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_10 : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_9 : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_8 : 7|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 2578776832 Indiv_Cell_Balancing_Ext_Extd_A1: 8 EMUS_BMS
+ SG_ IndividualCellBalancRate_Data_0 : 7|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_1 : 15|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_2 : 23|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_3 : 31|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_4 : 39|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_5 : 47|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_6 : 55|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+ SG_ IndividualCellBalancRate_Data_7 : 63|8@0+ (0.392156862745098,0) [0|100] "%" Vector__XXX
+
+BO_ 2578776577 Indiv_Cell_Mod_Temp_Inter_Ext_A2: 8 EMUS_BMS
+ SG_ IndividualCellModTemp_Data_15 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_14 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_13 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_12 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_11 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_10 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_9 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_8 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 502 Individual_Cell_Mod_Temp_Std_A2: 8 EMUS_BMS
+ SG_ IndividualCellModTemp_Data_15 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_14 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_13 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_12 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_11 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_10 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_9 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellModTemp_Data_8 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 2578778113 Individual_Cell_Temp_Ext_A2: 8 EMUS_BMS
+ SG_ IndividualCellTemp_Data_15 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_14 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_13 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_12 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_11 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_10 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_9 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_8 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 694 Individual_Cell_Temp_Std_A2: 8 EMUS_BMS
+ SG_ IndividualCellTemp_Data_15 : 63|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_14 : 55|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_13 : 47|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_12 : 39|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_11 : 31|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_10 : 23|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_9 : 15|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+ SG_ IndividualCellTemp_Data_8 : 7|8@0+ (1,-100) [-100|155] "°C" Vector__XXX
+
+BO_ 2578777091 Login_Set_Password_Status_Ext: 8 ExternalDevice
+ SG_ LoginSetPasswordStatus : 7|8@0+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1313 Neuro1_Battery_Data: 8 EMUS_BMS
+ SG_ Neuro1_DepthOfDischarge : 24|16@1+ (0.1,0) [0|1000] "%" Vector__XXX
+
+BO_ 1314 Neuro2_Battery_Data: 8 EMUS_BMS
+ SG_ Neuro2_BatteryVoltMinDischrg : 32|16@1+ (0.1,0) [0|6553.5] "V" Vector__XXX
+ SG_ Neuro2_Dischrg_Current_Warn : 48|16@1+ (0.1,0) [0|6553.5] "A" Vector__XXX
+
+BO_ 1315 Neuro3_Battery_Data: 8 EMUS_BMS
+ SG_ Neuro3_BatVoltMaxRegen : 0|16@1+ (0.1,0) [0|6553.5] "V" Vector__XXX
+ SG_ Neuro3_ChrgCurrentLimit : 16|16@1+ (0.1,0) [0|6553.5] "A" Vector__XXX
+
+BO_ 1328 Neuro4_BimData: 8 EMUS_BMS
+ SG_ Neuro4_Discharge_Control : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Neuro4_Regeneration_Control : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Neuro4_AverageCellTemperature : 16|8@1+ (1,40) [0|255] "°C" Vector__XXX
+ SG_ Neuro4_CellTemperatureValid : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Neuro4_ChargingStatus : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 572 ChargingStation_Std: 8 ExternalDevice
+ SG_ ChargingStation_DCCurrentLim : 7|16@0+ (0.1,0) [0|6553.5] "A" Vector__XXX
+ SG_ ChargingStation_ACCurrentLim : 23|16@0+ (0.1,0) [0|6553.5] "A" Vector__XXX
+ SG_ ChargingStation_ACVoltage : 39|16@0+ (0.1,0) [0|6553.5] "V" Vector__XXX
+ SG_ ChargingStation_PowerLimit : 55|16@0+ (10,0) [0|65535] "W" Vector__XXX
+
+BO_ 2578777095 ChargingStation_Ext: 8 ExternalDevice
+ SG_ ChargingStation_PowerLimit : 55|16@0+ (10,0) [0|65535] "W" Vector__XXX
+ SG_ ChargingStation_ACVoltage : 39|16@0+ (0.1,0) [0|6553.5] "V" Vector__XXX
+ SG_ ChargingStation_ACCurrentLim : 23|16@0+ (0.1,0) [0|6553.5] "A" Vector__XXX
+ SG_ ChargingStation_DCCurrentLim : 7|16@0+ (0.1,0) [0|6553.5] "A" Vector__XXX
+
+BO_TX_BU_ 2578777088 : ExternalDevice,EMUS_BMS;
+BO_TX_BU_ 565 : ExternalDevice,EMUS_BMS;
+
+
+CM_ BO_ 450 "Individual Cell Balancing Rates Standard Option A";
+CM_ BO_ 2578776077 "Individual Cell Balancing Rate Extended Option A";
+CM_ BO_ 451 "Individual Cell Temperatures Standard Option A";
+CM_ BO_ 2578776078 "Individual Cell Temperatures Extended Option A";
+CM_ BO_ 449 "Individual Cell Module Temperature Standard Option A";
+CM_ BO_ 2578776576 "Individual Cell Module Temperatures Extended Option A";
+CM_ BO_ 2578776075 "Individual Cells Voltages Extended Option A";
+CM_ BO_ 2578776070 "Energy Parameters Extended";
+CM_ BO_ 2578776073 "Battery Voltage Overall Parameters Extended";
+CM_ BO_ 2578776064 "Overall Parameters Extended";
+CM_ BO_ 2578776071 "Diagnostic Codes Extended";
+CM_ BO_ 2578776066 "Cell Module Temperature Overall Parameters Extended";
+CM_ BO_ 2578776072 "Cell Temperature Overall Parameters Extended";
+CM_ BO_ 2578776067 "Cell Balancing Overall Parameters Extended";
+CM_ BO_ 2578777088 "Configuration Parameters Extended";
+CM_ BO_ 2578777090 "Login Request Response Extended";
+CM_ BO_ 2578777089 "Contactor Control Extended";
+CM_ BO_ 2578777600 "Energy Parameters Extended";
+CM_ BO_ 2578777344 "State Of Charge Parameters Extended";
+CM_ BO_ 2578777092 "Statistics Extended";
+CM_ BO_ 2578777093 "Events Extended";
+CM_ BO_ 2578776320 "Individual Cells Voltages Extended Option A";
+CM_ BO_ 2578776076 "Individual Cell Module Temperatures Extended Option A";
+CM_ BO_ 2578778112 "Individual Cell Temperatures Extended Option A";
+CM_ BO_ 534 "Individual Cell Balancing Rates Standard Option B";
+CM_ SG_ 534 IndividualCellBalancRate_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ BO_ 437 "Overall Parameters Standard";
+CM_ BO_ 444 "Diagnostic Codes Standard";
+CM_ BO_ 446 "Battery Voltage Overall Parameters Standard";
+CM_ BO_ 439 "Cell Module Overall Parameters Standard";
+CM_ BO_ 445 "Cell Temperature Overall Params Standard";
+CM_ BO_ 440 "Cell Bancing Rate Overall Params Standard";
+CM_ BO_ 469 "Individual Cells Voltages Standard Option A";
+CM_ BO_ 501 "Individual Cell Module Temperature Standard Option A";
+CM_ BO_ 693 "Individual Cell Temperatures Standard Option A";
+CM_ BO_ 533 "Individual Cell Balancing Rates Standard Option A";
+CM_ BO_ 566 "Contactor Control Standard";
+CM_ BO_ 443 "Energy Parameters Standard";
+CM_ BO_ 442 "State Of Charge Parameters Standard";
+CM_ BO_ 569 "Statistics Standard";
+CM_ BO_ 2578776321 "Individual Cells Voltages Extended Option B";
+CM_ SG_ 2578776321 IndividualCellVoltage_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ BO_ 470 "Individual Cells Voltages Standard Option B";
+CM_ SG_ 470 IndividualCellVoltage_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ BO_ 2578776833 "Individual Cell Balancing Rate Extended Option B";
+CM_ SG_ 2578776833 IndividualCellBalancRate_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ BO_ 2578776832 "Individual Cell Balancing Rate Extended Option A";
+CM_ BO_ 2578776577 "Individual Cell Modules Temperature Extended Option B";
+CM_ SG_ 2578776577 IndividualCellModTemp_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ BO_ 502 "Individual Cell Module Temperature Standard Option B";
+CM_ SG_ 502 IndividualCellModTemp_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ BO_ 2578778113 "Individual Cell Temperatures Extended Option B";
+CM_ SG_ 2578778113 IndividualCellTemp_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ BO_ 694 "Individual Cell Temperature Standard Option B";
+CM_ SG_ 694 IndividualCellTemp_Data_8 "Individual Cells Group Value for CAN Option B";
+CM_ SG_ 1328 Neuro4_Discharge_Control "Contactor State";
+CM_ SG_ 1328 Neuro4_Regeneration_Control "if max cell voltage is less than fully charge minus balancing range, then allow regeneration";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "BusType" "CAN";
+BA_ "BusType" "CAN";
+VAL_ 573 Charger_Control 2 "REQUEST_FOR_STATE" 1 "CHARGING_ENABLED" 0 "CHARGING_DISABLED" ;
+VAL_ 2578777096 Charger_Control 2 "REQUEST_FOR_STATE" 1 "CHARGING_ENABLED" 0 "CHARGING_DISABLED" ;
+VAL_ 2566869221 Charger_StartingState 1 "Bat Disconnecting Or Reverse" 0 "Normal" ;
+VAL_ 2566869221 Charger_InputVoltageProtection 1 "Incrrt Input V/Chrg Stop Working" 0 "Normal" ;
+VAL_ 2566869221 Charger_HighTempProtection 1 "Over Temperature Protection" 0 "Normal" ;
+VAL_ 2566869221 Charger_HardwareFailure 1 "Hardware Failure" 0 "Normal" ;
+VAL_ 2566869221 Charger_CommunicationState 1 "Comm Receiving Time-out" 0 "Normal" ;
+VAL_ 2550588916 Bms_Control 1 "Stop Charging" 0 "Start Charging" ;
+VAL_ 2578776064 OverallParams_IgnitionKey 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_ChargerMains 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_FastCharge 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_LeakageSensor 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_ChargerEnable 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_HeaterEnable 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_BatteryContactor 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_BatteryFan 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_PowerReduction 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_DCDC_Control 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_ContactorPreCharge 0 "OFF" 1 "ON" ;
+VAL_ 2578776064 OverallParams_ChargingStage 6 "CHARGE_STAGE_ERROR" 5 "CHARGE_STAGE_FINISHED" 4 "CHARGE_STAGE_BALANCE" 3 "CHARGE_STAGE_CHARGE" 2 "CHARGE_STAGE_PRECHARGE" 0 "CHARGE_STAGE_DISCONNECTED" 1 "CHARGE_STAGE_PREHEAT" ;
+VAL_ 2578776064 OverallParams_LastChargingError 0 "NO ERROR" 1 "NO CELL COMMUNICATION" 2 "NO CELL COMMUNICATION 2" 3 "MAX CHARGING STAGE DURATION EXP" 4 "CELL COMMUNICATION LOST" 5 "CANT SET CELL MODULE BALANCING" 6 "CELL OR CELL MODULE TEMP TO HIGH" 7 "CELL COMMUNICATION LOST 2" 8 "NUMBER OF CELLS MISMATCH" 9 "CELL OVER VOLTAGE" 10 "CELL PROTECTION EVENT OCCURRED" ;
+VAL_ 2578776064 OverallParams_ChargingInterlock 0 "OFF" 1 "ON" ;
+VAL_ 2578777090 LoginLevel 0 "GUEST" 1 "USER" 2 "ADMIN" ;
+VAL_ 2578777089 ContactorControl_ContactorState 0 "OPEN" 1 "CLOSE" ;
+VAL_ 2578777092 Statistics_Identifier 63 "Voltage Reading Dev Prot Count" 62 "Bat Par Str Volt Dev Prot Count" 61 "Cell Wire Break Protection Count" 60 "Ext Temp Sensor Loss Prot Count" 59 "Cell Mod UnderHeat Prot Count" 58 "Pack Voltage Dev Prot Count" 57 "Cell Voltage Dev Prot Count" 56 "Cell Under Heat Prot Count" 55 "Pack Over Voltage Prot Count" 54 "Can Comm Watchdog Count" 53 "Pack Under Voltage Prot Count" 52 "Heater Relay Activation Count" 51 "No Current Sens Protection Count" 50 "None" 49 "Max Cell Temperature Difference" 48 "Max Cell Temperature" 47 "Min Cell Temperature" 46 "High Cell Temp Power Red Count" 45 "Cell Overheat Protection Count" 0 "Total Disharge" 1 "Total Charge" 2 "Total Discharge Energy" 3 "Total Charge Energy" 4 "Total Discharge Time" 5 "Total Charge Time" 6 "Total Distance" 7 "Master Clear Count" 8 "Max Discharge Current" 9 "Max Charge Current" 10 "Min Cell Voltage" 11 "Max Cell Voltage" 12 "Max Cell Voltage Difference" 13 "Min Pack Voltage" 14 "Max Pack Voltage" 15 "Min Cell Module Temperature" 16 "Max Cell Module Temperature" 17 "Max Cell Module Temperature Difference" 18 "BMS Starts Count" 19 "Under Voltage Protection Count" 20 "Over Voltage Protection Count" 21 "Discharge Over Current Protection Count" 22 "Charge Over Current Protection Count" 23 "Cell Module Over Heat Protection Count" 24 "Leakage Protection Count" 25 "No Cell Communication Protection Count" 26 "Low Voltage Power Reduction Count" 27 "High Current Power Reduction Count" 28 "High Cell Module Temp Power Reduction Count" 29 "Charger Connected Count" 30 "Charger Disconnected Count" 31 "Pre Heat Stage Count" 32 "Pre Charge Stage Count" 33 "Main Charge Stage Count" 34 "Balancing Stage Count" 35 "Charging Finished Count" 36 "Charging Error Count" 37 "Charging Retry Count" 38 "Trips Count" 39 "Charge Restarts Count" 40 "Configuration Error Count" 41 "Common CAN Error Count" 42 "Internal CAN Error Count" 43 "Configuration Mismatch Count" 44 "Common CAN Malfunction Count" ;
+VAL_ 2578777092 Statistics_DataType 0 "Statistics Value" 1 "Additional Value" 2 "Statistics Timestamp" ;
+VAL_ 2578777093 Events_Data_MSB 68 "Voltage Reading Dev Rec" 67 "Voltage Reading Dev Prot" 66 "Parallel String Volt Dev Rec" 65 "Parallel String Voltage Dev Prot" 64 "Cell Wire Break Protection Rec" 63 "Cell Wire Break Protection" 62 "Ext Temp Sensor Loss Prot Rec" 61 "Ext Temp Sensor Loss Protection" 60 "Cell Module UnherHeat Prot Rec" 59 "Cell Module UnderHeat Protection" 58 "Volt Diff Btw Srcs Recovered" 57 "Volt Diff Brw Srcs Crit Diff" 56 "Hi Par Bat Str Volt Diff Recover" 55 "Volt Diff Brw Par Bat Str Crt Hi" 54 "Cell Wire Break Recovered" 53 "Cell Wire Break Detected" 52 "Ext Temp Sens Loss Recovered" 51 "Ext Temp Sens Loss Detected" 50 "Crit Low Cell Module Temp Rec" 49 "Cell Module Temp Crit Low" 48 "Crit Hi Diff Btw Max N Min Vol R" 47 "Diff Btw Max N Min Volt Crit Hi" 46 "Crit Diff Btw Max N Min Cell V R" 45 "Diff Btw Max N Min Volt Cell  Hi" 44 "Crit Low Cell Temp Recovered" 43 "Cell Temperature Critically Low" 42 "Crit High Pack Voltage Recovered" 41 "Pack Voltage Critiaclly Low" 40 "CAN Comm Watchdog Time Out" 39 "Crit Low Pack Volt Recovered" 38 "Pack Voltage Critically Low" 37 "Detected Current Sensor" 36 "No Current Sensor Detected" 0 "No event" 1 "BMS Started" 2 "Lost Communication To Cells" 3 "Established Communication To Cells" 4 "Cells Voltage Critically Low" 5 "Critical Low Voltage Recovered" 6 "Cells Voltage Critically High " 7 "Critical High Voltage Recovered" 8 "Discharge Current Critically High" 9 "Discharge Critically High Current Recovered" 10 "Charge Current Critically High" 11 "Charge Critically High Current Recovered" 12 "Cell Module Temperature Critically High" 13 "Critical High Cell Module Temperature Recovered" 14 "Leakage Detected" 15 "Leakage Recovered" 16 "Warning: Low Voltage - Reducing Power" 17 "Power Reduction Due To Low Voltage Recovered" 18 "Warning: High Current - Reducing Power" 19 "Power Reduction Due To High Current Recovered" 20 "Warning: High Cell Module Temperature - Reducing Power" 21 "Power Reduction Due To High Cell Module Temperature Recovered" 22 "Charger Connected" 23 "Charger Disconnected" 24 "Started Pre-Heating Stage" 25 "Started Pre-Charging Stage" 26 "Started Main-Charging Stage" 27 "Started Balancing Stage" 28 "Charging Finished" 29 "Charging Error Occured" 30 "Retrying Charging" 31 "Restarting Charging" 32 "Cell Temperature Critically High" 33 "Critically High Cell Temperature Recovered" 34 "Warning: High Cell Temperature - Reducing Power" 35 "Power Reduction Due To High Cell Temperature Recovered" ;
+VAL_ 2578777093 Events_DataType 0 "Event Info " 1 "Event timestamp" ;
+VAL_ 437 OverallParams_LastChargingError 0 "NO ERROR" 1 "NO CELL COMMUNICATION" 2 "NO CELL COMMUNICATION 2" 3 "MAX CHARG STAGE DURATION EXPIRED" 4 "CELL COMMUNICATION LOST" 5 "CANT SET CELL MODULE BALANCING" 6 "CELL OR CELL MODULE TEMP TO HIGH" 7 "CELL COMMUNICATION LOST 2" 8 "NUMBER OF CELLS MISMATCH" 9 "CELL OVER VOLTAGE" 10 "CELL PROTECTION EVENT OCCURRED" ;
+VAL_ 437 OverallParams_ChargingStage 6 "CHARGE_STAGE_ERROR" 5 "CHARGE_STAGE_FINISHED" 4 "CHARGE_STAGE_BALANCE" 3 "CHARGE_STAGE_CHARGE" 2 "CHARGE_STAGE_PRECHARGE" 0 "CHARGE_STAGE_DISCONNECTED" 1 "CHARGE_STAGE_PREHEAT" ;
+VAL_ 437 OverallParams_ContactorPreCharge 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_DCDC_Control 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_ChargingInterlock 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_PowerReduction 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_BatteryFan 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_BatteryContactor 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_HeaterEnable 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_ChargerEnable 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_LeakageSensor 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_FastCharge 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_ChargerMains 0 "OFF" 1 "ON" ;
+VAL_ 437 OverallParams_IgnitionKey 0 "OFF" 1 "ON" ;
+VAL_ 566 ContactorControl_ContactorState 0 "OPEN" 1 "CLOSE" ;
+VAL_ 570 Events_Data_MSB 68 "Voltage Reading Dev Rec" 67 "Voltage Reading Dev Prot" 66 "Parallel String Volt Dev Rec" 65 "Parallel String Voltage Dev Prot" 64 "Cell Wire Break Protection Rec" 63 "Cell Wire Break Protection" 62 "Ext Temp Sensor Loss Prot Rec" 61 "Ext Temp Sensor Loss Protection" 60 "Cell Module UnherHeat Prot Rec" 59 "Cell Module UnderHeat Protection" 58 "Volt Diff Btw Srcs Recovered" 57 "Volt Diff Brw Srcs Crit Diff" 56 "Hi Par Bat Str Volt Diff Recover" 55 "Volt Diff Brw Par Bat Str Crt Hi" 54 "Cell Wire Break Recovered" 53 "Cell Wire Break Detected" 52 "Ext Temp Sens Loss Recovered" 51 "Ext Temp Sens Loss Detected" 50 "Crit Low Cell Module Temp Rec" 49 "Cell Module Temp Crit Low" 48 "Crit Hi Diff Btw Max N Min Vol R" 47 "Diff Btw Max N Min Volt Crit Hi" 46 "Crit Diff Btw Max N Min Cell V R" 45 "Diff Btw Max N Min Volt Cell  Hi" 44 "Crit Low Cell Temp Recovered" 43 "Cell Temperature Critically Low" 42 "Crit High Pack Voltage Recovered" 41 "Pack Voltage Critiaclly Low" 40 "CAN Comm Watchdog Time Out" 39 "Crit Low Pack Volt Recovered" 38 "Pack Voltage Critically Low" 37 "Detected Current Sensor" 36 "No Current Sensor Detected" 0 "No event" 1 "BMS Started" 2 "Lost Communication To Cells" 3 "Established Communication To Cells" 4 "Cells Voltage Critically Low" 5 "Critical Low Voltage Recovered" 6 "Cells Voltage Critically High " 7 "Critical High Voltage Recovered" 8 "Discharge Current Critically High" 9 "Discharge Critically High Current Recovered" 10 "Charge Current Critically High" 11 "Charge Critically High Current Recovered" 12 "Cell Module Temperature Critically High" 13 "Critical High Cell Module Temperature Recovered" 14 "Leakage Detected" 15 "Leakage Recovered" 16 "Warning: Low Voltage - Reducing Power" 17 "Power Reduction Due To Low Voltage Recovered" 18 "Warning: High Current - Reducing Power" 19 "Power Reduction Due To High Current Recovered" 20 "Warning: High Cell Module Temperature - Reducing Power" 21 "Power Reduction Due To High Cell Module Temperature Recovered" 22 "Charger Connected" 23 "Charger Disconnected" 24 "Started Pre-Heating Stage" 25 "Started Pre-Charging Stage" 26 "Started Main-Charging Stage" 27 "Started Balancing Stage" 28 "Charging Finished" 29 "Charging Error Occured" 30 "Retrying Charging" 31 "Restarting Charging" 32 "Cell Temperature Critically High" 33 "Critically High Cell Temperature Recovered" 34 "Warning: High Cell Temperature - Reducing Power" 35 "Power Reduction Due To High Cell Temperature Recovered" ;
+VAL_ 570 Events_DataType 0 "Event Info " 1 "Event timestamp" ;
+VAL_ 567 LoginLevel 0 "GUEST" 1 "USER" 2 "ADMIN" ;
+VAL_ 569 Statistics_Identifier 63 "Voltage Reading Dev Prot Count" 62 "Bat Par Str Volt Dev Prot Count" 61 "Cell Wire Break Protection Count" 60 "Ext Temp Sensor Loss Prot Count" 59 "Cell Mod UnderHeat Prot Count" 58 "Pack Voltage Dev Prot Count" 57 "Cell Voltage Dev Prot Count" 56 "Cell Under Heat Prot Count" 55 "Pack Over Voltage Prot Count" 54 "Can Comm Watchdog Count" 53 "Pack Under Voltage Prot Count" 52 "Heater Relay Activation Count" 51 "No Current Sens Protection Count" 50 "None" 49 "Max Cell Temperature Difference" 48 "Max Cell Temperature" 47 "Min Cell Temperature" 46 "High Cell Temp Power Red Count" 45 "Cell Overheat Protection Count" 0 "Total Disharge" 1 "Total Charge" 2 "Total Discharge Energy" 3 "Total Charge Energy" 4 "Total Discharge Time" 5 "Total Charge Time" 6 "Total Distance" 7 "Master Clear Count" 8 "Max Discharge Current" 9 "Max Charge Current" 10 "Min Cell Voltage" 11 "Max Cell Voltage" 12 "Max Cell Voltage Difference" 13 "Min Pack Voltage" 14 "Max Pack Voltage" 15 "Min Cell Module Temperature" 16 "Max Cell Module Temperature" 17 "Max Cell Module Temperature Difference" 18 "BMS Starts Count" 19 "Under Voltage Protection Count" 20 "Over Voltage Protection Count" 21 "Discharge Over Current Protection Count" 22 "Charge Over Current Protection Count" 23 "Cell Module Over Heat Protection Count" 24 "Leakage Protection Count" 25 "No Cell Communication Protection Count" 26 "Low Voltage Power Reduction Count" 27 "High Current Power Reduction Count" 28 "High Cell Module Temp Power Reduction Count" 29 "Charger Connected Count" 30 "Charger Disconnected Count" 31 "Pre Heat Stage Count" 32 "Pre Charge Stage Count" 33 "Main Charge Stage Count" 34 "Balancing Stage Count" 35 "Charging Finished Count" 36 "Charging Error Count" 37 "Charging Retry Count" 38 "Trips Count" 39 "Charge Restarts Count" 40 "Configuration Error Count" 41 "Common CAN Error Count" 42 "Internal CAN Error Count" 43 "Configuration Mismatch Count" 44 "Common CAN Malfunction Count" ;
+VAL_ 569 Statistics_DataType 0 "Statistics Value" 1 "Additional Value" 2 "Statistics Timestamp" ;
+VAL_ 1328 Neuro4_Discharge_Control 0 "DISABLED" 1 "ENABLED" ;
+VAL_ 1328 Neuro4_Regeneration_Control 1 "ENABLED" 0 "DISABLED" ;
+VAL_ 1328 Neuro4_CellTemperatureValid 1 "INVALID" 0 "VALID" ;
+VAL_ 1328 Neuro4_ChargingStatus 0 "NOT CHARGING" 1 "CHARGING IN PROGRESS" 2 "CHARGING COMPLETE" 3 "CHARGING FAULT" ;
+

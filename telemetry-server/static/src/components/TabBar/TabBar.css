@@ -1,0 +1,20 @@
+.tabbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+}
+
+.tab {
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text2);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.15s;
+}
+
+.tab--active   { color: var(--accent); border-bottom-color: var(--accent); cursor: default; }
+
+.tab--disabled { opacity: 0.5; cursor: not-allowed; }

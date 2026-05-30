@@ -1,0 +1,284 @@
+.history-reference {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-top-color: rgba(221,102,63,0.48);
+    border-radius: 8px;
+}
+
+.history-reference__header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.history-reference__title {
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.history-reference__subtitle {
+    display: block;
+    margin-top: 2px;
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 11px;
+}
+
+.history-reference__readout {
+    min-width: 128px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+}
+
+.history-reference__readout span,
+.history-reference__sample small {
+    display: block;
+    color: var(--text2);
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.history-reference__readout strong {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.history-reference__chart {
+    width: 100%;
+    min-height: 260px;
+}
+
+.history-reference__chart .u-select {
+    background: rgba(221,102,63,0.18);
+    border-left: 1px solid rgba(221,102,63,0.85);
+    border-right: 1px solid rgba(221,102,63,0.85);
+}
+
+.history-reference__empty {
+    position: absolute;
+    inset: 76px 14px 78px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--text2);
+    background: rgba(7,8,11,0.82);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    text-align: center;
+}
+
+.history-reference__empty strong {
+    color: var(--text);
+    font-size: 13px;
+}
+
+.history-reference__empty span,
+.history-reference__samples-empty {
+    color: var(--text2);
+    font-size: 12px;
+}
+
+.history-reference__samples {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+}
+
+.history-reference__sample {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    background: rgba(255,255,255,0.035);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+}
+
+.history-reference__sample-name {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-reference__sample strong {
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.history-reference__sample strong span {
+    margin-left: 4px;
+    color: var(--text2);
+    font-size: 10px;
+    font-weight: 500;
+}
+
+.history-reference__window {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.history-reference__window-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.history-reference__window-header span {
+    color: var(--text2);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.history-reference__window-header strong {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.history-reference__window-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.history-reference__window-columns,
+.history-reference__window-row {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) repeat(3, minmax(64px, auto)) auto;
+    align-items: center;
+    gap: 10px;
+}
+
+.history-reference__window-columns {
+    padding: 0 10px;
+    color: var(--text2);
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.history-reference__window-columns span:not(:first-child) {
+    text-align: right;
+}
+
+.history-reference__window-row {
+    padding: 9px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+}
+
+.history-reference__window-row span:not(.history-reference__sample-name) {
+    display: grid;
+    gap: 2px;
+    justify-items: end;
+    font-family: var(--mono);
+}
+
+.history-reference__window-row small {
+    color: var(--text2);
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.history-reference__window-row strong {
+    color: var(--text);
+    font-size: 12px;
+}
+
+.history-reference__window-row em {
+    color: var(--text2);
+    font-size: 10px;
+    font-style: normal;
+    text-align: right;
+}
+
+.history-reference__detail {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.history-reference__detail-chart {
+    width: 100%;
+    min-height: 220px;
+}
+
+.history-reference__detail-empty {
+    position: absolute;
+    inset: 42px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text2);
+    background: rgba(17,19,25,0.86);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    font-size: 12px;
+    text-align: center;
+}
+
+@media (max-width: 760px) {
+    .history-reference__header {
+        grid-template-columns: 1fr;
+    }
+
+    .history-reference__readout {
+        width: 100%;
+    }
+
+    .history-reference__sample {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .history-reference__window-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .history-reference__window-columns {
+        display: none;
+    }
+
+    .history-reference__window-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .history-reference__window-row .history-reference__sample-name {
+        grid-column: 1 / -1;
+    }
+}

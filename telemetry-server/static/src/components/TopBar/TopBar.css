@@ -1,0 +1,193 @@
+.topbar {
+    background: linear-gradient(180deg, #15171e, var(--bg2));
+    border-bottom: 1px solid var(--border);
+    border-top: 2px solid var(--brand-orange);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.topbar__left  { display: flex; align-items: center; gap: 12px; }
+.topbar__title { font-size: 16px; font-weight: 600; color: var(--text); }
+
+.topbar__right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ws-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.055);
+    color: var(--text2);
+}
+
+.ws-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text2);
+    transition: background 0.3s;
+}
+
+.ws-dot--connected  { background: var(--ok); }
+
+.ws-dot--error      { background: var(--red); }
+
+.ws-dot--connecting { background: var(--amber); }
+
+.ws-dot--preview    { background: var(--blue); }
+
+.framerate {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+}
+
+.btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text2);
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.btn:hover { border-color: var(--red); color: var(--red); }
+
+.telemetry-control {
+    display: flex;
+    align-items: center;
+    min-height: 30px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.035);
+}
+
+.telemetry-control__status {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 10px;
+    color: var(--text2);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.telemetry-control__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text2);
+}
+
+.telemetry-control--live .telemetry-control__dot {
+    background: var(--ok);
+}
+
+.telemetry-control--stopped .telemetry-control__dot {
+    background: var(--amber);
+}
+
+.telemetry-control--readonly {
+    opacity: 0.86;
+}
+
+.telemetry-control__button {
+    align-self: stretch;
+    min-width: 72px;
+    padding: 0 12px;
+    color: var(--text);
+    background: rgba(31,182,142,0.14);
+    border: 0;
+    border-left: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.telemetry-control--live .telemetry-control__button {
+    color: var(--amber);
+    background: rgba(224,155,47,0.12);
+}
+
+.telemetry-control--stopped .telemetry-control__button {
+    color: var(--ok);
+    background: rgba(31,182,142,0.14);
+}
+
+.telemetry-control__button:hover {
+    color: var(--text);
+    background: rgba(31,182,142,0.24);
+}
+
+.telemetry-control__button:disabled {
+    cursor: wait;
+    opacity: 0.68;
+}
+
+.telemetry-control--live .telemetry-control__button:hover {
+    color: var(--red);
+    background: rgba(240,82,82,0.14);
+}
+
+.telemetry-control--stopped .telemetry-control__button:hover {
+    color: var(--ok);
+    background: rgba(31,182,142,0.24);
+}
+
+.session-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 30px;
+    padding: 4px 10px;
+    color: var(--text);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--brand-orange);
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.session-chip__label {
+    color: var(--text2);
+}
+
+.session-chip strong {
+    font-weight: 600;
+}
+
+.session-chip__role {
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .topbar__left,
+    .topbar__right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .framerate {
+        display: none;
+    }
+}

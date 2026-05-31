@@ -68,18 +68,18 @@
 // nenhuma outra parte do código precisa mudar.
 
 const CAN_MAP = {
-    // ── IMU ──────────────────────────────────────────────────────────────────
+    // ── INS ──────────────────────────────────────────────────────────────────
     1: [ // 0x00000001
-        { n: 'ventor_linear_acc_x',   sb: 0,  len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int' },
-        { n: 'ventor_angular_speed_x', sb: 16, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int' },
-        { n: 'ventor_linear_acc_y',   sb: 32, len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int' },
-        { n: 'ventor_angular_speed_y', sb: 48, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int' },
+        { n: 'Accel_Linear_X', sb: 0,  len: 16, f: 0.01, o: 0, u: 'm/s²',  t: 'int', signed: true },
+        { n: 'Velo_Angular_X', sb: 16, len: 16, f: 0.01, o: 0, u: 'rad/s', t: 'int' },
+        { n: 'Accel_Linear_Y', sb: 32, len: 16, f: 0.01, o: 0, u: 'm/s²',  t: 'int' },
+        { n: 'Velo_Angular_Y', sb: 48, len: 16, f: 0.01, o: 0, u: 'rad/s', t: 'int' },
     ],
     2: [ // 0x00000002
-        { n: 'ventor_linear_acc_z',   sb: 0,  len: 16, f: 0.01, o: 0,  u: 'm/s²',  t: 'int' },
-        { n: 'ventor_angular_speed_z', sb: 16, len: 16, f: 0.01, o: 0,  u: 'rad/s', t: 'int' },
-        { n: 'ventor_linear_speed_x', sb: 32, len: 16, f: 0.01, o: 0,  u: 'km/h',  t: 'int' },
-        { n: 'ventor_linear_speed_y', sb: 48, len: 16, f: 0.01, o: 0,  u: 'km/h',  t: 'int' },
+        { n: 'Accel_Linear_Z', sb: 0,  len: 16, f: 0.01, o: 0, u: 'm/s²',  t: 'int' },
+        { n: 'Velo_Angular_Z', sb: 16, len: 16, f: 0.01, o: 0, u: 'rad/s', t: 'int' },
+        { n: 'Speed_Linear_X', sb: 32, len: 16, f: 0.01, o: 0, u: 'km/h',  t: 'int' },
+        { n: 'Speed_Linear_Y', sb: 48, len: 16, f: 0.01, o: 0, u: 'km/h',  t: 'int' },
     ],
 
     // ── PAINEL ───────────────────────────────────────────────────────────────

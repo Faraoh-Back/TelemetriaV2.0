@@ -27,5 +27,5 @@ export const GAUGE_CONFIG = [
 
 export const DEFAULT_CHART_LAYOUT = [
     { label: 'RPM Motores', signals: ['act_Speed_A0', 'act_Speed_B0', 'act_Speed_A13', 'act_Speed_B13'] },
-    { label: 'Aceleração Linear', signals: ['ventor_linear_acc_x', 'ventor_linear_acc_y', 'ventor_linear_acc_z'] },
+    { label: 'Aceleração Linear', signals: ['Accel_Linear_X', 'Accel_Linear_Y', 'Accel_Linear_Z'] },
     ]

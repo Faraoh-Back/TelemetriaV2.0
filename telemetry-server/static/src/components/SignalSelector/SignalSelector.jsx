@@ -35,7 +35,7 @@ const EMPTY_SIGNAL_GROUPS = [
     },
     {
         label: 'Inercial',
-        signals: ['ventor_linear_acc_x', 'ventor_linear_acc_y', 'ventor_linear_acc_z'],
+        signals: ['Accel_Linear_X', 'Accel_Linear_Y', 'Accel_Linear_Z'],
     },
 ]
 

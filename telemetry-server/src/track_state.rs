@@ -147,10 +147,16 @@ impl RealtimeTrackState {
     fn apply_signal(&mut self, signal: &ProcessedSignal) {
         let name = signal.signal_name.trim();
         match name {
-            "ventor_linear_acc_x" | "VENTOR_LINEAR_ACC_X" => self.acc_x_mps2 = Some(signal.value),
-            "ventor_angular_speed_z" | "VENTOR_ANGULAR_SPEED_Z" => self.yaw_rate_rps = Some(signal.value),
-            "ventor_linear_speed_x" | "VENTOR_LINEAR_SPEED_X" => {
-                self.direct_speed_mps = Some(if signal.unit.eq_ignore_ascii_case("km/h") {
+            "Accel_Linear_X" | "ACCEL_LINEAR_X" | "ventor_linear_acc_x" | "VENTOR_LINEAR_ACC_X" => {
+                self.acc_x_mps2 = Some(signal.value)
+            }
+            "Velo_Angular_Z" | "VELO_ANGULAR_Z" | "ventor_angular_speed_z" | "VENTOR_ANGULAR_SPEED_Z" => {
+                self.yaw_rate_rps = Some(signal.value)
+            }
+            "Speed_Linear_X" | "SPEED_LINEAR_X" | "ventor_linear_speed_x" | "VENTOR_LINEAR_SPEED_X" => {
+                self.direct_speed_mps = Some(if name.eq_ignore_ascii_case("Speed_Linear_X")
+                    || signal.unit.eq_ignore_ascii_case("km/h")
+                {
                     signal.value / 3.6
                 } else {
                     signal.value
@@ -297,4 +303,3 @@ fn normalize_point(p: Point2, min_x: f64, max_x: f64, min_y: f64, max_y: f64) ->
 }
 
 pub type SharedTrackState = Arc<Mutex<RealtimeTrackState>>;
-

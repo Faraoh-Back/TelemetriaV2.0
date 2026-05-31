@@ -23,7 +23,7 @@ export const DATA_CLASS_COLORS = {
 
 export function inferSignalDataClass(signalName) {
     if (/^act_Speed_/.test(signalName)) return 'rpm'
-    if (/acc_/.test(signalName) || /^ventor_linear_acc_/.test(signalName)) return 'acceleration'
+    if (/acc_/i.test(signalName) || /^Accel_Linear_/.test(signalName) || /^ventor_linear_acc_/.test(signalName)) return 'acceleration'
     if (/Temperature|temp/i.test(signalName)) return 'temperature'
     if (/Voltage|voltage/i.test(signalName)) return 'voltage'
     if (/Power|power/i.test(signalName)) return 'power'

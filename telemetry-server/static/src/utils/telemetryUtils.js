@@ -60,7 +60,7 @@ export function getSignalColor(index) {
 function inferDomainType(signalName) {
     if (!signalName) return 'default'
     if (/^act_Speed_/i.test(signalName) || /\brpm\b/i.test(signalName)) return 'rpm'
-    if (/acc_/i.test(signalName) || /^ventor_linear_acc_/i.test(signalName)) return 'acceleration'
+    if (/acc_/i.test(signalName) || /^Accel_Linear_/i.test(signalName) || /^ventor_linear_acc_/i.test(signalName)) return 'acceleration'
     if (/temperature|temp/i.test(signalName)) return 'temperature'
     if (/voltage|dcbus/i.test(signalName)) return 'voltage'
     if (/power/i.test(signalName)) return 'power'

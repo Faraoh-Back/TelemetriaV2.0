@@ -60,10 +60,13 @@ const GROUPS = [
         ],
     },
     {
-        id: 'imu',
-        label: 'IMU',
+        id: 'ins',
+        label: 'INS',
         matches: [
             /^ventor_/,
+            /^Accel_Linear_/,
+            /^Velo_Angular_/,
+            /^Speed_Linear_/,
         ],
     },
     {

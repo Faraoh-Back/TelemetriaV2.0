@@ -1,0 +1,13 @@
+# /etc/systemd/system/eracing-qos.service
+[Unit]
+Description=E-Racing QoS HTB
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/etc/eracing/setup_qos.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

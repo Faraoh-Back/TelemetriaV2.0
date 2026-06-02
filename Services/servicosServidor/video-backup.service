@@ -1,0 +1,19 @@
+[Unit]
+Description=ZED 2i Video Backup
+After=network-online.target zed-stream.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=eracing
+EnvironmentFile=/etc/eracing/config.env
+ExecStart=/usr/bin/gst-launch-1.0 \
+  rtspsrc location=rtsp://127.0.0.1:${RTSP_PORT}/cam latency=0 ! \
+  rtph264depay ! h264parse ! \
+  splitmuxsink location=/var/eracing/video/cam_%%05d.mkv \
+  max-size-time=300000000000 muxer-factory=matroskamux
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

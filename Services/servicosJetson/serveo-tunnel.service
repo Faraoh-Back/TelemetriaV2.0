@@ -1,0 +1,22 @@
+[Unit]
+Description=Serveo SSH Reverse Tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/ssh \
+  -N \
+  -o StrictHostKeyChecking=no \
+  -o ServerAliveInterval=30 \
+  -o ServerAliveCountMax=3 \
+  -o ExitOnForwardFailure=yes \
+  -o ConnectTimeout=10 \
+  -R eracing-jetson:22:localhost:22 \
+  serveo.net
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+

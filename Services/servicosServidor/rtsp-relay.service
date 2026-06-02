@@ -1,0 +1,15 @@
+[Unit]
+Description=ZED 2i RTSP Relay
+After=network-online.target video-backup.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=eracing
+ExecStart=/usr/bin/python3 /etc/eracing/rtsp-relay.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

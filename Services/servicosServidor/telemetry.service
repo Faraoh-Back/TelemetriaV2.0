@@ -1,0 +1,19 @@
+[Unit]
+Description=E-Racing Telemetry Server V2
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=eracing
+WorkingDirectory=/home/eracing/TelemetriaV2.0/telemetry-server
+EnvironmentFile=/home/eracing/TelemetriaV2.0/telemetry-server/.env
+ExecStart=/home/eracing/TelemetriaV2.0/telemetry-server/target/release/telemetry-server
+Restart=always
+RestartSec=5
+Environment=RUST_LOG=telemetry_server=info
+StandardOutput=append:/home/eracing/logs/server.log
+StandardError=append:/home/eracing/logs/server.log
+
+[Install]
+WantedBy=multi-user.target

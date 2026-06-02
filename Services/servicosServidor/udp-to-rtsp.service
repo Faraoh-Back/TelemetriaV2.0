@@ -1,0 +1,21 @@
+[Unit]
+Description=UDP to RTSP converter
+After=network-online.target mediamtx.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=eracing
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/ffmpeg \
+  -fflags +genpts+discardcorrupt \
+  -protocol_whitelist file,udp,rtp \
+  -i /etc/eracing/cam.sdp \
+  -c copy \
+  -f rtsp \
+  rtsp://localhost:8554/cam
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

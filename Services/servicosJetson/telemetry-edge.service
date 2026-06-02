@@ -1,0 +1,23 @@
+[Unit]
+Description=Telemetria Edge — E-Racing UNICAMP
+After=network.target can-interfaces.service can-replay.service
+Requires=can-interfaces.service can-replay.service
+
+[Service]
+Type=simple
+User=sauva
+EnvironmentFile=/etc/eracing/config.env
+WorkingDirectory=/home/sauva/TelemetriaV2.0/telemetry-edge
+ExecStart=/bin/bash -c '/home/sauva/TelemetriaV2.0/telemetry-edge/target/release/telemetry-edge \
+  --pasta-csv /home/sauva/TelemetriaV2.0/telemetry-server/csv_data \
+  --ch0 vcan0 \
+  --ch1 0 \
+  --server ${SERVER_IP}:${SERVER_TCP_PORT} \
+  --device-id car_001'
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

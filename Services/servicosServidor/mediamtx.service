@@ -1,0 +1,15 @@
+[Unit]
+Description=MediaMTX WebRTC Relay
+After=network-online.target rtsp-relay.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=eracing
+EXECStartPre=/bin/sleep 5
+ExecStart=/usr/local/bin/mediamtx /etc/eracing/mediamtx.yml
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

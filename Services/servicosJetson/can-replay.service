@@ -1,0 +1,17 @@
+[Unit]
+Description=CAN log replay — simula barramento do carro
+After=can-interfaces.service
+Requires=can-interfaces.service
+
+[Service]
+Type=simple
+User=sauva
+ExecStart=/bin/bash -c "\
+  canplayer -I /home/sauva/logs/can/candump-1999-12-31_230146.log -l i -g 1 vcan0=can0 & \
+  canplayer -I /home/sauva/logs/can/candump-1999-12-31_230146.log -l i -g 1 vcan1=can0 & \
+  wait"
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

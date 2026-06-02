@@ -171,41 +171,9 @@ Resumo:
 
 ---
 
-## 7. Teste sintético validado (referência)
+## 7. Validacao com dados reais
 
-## 7.1 Objetivo do teste
-
-Separar:
-
-- erro de algoritmo/implementação
-de
-- ruído/problema de dado real.
-
-## 7.2 Como foi feito
-
-Com dataset sintético coerente e sem ruído:
-
-- sinais consistentes entre si (`RPM`, `ACC_X`, `YAW`);
-- primeira volta e tracking avaliados em cenário ideal.
-
-Execução de referência:
-
-```bash
-python3 src/gerarDadosPerfeitos.py --saida sintetico-perfeito
-python3 src/getTrajetoria.py data/processed/sintetico-perfeito --lap-period-sec 40 --bias-yaw-bordas-sec 1
-python3 src/plotador.py sintetico-perfeito
-```
-
-Resultado validado:
-
-- erro de fechamento aproximado de **0.14 m**;
-- geração de `MAPA_BASE_X/Y`;
-- comportamento consistente da regra de mapa/tracking.
-
-Conclusão:
-
-- lógica funcional em cenário controlado;
-- falhas em dados reais tendem a estar em qualidade de sinal/recorte/sobreposição.
+A validacao desta etapa deve usar logs reais de bancada ou pista.
 
 ---
 
@@ -271,7 +239,7 @@ Ação:
 2. `MAPA_BASE` gerado nas sessões com dados suficientes.
 3. Tracking não redesenha pista a cada volta.
 4. Export frontend gerado por sessão.
-5. Teste sintético com erro de fechamento baixo (referência já validada).
+5. Validação com log real de bancada ou pista.
 
 ---
 
@@ -311,4 +279,3 @@ Com este bundle validado:
 3. servir mapa e posição em endpoint/stream realtime.
 
 Este documento encerra a fase de validação da regra de negócio e prepara a fase de integração.
-

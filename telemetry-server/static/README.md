@@ -22,40 +22,6 @@ Desenvolvimento:
 pnpm dev
 ```
 
-Mock backend:
-
-```bash
-pnpm mock:backend
-```
-
-Teste do cockpit com mapa/tracking:
-
-```bash
-pnpm test:cockpit-map
-```
-
-Esse comando sobe, em paralelo:
-
-- mock backend em `http://localhost:8081`;
-- Vite em `http://localhost:5173/`.
-
-Fluxo esperado:
-
-1. Abra `http://localhost:5173/`.
-2. Faça login com `admin` para perfil administrador ou `member`/`membro` para
-   perfil de membro. A senha pode ser qualquer valor no mock.
-3. Clique em `Iniciar coleta`.
-4. Abra a aba `Cockpit`.
-5. O painel começa como `aprendendo primeira volta`.
-6. Após alguns segundos, muda para `tracking`, desenha o mapa e move o ponto do veículo.
-
-Variáveis úteis:
-
-```bash
-MOCK_TRACK_LAP_SEC=10 pnpm test:cockpit-map
-MOCK_TELEMETRY_TICK_MS=100 pnpm test:cockpit-map
-```
-
 Build:
 
 ```bash

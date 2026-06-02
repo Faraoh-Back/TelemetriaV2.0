@@ -8,16 +8,26 @@ use crate::auth::{
     PERMISSION_TELEMETRY_STOP,
 };
 
-const INDEX_HTML: &str = include_str!("../../static/dist/index.html");
-
 pub(super) async fn serve_html(stream: &mut TcpStream) {
-    let body = INDEX_HTML;
-    let response = format!(
-        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-cache\r\n\r\n{}",
-        body.len(),
-        body
-    );
-    let _ = stream.write_all(response.as_bytes()).await;
+    match tokio::fs::read_to_string("./static/dist/index.html").await {
+        Ok(body) => {
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nCache-Control: no-cache\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            let _ = stream.write_all(response.as_bytes()).await;
+        }
+        Err(_) => {
+            let body = r#"{"ok":false,"message":"Frontend build nao encontrado. Execute o build em static/ antes de servir a aplicacao."}"#;
+            let response = format!(
+                "HTTP/1.1 503 Service Unavailable\r\nContent-Type: application/json\r\nContent-Length: {}\r\nCache-Control: no-cache\r\n\r\n{}",
+                body.len(),
+                body
+            );
+            let _ = stream.write_all(response.as_bytes()).await;
+        }
+    }
 }
 
 pub(super) async fn serve_static_file(stream: &mut TcpStream, first_line: &str) {

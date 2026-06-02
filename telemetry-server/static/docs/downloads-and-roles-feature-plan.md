@@ -550,7 +550,7 @@ pendencias documentadas em
 - [x] Backend: definir contrato final de login com perfil/permissoes.
 - [x] Frontend: criar service de start/stop administrativo.
 - [x] Frontend: sincronizar start/stop local com resposta real do backend.
-- [x] Frontend: substituir mock de persistencia de bounds por chamada real.
+- [x] Frontend: persistir bounds por chamada real.
 - [x] Backend: implementar autorizacao real para start/stop.
 - [ ] Backend: implementar listagem e download de logs.
 - [x] Backend: implementar persistencia de bounds da coleta.

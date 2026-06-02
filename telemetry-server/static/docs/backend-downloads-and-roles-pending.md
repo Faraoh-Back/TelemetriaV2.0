@@ -268,7 +268,7 @@ Status esperados:
 ## 8. Ordem recomendada para destravar o frontend
 
 1. Atualizar `POST /login` para retornar `user.role` e `user.permissions`.
-2. Implementar `GET /telemetry/logs` com pelo menos um payload real ou fixture
+2. Implementar `GET /telemetry/logs` com payload real
    persistida.
 3. Implementar `GET /telemetry/logs/:id/download`.
 4. Implementar `POST /telemetry/collection/start` e

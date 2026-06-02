@@ -8,7 +8,6 @@
 import { getServerConfig } from '../config/serverConfig.js'
 import {
     ROLES,
-    getDefaultPermissions,
     normalizePermissions,
     normalizeRole,
 } from './permissions.js'
@@ -63,22 +62,11 @@ export function getValidStoredToken() {
     return null
 }
 
-function getLegacyDevSession(username, token) {
-    return {
-        token,
-        username,
-        role: ROLES.admin,
-        permissions: getDefaultPermissions(ROLES.admin),
-        mode: 'live',
-    }
-}
-
 export function buildSessionFromAuthData(data, fallbackUsername) {
     const token = data?.token
     const payload = token ? getJwtPayload(token) : null
     const user = data?.user ?? {}
-    const fallbackRole = import.meta.env.DEV ? ROLES.admin : ROLES.member
-    const role = normalizeRole(user.role ?? payload?.role ?? fallbackRole)
+    const role = normalizeRole(user.role ?? payload?.role ?? ROLES.member)
     const username =
         user.username ??
         payload?.username ??
@@ -101,7 +89,7 @@ export function buildSessionFromToken(token, fallbackUsername = 'eracing') {
     try {
         return buildSessionFromAuthData({ token }, fallbackUsername)
     } catch (_) {
-        return import.meta.env.DEV ? getLegacyDevSession(fallbackUsername, token) : null
+        return null
     }
 }
 
@@ -129,7 +117,6 @@ export async function login(username, password) {
     try {
         return buildSessionFromAuthData(data, username)
     } catch (_) {
-        if (import.meta.env.DEV) return getLegacyDevSession(username, data.token)
         throw new Error('Sessao invalida retornada pelo servidor.')
     }
 }

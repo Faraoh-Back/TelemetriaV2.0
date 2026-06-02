@@ -279,37 +279,9 @@ Desenvolvimento:
 pnpm dev
 ```
 
-Mock backend:
-
-```bash
-pnpm mock:backend
-```
-
-Teste do cockpit com mapa/tracking:
-
-```bash
-pnpm test:cockpit-map
-```
-
-Esse teste usa `scripts/test-cockpit-map.mjs` para iniciar o Vite e o mock backend juntos.
-O mock aceita `admin` como administrador e `member`/`membro` como membro,
-envia frames CAN binários e também mensagens JSON
-`track_status`, `track_map` e `track_pose` pelo mesmo WebSocket.
-
-Passo a passo:
-
-1. abrir `http://localhost:5173/`;
-2. fazer login com `admin` para testar controle de coleta ou `member` para
-   testar consumo sem start/stop;
-3. clicar em `Iniciar coleta`;
-4. abrir a aba `Cockpit`;
-5. aguardar o estado mudar de `aprendendo primeira volta` para `tracking`.
-
-Para ajustar o tempo da primeira volta simulada:
-
-```bash
-MOCK_TRACK_LAP_SEC=10 pnpm test:cockpit-map
-```
+Durante desenvolvimento, o Vite espera que o backend real esteja disponivel na
+porta configurada pelo servidor de telemetria. Fluxos de validacao devem usar
+dados reais vindos do `telemetry-server` e do `telemetry-edge`.
 
 Build:
 

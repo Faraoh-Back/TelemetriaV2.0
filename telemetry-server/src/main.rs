@@ -20,6 +20,7 @@ mod db;
 mod decoder;
 mod ingest;
 mod models;
+mod ntp;
 mod track_state;
 mod ws;
 
@@ -105,7 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         // Spawn servidor NTP :9999
         tokio::spawn(async move {
-            api::run_ntp_server(NTP_PORT).await;
+            ntp::run_ntp_server(NTP_PORT).await;
         });
     }
 

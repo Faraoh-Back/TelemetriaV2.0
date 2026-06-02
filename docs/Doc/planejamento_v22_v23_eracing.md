@@ -984,7 +984,7 @@ quadrantChart
 
     Formato .ld incompatível com MoTeC i2: [0.5, 0.9]
     Wazuh Manager usa RAM demais: [0.6, 0.7]
-    HD Toshiba falha (como o WD): [0.2, 0.9]
+    HD Toshiba falha: [0.2, 0.9]
     Suricata falsos positivos: [0.7, 0.4]
     Jetson sem clock no boot: [0.8, 0.3]
     Serveo.net cai na competição: [0.3, 0.5]

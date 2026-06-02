@@ -1,5 +1,5 @@
 use crate::models::ProcessedSignal;
-use sqlx::{postgres::PgPoolOptions, sqlite::SqlitePool, Row};
+use sqlx::{postgres::PgPoolOptions, sqlite::SqlitePool, QueryBuilder, Row};
 use tracing::{error, info, warn};
 
 pub async fn init_timescale(pool: &sqlx::PgPool) -> Result<(), Box<dyn std::error::Error>> {
@@ -291,7 +291,6 @@ pub async fn migrate_old_data(
     let mut total_migrated = 0usize;
     let batch_size: i64 = 5000;
     let mut last_ts: f64 = 0.0; // cursor — começa do início
-    let mut prev_ts: f64 = 0.0; // para deletar só o lote migrado
 
     loop {
         let rows = sqlx::query(
@@ -320,39 +319,32 @@ pub async fn migrate_old_data(
         }
 
         // Atualiza cursor com o timestamp do último registro do lote
-        prev_ts = last_ts; // ← salva o cursor anterior antes de atualizar
+        let prev_ts = last_ts; // ← salva o cursor anterior antes de atualizar
         last_ts = rows
             .last()
             .map(|r| r.get::<f64, _>("ts"))
             .unwrap_or(last_ts);
 
         // Insere lote no SQLite em uma única transação
-        let mut tx = sqlite_pool.begin().await?;
-        for row in &rows {
-            let ts: f64 = row.get("ts");
-            let device_id: &str = row.get("device_id");
-            let signal_name: &str = row.get("signal_name");
-            let value: f64 = row.get("value");
-            let unit: &str = row.get("unit");
-            let can_id: i32 = row.get("can_id");
+        let mut query_builder: 
+            QueryBuilder<sqlx::Sqlite> = QueryBuilder::new(    
+            "INSERT 
+                OR IGNORE 
+                INTO historico 
+                (timestamp, device_id, signal_name, value, unit, can_id)"
+        );
 
-            sqlx::query(
-                r#"
-                INSERT OR IGNORE INTO historico
-                    (timestamp, device_id, signal_name, value, unit, can_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-            "#,
-            )
-            .bind(ts)
-            .bind(device_id)
-            .bind(signal_name)
-            .bind(value)
-            .bind(unit)
-            .bind(can_id as i64)
-            .execute(&mut *tx)
-            .await?;
-        }
-        tx.commit().await?;
+        query_builder.push_values(&rows, |mut b, row| {
+            b.push_bind(row.get::<f64, _>("ts"))
+            .push_bind(row.get::<String, _>("device_id"))
+            .push_bind(row.get::<String, _>("signal_name"))
+            .push_bind(row.get::<f64, _>("value"))
+            .push_bind(row.get::<String, _>("unit"))
+            .push_bind(row.get::<i32, _>("can_id") as i64);
+        });
+
+        let query = query_builder.build();
+        query.execute(sqlite_pool).await?;
 
         // Deleta do TimescaleDB os registros já migrados
         // Usa o timestamp do cursor anterior e do atual para deletar só o lote

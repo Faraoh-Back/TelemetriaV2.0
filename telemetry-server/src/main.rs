@@ -85,12 +85,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
     db::init_sqlite(&sqlite_pool).await?;
 
-    info!("🔍 Verificando dados antigos para migração...");
-    match db::migrate_old_data(&pg_pool, &sqlite_pool).await {
-        Ok(n) if n > 0 => info!("✅ Boot: {} registros migrados para SQLite", n),
-        Ok(_) => info!("✅ Boot: nenhum dado antigo para migrar"),
-        Err(e) => warn!("⚠️  Boot: erro na migração (não crítico): {:?}", e),
-    }
+    let pg_m = pg_pool.clone();
+    let sq_m = sqlite_pool.clone();
+    tokio::spawn(async move {
+        info!("🔍 Verificando dados antigos para migração (background)...");
+        match db::migrate_old_data(&pg_m, &sq_m).await {
+            Ok(n) if n > 0 => info!("✅ Migração concluída: {} registros movidos.", n),
+            Ok(_) => info!("✅ Migração: nada para mover."),
+            Err(e) => warn!("⚠️ Erro na migração: {:?}", e),
+        }    
+    });
 
     let (ws_tx, _) = broadcast::channel::<Vec<u8>>(10_000);
     let track_state = Arc::new(Mutex::new(RealtimeTrackState::new()));

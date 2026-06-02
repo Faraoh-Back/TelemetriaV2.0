@@ -5,7 +5,9 @@ import './TopBar.css'
 function TopBar(props) {
     const isLive = () => props.telemetryMode === 'live'
     const isStopped = () => props.telemetryMode === 'stopped'
-    const canControlTelemetry = () => props.canControlTelemetry ?? false
+    const canStartTelemetry = () => props.canStartTelemetry ?? props.canControlTelemetry ?? false
+    const canStopTelemetry = () => props.canStopTelemetry ?? props.canControlTelemetry ?? false
+    const canUseCurrentAction = () => isLive() ? canStopTelemetry() : canStartTelemetry()
 
     const dotClass = () => {
         const s = status.state
@@ -49,18 +51,18 @@ function TopBar(props) {
                 <div
                     classList={{
                         'telemetry-control': true,
-                        'telemetry-control--readonly': !canControlTelemetry(),
+                        'telemetry-control--readonly': !canUseCurrentAction(),
                         'telemetry-control--live': isLive(),
                         'telemetry-control--stopped': isStopped(),
                     }}
-                    title={canControlTelemetry() ? 'Controle de telemetria' : 'Controle restrito a administradores'}
+                    title={canUseCurrentAction() ? 'Controle de telemetria' : 'Controle restrito a administradores'}
                 >
                     <span class="telemetry-control__status">
                         <span class="telemetry-control__dot" />
                         {collectionLabel()}
                     </span>
 
-                    {canControlTelemetry() && (
+                    {canUseCurrentAction() && (
                         <button
                             class="telemetry-control__button"
                             type="button"

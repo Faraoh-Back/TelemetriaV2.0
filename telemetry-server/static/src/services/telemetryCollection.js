@@ -44,13 +44,19 @@ export async function startTelemetryCollection(token) {
     )
 }
 
-export async function stopTelemetryCollection(token, bounds) {
+function normalizeLogName(logName) {
+    const normalized = String(logName ?? '').trim()
+    return normalized || null
+}
+
+export async function stopTelemetryCollection(token, bounds, logName) {
     const { apiBase } = getServerConfig()
     const response = await fetch(`${apiBase}/telemetry/collection/stop`, {
         method: 'POST',
         headers: authHeaders(token),
         body: JSON.stringify({
             requested_at: new Date().toISOString(),
+            log_name: normalizeLogName(logName),
             log_start_unix: bounds?.log_start_unix ?? null,
             log_stop_unix: bounds?.log_stop_unix ?? null,
         }),
@@ -62,12 +68,13 @@ export async function stopTelemetryCollection(token, bounds) {
     )
 }
 
-export async function persistTelemetryLogBounds(bounds, token) {
+export async function persistTelemetryLogBounds(bounds, token, logName) {
     const { apiBase } = getServerConfig()
     const response = await fetch(`${apiBase}/telemetry/log-session-bounds`, {
         method: 'POST',
         headers: authHeaders(token),
         body: JSON.stringify({
+            log_name: normalizeLogName(logName),
             log_start_unix: bounds.log_start_unix,
             log_stop_unix: bounds.log_stop_unix,
         }),

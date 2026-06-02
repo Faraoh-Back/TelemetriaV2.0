@@ -1,4 +1,4 @@
-import { Show, createSignal, onMount } from 'solid-js'
+import { Show, createEffect, createSignal, onCleanup, onMount } from 'solid-js'
 import {
     downloadTelemetryLog,
     listTelemetryLogs,
@@ -17,6 +17,9 @@ const DEFAULT_FILTERS = {
     limit: '50',
 }
 
+const PROCESSING_STATUSES = new Set(['processing', 'pending', 'generating'])
+const PROCESSING_REFRESH_MS = 5000
+
 function normalizeFilters(filters) {
     return {
         ...filters,
@@ -29,13 +32,20 @@ function DownloadsPage(props) {
     const [filters, setFilters] = createSignal(DEFAULT_FILTERS)
     const [logs, setLogs] = createSignal([])
     const [loading, setLoading] = createSignal(false)
+    const [refreshing, setRefreshing] = createSignal(false)
     const [error, setError] = createSignal('')
     const [downloadingId, setDownloadingId] = createSignal(null)
+    let refreshTimer = null
+
     const canDownload = () =>
         hasPermission(props.session, PERMISSIONS.logsDownload)
+    const hasProcessingLogs = () =>
+        logs().some((log) => PROCESSING_STATUSES.has(log.status))
 
-    async function loadLogs(nextFilters = filters()) {
-        setLoading(true)
+    async function loadLogs(nextFilters = filters(), options = {}) {
+        const background = options.background ?? false
+        if (background) setRefreshing(true)
+        else setLoading(true)
         setError('')
 
         try {
@@ -48,7 +58,8 @@ function DownloadsPage(props) {
             setLogs([])
             setError(err.message || 'Nao foi possivel carregar os logs.')
         } finally {
-            setLoading(false)
+            if (background) setRefreshing(false)
+            else setLoading(false)
         }
     }
 
@@ -76,6 +87,23 @@ function DownloadsPage(props) {
         loadLogs()
     })
 
+    createEffect(() => {
+        if (refreshTimer) {
+            clearTimeout(refreshTimer)
+            refreshTimer = null
+        }
+
+        if (!hasProcessingLogs() || loading() || refreshing() || error()) return
+
+        refreshTimer = setTimeout(() => {
+            loadLogs(filters(), { background: true })
+        }, PROCESSING_REFRESH_MS)
+    })
+
+    onCleanup(() => {
+        if (refreshTimer) clearTimeout(refreshTimer)
+    })
+
     return (
         <main class="downloads-page">
             <header class="downloads-header">
@@ -87,10 +115,10 @@ function DownloadsPage(props) {
                 <button
                     class="downloads-button"
                     type="button"
-                    disabled={loading()}
+                    disabled={loading() || refreshing()}
                     onClick={() => loadLogs()}
                 >
-                    Atualizar
+                    {refreshing() ? 'Atualizando' : 'Atualizar'}
                 </button>
             </header>
 

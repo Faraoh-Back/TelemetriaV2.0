@@ -59,6 +59,8 @@ function App() {
   const [telemetryMode, setTelemetryMode] = createSignal(TELEMETRY_MODE.idle)
   const [telemetryActionPending, setTelemetryActionPending] = createSignal(false)
   const [telemetryActionError, setTelemetryActionError] = createSignal('')
+  const [isStopModalOpen, setIsStopModalOpen] = createSignal(false)
+  const [stopSessionName, setStopSessionName] = createSignal('')
   const customChartKey = createMemo(() => selectedSignals().join('|'))
   const hasSignals = createMemo(() => Object.keys(signals).length > 0)
   const canStartTelemetry = createMemo(() =>
@@ -103,6 +105,8 @@ function App() {
     setTelemetryMode(TELEMETRY_MODE.idle)
     setTelemetryActionPending(false)
     setTelemetryActionError('')
+    setIsStopModalOpen(false)
+    setStopSessionName('')
     setActiveTab('analise')
     setSelectedSignals([])
   }
@@ -140,15 +144,37 @@ function App() {
     }
   }
 
-  async function handleStopTelemetry() {
+  function handleStopTelemetryRequest() {
+    if (!canStopTelemetry() || telemetryActionPending()) return
+
+    setTelemetryActionError('')
+    setStopSessionName('')
+    setIsStopModalOpen(true)
+  }
+
+  function closeStopTelemetryModal() {
+    if (telemetryActionPending()) return
+
+    setIsStopModalOpen(false)
+    setStopSessionName('')
+  }
+
+  async function handleStopTelemetry(event) {
+    event?.preventDefault()
     const currentSession = session()
     if (!currentSession || !canStopTelemetry() || telemetryActionPending()) return
+
+    const logName = stopSessionName().trim()
+    if (!logName) {
+      setTelemetryActionError('Informe um nome para a sessao antes de encerrar a coleta.')
+      return
+    }
 
     setTelemetryActionPending(true)
     setTelemetryActionError('')
 
     try {
-      await stopTelemetryCollection(currentSession.token)
+      await stopTelemetryCollection(currentSession.token, null, logName)
       const bounds = await setTelemetryCollectionEnabled(false)
       let boundsError = null
 
@@ -158,13 +184,15 @@ function App() {
         bounds.log_stop_unix != null
       ) {
         try {
-          await persistTelemetryLogBounds(bounds, currentSession.token)
+          await persistTelemetryLogBounds(bounds, currentSession.token, logName)
         } catch (error) {
           boundsError = error
         }
       }
 
       setTelemetryMode(TELEMETRY_MODE.stopped)
+      setIsStopModalOpen(false)
+      setStopSessionName('')
       setActiveTab('analise')
 
       if (boundsError) {
@@ -201,15 +229,65 @@ function App() {
         sessionMode={session().mode}
         telemetryMode={telemetryMode()}
         canControlTelemetry={canUseTelemetryControls()}
+        canStartTelemetry={canStartTelemetry()}
+        canStopTelemetry={canStopTelemetry()}
         telemetryActionPending={telemetryActionPending()}
         onStartTelemetry={handleStartTelemetry}
-        onStopTelemetry={handleStopTelemetry}
+        onStopTelemetry={handleStopTelemetryRequest}
         onLogout={handleLogout}
       />
       <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
       <Show when={telemetryActionError()}>
         <div class="app-alert app-alert--error" role="alert">
           {telemetryActionError()}
+        </div>
+      </Show>
+      <Show when={isStopModalOpen()}>
+        <div class="modal-backdrop" role="presentation">
+          <form
+            class="telemetry-stop-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="telemetry-stop-title"
+            onSubmit={handleStopTelemetry}
+          >
+            <div>
+              <h2 id="telemetry-stop-title">Nome da sessao</h2>
+              <p>Identifique a coleta antes de encerrar a telemetria.</p>
+            </div>
+
+            <label class="telemetry-stop-modal__field">
+              <span>Sessao</span>
+              <input
+                type="text"
+                value={stopSessionName()}
+                placeholder="FSAE Brasil - Treino Livre 1"
+                maxLength="120"
+                required
+                disabled={telemetryActionPending()}
+                autofocus
+                onInput={(event) => setStopSessionName(event.currentTarget.value)}
+              />
+            </label>
+
+            <div class="telemetry-stop-modal__actions">
+              <button
+                class="modal-button"
+                type="button"
+                disabled={telemetryActionPending()}
+                onClick={closeStopTelemetryModal}
+              >
+                Cancelar
+              </button>
+              <button
+                class="modal-button modal-button--danger"
+                type="submit"
+                disabled={telemetryActionPending() || !stopSessionName().trim()}
+              >
+                {telemetryActionPending() ? 'Encerrando' : 'Parar telemetria'}
+              </button>
+            </div>
+          </form>
         </div>
       </Show>
 

@@ -43,6 +43,17 @@ function getLogName(log) {
     return log.name || log.id || 'Log de telemetria'
 }
 
+function getActionLabel(log, isDownloading, canDownload) {
+    if (isDownloading) return 'Baixando'
+    if (!canDownload) return 'Restrito'
+    if (log.status === 'processing' || log.status === 'pending' || log.status === 'generating') {
+        return 'Gerando .ld'
+    }
+    if (log.status === 'failed') return 'Falhou'
+    if (log.status === 'expired') return 'Expirado'
+    return 'Baixar'
+}
+
 function DownloadLogTable(props) {
     return (
         <div class="downloads-table-wrap">
@@ -64,6 +75,7 @@ function DownloadLogTable(props) {
                         {(log) => {
                             const isReady = () => log.status === 'ready'
                             const isDownloading = () => props.downloadingId === log.id
+                            const status = () => isDownloading() ? 'downloading' : log.status
 
                             return (
                                 <tr>
@@ -83,7 +95,7 @@ function DownloadLogTable(props) {
                                     <td class="downloads-format">{log.format || '-'}</td>
                                     <td>{formatBytes(log.size_bytes)}</td>
                                     <td>
-                                        <DownloadStatusBadge status={log.status} />
+                                        <DownloadStatusBadge status={status()} />
                                     </td>
                                     <td>
                                         <button
@@ -92,7 +104,7 @@ function DownloadLogTable(props) {
                                             disabled={!isReady() || isDownloading() || !props.canDownload}
                                             onClick={() => props.onDownload?.(log)}
                                         >
-                                            {isDownloading() ? 'Baixando' : 'Baixar'}
+                                            {getActionLabel(log, isDownloading(), props.canDownload)}
                                         </button>
                                     </td>
                                 </tr>

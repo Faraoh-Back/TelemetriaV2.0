@@ -166,7 +166,10 @@
     border-color: rgba(31,182,142,0.25);
 }
 
-.download-status--processing {
+.download-status--processing,
+.download-status--pending,
+.download-status--generating,
+.download-status--downloading {
     color: var(--blue);
     background: rgba(61,142,240,0.12);
     border-color: rgba(61,142,240,0.25);

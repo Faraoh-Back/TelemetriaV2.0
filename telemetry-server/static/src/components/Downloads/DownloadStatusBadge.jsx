@@ -1,6 +1,9 @@
 const STATUS_LABELS = {
     ready: 'Pronto',
     processing: 'Processando',
+    pending: 'Na fila',
+    generating: 'Gerando .ld',
+    downloading: 'Baixando',
     failed: 'Falhou',
     expired: 'Expirado',
 }

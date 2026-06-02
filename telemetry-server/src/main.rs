@@ -6,22 +6,22 @@
 //   Browser/App   ──HTTP──→ POST /login → JWT token
 //   Browser/App   ──WS──→   /ws         → broadcast JSON (requer JWT)
 
-use tokio::net::TcpListener;
-use tokio::sync::broadcast;
-use tracing::{info, warn};
 use sqlx::postgres::PgPoolOptions;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
+use tokio::net::TcpListener;
+use tokio::sync::broadcast;
+use tracing::{info, warn};
 
-mod config;
-mod models;
+mod api;
 mod auth;
+mod config;
 mod db;
+mod decoder;
+mod ingest;
+mod models;
 mod track_state;
 mod ws;
-mod api;
-mod ingest;
-mod decoder;
 
 use config::*;
 use track_state::RealtimeTrackState;
@@ -46,13 +46,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let can_map_source = std::env::var("CAN_MAP_SOURCE").unwrap_or_else(|_| "dbc".to_string());
     let decoder_map = match decoder::load_can_mappings_from_dbc_dir(DBC_DATA_PATH) {
         Ok(map) => {
-            info!("✅ {} CAN IDs carregados de DBC ({})", map.len(), DBC_DATA_PATH);
+            info!(
+                "✅ {} CAN IDs carregados de DBC ({})",
+                map.len(),
+                DBC_DATA_PATH
+            );
             map
         }
         Err(e) => {
-            warn!("⚠️ Falha ao carregar DBC ({}) : {:?}. Tentando CSV...", DBC_DATA_PATH, e);
+            warn!(
+                "⚠️ Falha ao carregar DBC ({}) : {:?}. Tentando CSV...",
+                DBC_DATA_PATH, e
+            );
             let map = decoder::load_can_mappings(CSV_DATA_PATH)?;
-            info!("✅ {} CAN IDs carregados de CSV ({})", map.len(), CSV_DATA_PATH);
+            info!(
+                "✅ {} CAN IDs carregados de CSV ({})",
+                map.len(),
+                CSV_DATA_PATH
+            );
             map
         }
     };
@@ -76,8 +87,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("🔍 Verificando dados antigos para migração...");
     match db::migrate_old_data(&pg_pool, &sqlite_pool).await {
         Ok(n) if n > 0 => info!("✅ Boot: {} registros migrados para SQLite", n),
-        Ok(_)          => info!("✅ Boot: nenhum dado antigo para migrar"),
-        Err(e)         => warn!("⚠️  Boot: erro na migração (não crítico): {:?}", e),
+        Ok(_) => info!("✅ Boot: nenhum dado antigo para migrar"),
+        Err(e) => warn!("⚠️  Boot: erro na migração (não crítico): {:?}", e),
     }
 
     let (ws_tx, _) = broadcast::channel::<Vec<u8>>(10_000);
@@ -105,9 +116,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     loop {
         let (socket, addr) = tcp_listener.accept().await?;
-        let pg  = pg_pool.clone();
+        let pg = pg_pool.clone();
         let dec = decoder_map.clone();
-        let tx  = ws_tx.clone();
+        let tx = ws_tx.clone();
         let track = track_state.clone();
         tokio::spawn(async move {
             ingest::handle_client(socket, addr, pg, dec, tx, track).await;

@@ -1,11 +1,11 @@
-use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::broadcast;
-use tracing::{info, warn, error};
-use crate::models::ProcessedSignal;
-use crate::track_state::SharedTrackState;
 use crate::db::*;
 use crate::decoder;
+use crate::models::ProcessedSignal;
+use crate::track_state::SharedTrackState;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::broadcast;
+use tracing::{error, info, warn};
 
 pub async fn handle_client(
     mut socket: TcpStream,
@@ -123,7 +123,9 @@ pub async fn handle_client(
             let elapsed = last_log.elapsed().as_secs_f64();
             info!(
                 "📊 {} | frames: {} | sinais: {} | taxa: {:.0} frames/s",
-                device_id, frames_total, frames_decoded,
+                device_id,
+                frames_total,
+                frames_decoded,
                 frames_total as f64 / elapsed
             );
             frames_total = 0;
@@ -141,4 +143,3 @@ pub async fn handle_client(
 //   POST /login → JWT
 //   GET /ws     → WebSocket (requer JWT no header Authorization)
 //   qualquer outra → 404
-

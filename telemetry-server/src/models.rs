@@ -24,17 +24,19 @@ pub struct Claims {
 #[derive(Deserialize)]
 pub struct LoginRequest {
     pub username: String,
-    pub password: Option<String>,
+    pub password: String,
 }
 
 #[derive(Deserialize)]
 pub struct CollectionStartRequest {
-    pub mode: String,
+    pub requested_at: Option<String>,
 }
 
 #[derive(Deserialize)]
 pub struct CollectionStopRequest {
-    pub save_bounds: bool,
+    pub requested_at: Option<String>,
+    pub log_start_unix: Option<f64>,
+    pub log_stop_unix: Option<f64>,
 }
 
 #[derive(Deserialize)]

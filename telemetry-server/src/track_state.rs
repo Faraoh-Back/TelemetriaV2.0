@@ -1,7 +1,7 @@
+use crate::config::{RPM_CORRECTION_WEIGHT, RPM_MOTOR_TO_MPS};
 use crate::models::ProcessedSignal;
 use serde_json::json;
 use std::sync::{Arc, Mutex};
-use crate::config::{RPM_MOTOR_TO_MPS, RPM_CORRECTION_WEIGHT};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Point2 {
@@ -100,7 +100,8 @@ impl RealtimeTrackState {
         self.velocity_mps = if let Some(speed) = self.direct_speed_mps {
             speed.max(0.0)
         } else if let Some(speed) = rpm_speed {
-            ((1.0 - RPM_CORRECTION_WEIGHT) * predicted_speed + RPM_CORRECTION_WEIGHT * speed).max(0.0)
+            ((1.0 - RPM_CORRECTION_WEIGHT) * predicted_speed + RPM_CORRECTION_WEIGHT * speed)
+                .max(0.0)
         } else {
             predicted_speed
         };
@@ -114,7 +115,10 @@ impl RealtimeTrackState {
         let mut messages = Vec::new();
 
         if self.map_points.is_empty() {
-            self.learning_points.push(Point2 { x: self.x_m, y: self.y_m });
+            self.learning_points.push(Point2 {
+                x: self.x_m,
+                y: self.y_m,
+            });
             if elapsed >= self.lap_period_sec && self.learning_points.len() >= 20 {
                 self.freeze_map();
                 if !self.map_points.is_empty() {
@@ -122,14 +126,17 @@ impl RealtimeTrackState {
                     self.map_sent = true;
                 }
             } else if (self.learning_points.len() % 25) == 0 {
-                messages.push(json!({
-                    "type": "track_status",
-                    "state": "learning_first_lap",
-                    "timestamp": timestamp,
-                    "elapsed_sec": elapsed,
-                    "lap_period_sec": self.lap_period_sec,
-                    "points": self.learning_points.len(),
-                }).to_string());
+                messages.push(
+                    json!({
+                        "type": "track_status",
+                        "state": "learning_first_lap",
+                        "timestamp": timestamp,
+                        "elapsed_sec": elapsed,
+                        "lap_period_sec": self.lap_period_sec,
+                        "points": self.learning_points.len(),
+                    })
+                    .to_string(),
+                );
             }
         }
 
@@ -150,17 +157,23 @@ impl RealtimeTrackState {
             "Accel_Linear_X" | "ACCEL_LINEAR_X" | "ventor_linear_acc_x" | "VENTOR_LINEAR_ACC_X" => {
                 self.acc_x_mps2 = Some(signal.value)
             }
-            "Velo_Angular_Z" | "VELO_ANGULAR_Z" | "ventor_angular_speed_z" | "VENTOR_ANGULAR_SPEED_Z" => {
-                self.yaw_rate_rps = Some(signal.value)
-            }
-            "Speed_Linear_X" | "SPEED_LINEAR_X" | "ventor_linear_speed_x" | "VENTOR_LINEAR_SPEED_X" => {
-                self.direct_speed_mps = Some(if name.eq_ignore_ascii_case("Speed_Linear_X")
-                    || signal.unit.eq_ignore_ascii_case("km/h")
-                {
-                    signal.value / 3.6
-                } else {
-                    signal.value
-                });
+            "Velo_Angular_Z"
+            | "VELO_ANGULAR_Z"
+            | "ventor_angular_speed_z"
+            | "VENTOR_ANGULAR_SPEED_Z" => self.yaw_rate_rps = Some(signal.value),
+            "Speed_Linear_X"
+            | "SPEED_LINEAR_X"
+            | "ventor_linear_speed_x"
+            | "VENTOR_LINEAR_SPEED_X" => {
+                self.direct_speed_mps = Some(
+                    if name.eq_ignore_ascii_case("Speed_Linear_X")
+                        || signal.unit.eq_ignore_ascii_case("km/h")
+                    {
+                        signal.value / 3.6
+                    } else {
+                        signal.value
+                    },
+                );
             }
             "act_Speed A0" | "RPM 0A" => self.rpm_a0 = Some(signal.value),
             "act_Speed B0" | "RPM 0B" => self.rpm_b0 = Some(signal.value),
@@ -176,12 +189,21 @@ impl RealtimeTrackState {
         if valid.is_empty() {
             return None;
         }
-        Some(valid.iter().map(|rpm| rpm.abs() * RPM_MOTOR_TO_MPS).sum::<f64>() / valid.len() as f64)
+        Some(
+            valid
+                .iter()
+                .map(|rpm| rpm.abs() * RPM_MOTOR_TO_MPS)
+                .sum::<f64>()
+                / valid.len() as f64,
+        )
     }
 
     fn freeze_map(&mut self) {
         self.map_points = downsample_points(&self.learning_points, self.max_map_points);
-        if let (Some(first), Some(last)) = (self.map_points.first().copied(), self.map_points.last().copied()) {
+        if let (Some(first), Some(last)) = (
+            self.map_points.first().copied(),
+            self.map_points.last().copied(),
+        ) {
             let closing = distance(first, last);
             if closing > 1e-6 {
                 self.map_points.push(first);
@@ -206,10 +228,16 @@ impl RealtimeTrackState {
 
     fn position_on_map(&self) -> Point2 {
         if self.map_points.len() < 2 || self.map_len_m <= 1e-6 {
-            return Point2 { x: self.x_m, y: self.y_m };
+            return Point2 {
+                x: self.x_m,
+                y: self.y_m,
+            };
         }
         let s = self.distance_m.rem_euclid(self.map_len_m);
-        let idx = self.map_arc_m.partition_point(|v| *v < s).clamp(1, self.map_arc_m.len() - 1);
+        let idx = self
+            .map_arc_m
+            .partition_point(|v| *v < s)
+            .clamp(1, self.map_arc_m.len() - 1);
         let s0 = self.map_arc_m[idx - 1];
         let s1 = self.map_arc_m[idx];
         let alpha = if s1 > s0 { (s - s0) / (s1 - s0) } else { 0.0 };
@@ -223,7 +251,8 @@ impl RealtimeTrackState {
 
     fn track_map_message(&self, timestamp: f64) -> String {
         let (min_x, max_x, min_y, max_y) = bounds(&self.map_points);
-        let points: Vec<_> = self.map_points
+        let points: Vec<_> = self
+            .map_points
             .iter()
             .map(|p| {
                 let (x, y) = normalize_point(*p, min_x, max_x, min_y, max_y);
@@ -239,7 +268,8 @@ impl RealtimeTrackState {
                 "bounds": { "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y },
                 "length_m": self.map_len_m,
             }
-        }).to_string()
+        })
+        .to_string()
     }
 
     fn track_pose_message(&self, timestamp: f64) -> String {
@@ -258,7 +288,8 @@ impl RealtimeTrackState {
                 "speed": self.velocity_mps,
                 "distance_m": self.distance_m,
             }
-        }).to_string()
+        })
+        .to_string()
     }
 }
 

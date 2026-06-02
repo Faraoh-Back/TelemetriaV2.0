@@ -1,19 +1,18 @@
-use tokio::net::{TcpListener, TcpStream};
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::sync::broadcast;
-use tracing::{info, warn, error};
-use serde::{Deserialize, Serialize};
-use serde_json::json;
+use bcrypt::verify;
 use chrono::{DateTime, Utc};
+use serde::Deserialize;
+use serde_json::json;
 use sqlx::sqlite::SqlitePool;
 use sqlx::Row;
-use bcrypt::verify;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::broadcast;
+use tracing::{error, info, warn};
 
-use crate::config::*;
-use crate::models::*;
 use crate::auth::*;
-use crate::ws::*;
 use crate::db::*;
+use crate::models::*;
+use crate::ws::*;
 
 const INDEX_HTML: &str = include_str!("../static/dist/index.html");
 
@@ -81,10 +80,11 @@ async fn handle_http_connection(
         handle_collection_stop(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/log-session-bounds") {
         handle_log_session_bounds(&mut stream, &request, &sqlite_pool).await;
-    } else if first_line.starts_with("GET /assets/") 
-       || first_line.starts_with("GET /worker.js")
-       || first_line.starts_with("GET /favicon.svg")
-       || first_line.starts_with("GET /icons.svg") {
+    } else if first_line.starts_with("GET /assets/")
+        || first_line.starts_with("GET /worker.js")
+        || first_line.starts_with("GET /favicon.svg")
+        || first_line.starts_with("GET /icons.svg")
+    {
         serve_static_file(&mut stream, first_line).await;
     } else if first_line.starts_with("POST /migrate") {
         handle_migrate(&mut stream, &request, &pg_pool, &sqlite_pool).await;
@@ -107,7 +107,7 @@ async fn serve_html(stream: &mut TcpStream) {
 async fn serve_static_file(stream: &mut TcpStream, first_line: &str) {
     let path = first_line.split_whitespace().nth(1).unwrap_or("/");
     let file_path = format!("./static/dist{}", path);
-    
+
     let content_type = if path.ends_with(".js") {
         "application/javascript"
     } else if path.ends_with(".css") {
@@ -135,11 +135,7 @@ async fn serve_static_file(stream: &mut TcpStream, first_line: &str) {
     }
 }
 
-async fn handle_login(
-    stream: &mut TcpStream,
-    request: &str,
-    sqlite_pool: &SqlitePool,
-) {
+async fn handle_login(stream: &mut TcpStream, request: &str, sqlite_pool: &SqlitePool) {
     let body = match request.split("\r\n\r\n").nth(1) {
         Some(b) => b.trim(),
         None => {
@@ -157,7 +153,7 @@ async fn handle_login(
     };
 
     let row = sqlx::query(
-        "SELECT password_hash, COALESCE(role, 'member') as role FROM users WHERE username = ?"
+        "SELECT password_hash, COALESCE(role, 'member') as role FROM users WHERE username = ?",
     )
     .bind(&login_req.username)
     .fetch_optional(sqlite_pool)
@@ -170,36 +166,44 @@ async fn handle_login(
             let role = normalize_role(&role_raw);
             let permissions = permissions_for_role(role);
 
-            match verify(login_req.password.as_deref().unwrap_or(""), &hash) {
-                Ok(true) => {
-                    match generate_jwt(&login_req.username, role) {
-                        Ok(token) => {
-                            let body = json!({
-                                "ok": true,
-                                "token": token,
-                                "user": {
-                                    "username": &login_req.username,
-                                    "role": role,
-                                    "permissions": permissions,
-                                }
-                            });
-                            send_json(stream, 200, &body.to_string()).await;
-                            info!("🔑 Login OK: {}", login_req.username);
-                        }
-                        Err(e) => {
-                            error!("Erro ao gerar JWT: {}", e);
-                            send_json(stream, 500, r#"{"ok":false,"message":"Erro interno"}"#).await;
-                        }
+            match verify(&login_req.password, &hash) {
+                Ok(true) => match generate_jwt(&login_req.username, role) {
+                    Ok(token) => {
+                        let body = json!({
+                            "ok": true,
+                            "token": token,
+                            "user": {
+                                "username": &login_req.username,
+                                "role": role,
+                                "permissions": permissions,
+                            }
+                        });
+                        send_json(stream, 200, &body.to_string()).await;
+                        info!("🔑 Login OK: {}", login_req.username);
                     }
-                }
+                    Err(e) => {
+                        error!("Erro ao gerar JWT: {}", e);
+                        send_json(stream, 500, r#"{"ok":false,"message":"Erro interno"}"#).await;
+                    }
+                },
                 _ => {
-                    send_json(stream, 401, r#"{"ok":false,"message":"Credenciais inválidas"}"#).await;
+                    send_json(
+                        stream,
+                        401,
+                        r#"{"ok":false,"message":"Credenciais inválidas"}"#,
+                    )
+                    .await;
                     warn!("🔒 Login falhou: {}", login_req.username);
                 }
             }
         }
         Ok(None) => {
-            send_json(stream, 401, r#"{"ok":false,"message":"Credenciais inválidas"}"#).await;
+            send_json(
+                stream,
+                401,
+                r#"{"ok":false,"message":"Credenciais inválidas"}"#,
+            )
+            .await;
         }
         Err(e) => {
             error!("Erro ao consultar banco: {}", e);
@@ -208,16 +212,12 @@ async fn handle_login(
     }
 }
 
-async fn handle_collection_start(
-    stream: &mut TcpStream,
-    request: &str,
-    sqlite_pool: &SqlitePool,
-) {
+async fn handle_collection_start(stream: &mut TcpStream, request: &str, sqlite_pool: &SqlitePool) {
     if !api_request_has_permission(stream, request, PERMISSION_TELEMETRY_START).await {
         return;
     }
 
-    let _start_req: CollectionStartRequest = match parse_json_body(request) {
+    let start_req: CollectionStartRequest = match parse_json_body(request) {
         Ok(r) => r,
         Err(status) => {
             send_json(stream, status, r#"{"ok":false,"message":"JSON inválido"}"#).await;
@@ -254,14 +254,16 @@ async fn handle_collection_start(
     let started_at_unix = unix_seconds(&now);
     let started_at_iso = now.to_rfc3339();
 
-    match sqlx::query(r#"
+    match sqlx::query(
+        r#"
         INSERT INTO telemetry_log_sessions
             (started_at_unix, started_at_iso, start_requested_at, collection_start_sec, state)
         VALUES (?, ?, ?, 0, 'active')
-    "#)
+    "#,
+    )
     .bind(started_at_unix)
     .bind(&started_at_iso)
-    .bind(None::<String>) // request_at if existed
+    .bind(start_req.requested_at.as_deref())
     .execute(sqlite_pool)
     .await
     {
@@ -285,16 +287,12 @@ async fn handle_collection_start(
     }
 }
 
-async fn handle_collection_stop(
-    stream: &mut TcpStream,
-    request: &str,
-    sqlite_pool: &SqlitePool,
-) {
+async fn handle_collection_stop(stream: &mut TcpStream, request: &str, sqlite_pool: &SqlitePool) {
     if !api_request_has_permission(stream, request, PERMISSION_TELEMETRY_STOP).await {
         return;
     }
 
-    let _stop_req: CollectionStopRequest = match parse_json_body(request) {
+    let stop_req: CollectionStopRequest = match parse_json_body(request) {
         Ok(r) => r,
         Err(status) => {
             send_json(stream, status, r#"{"ok":false,"message":"JSON inválido"}"#).await;
@@ -317,7 +315,12 @@ async fn handle_collection_stop(
     };
 
     let Some(row) = active else {
-        send_json(stream, 409, r#"{"ok":false,"message":"Nao existe coleta em andamento."}"#).await;
+        send_json(
+            stream,
+            409,
+            r#"{"ok":false,"message":"Nao existe coleta em andamento."}"#,
+        )
+        .await;
         return;
     };
 
@@ -327,21 +330,35 @@ async fn handle_collection_stop(
     let ended_at_unix = unix_seconds(&now);
     let ended_at_iso = now.to_rfc3339();
     let collection_stop_sec = (ended_at_unix - started_at_unix).max(0.0);
+    let log_duration_sec = match (stop_req.log_start_unix, stop_req.log_stop_unix) {
+        (Some(start), Some(stop)) if stop >= start => Some(stop - start),
+        _ => None,
+    };
 
-    match sqlx::query(r#"
+    match sqlx::query(
+        r#"
         UPDATE telemetry_log_sessions
         SET ended_at_unix = ?,
             ended_at_iso = ?,
             stop_requested_at = ?,
+            log_start_unix = COALESCE(?, log_start_unix),
+            log_stop_unix = COALESCE(?, log_stop_unix),
             collection_stop_sec = ?,
+            log_start_sec = CASE WHEN ? IS NOT NULL THEN 0 ELSE log_start_sec END,
+            log_stop_sec = COALESCE(?, log_stop_sec),
             state = 'stopped',
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    "#)
+    "#,
+    )
     .bind(ended_at_unix)
     .bind(&ended_at_iso)
-    .bind(None::<String>)
+    .bind(stop_req.requested_at.as_deref())
+    .bind(stop_req.log_start_unix)
+    .bind(stop_req.log_stop_unix)
     .bind(collection_stop_sec)
+    .bind(log_duration_sec)
+    .bind(log_duration_sec)
     .bind(id)
     .execute(sqlite_pool)
     .await
@@ -386,7 +403,12 @@ async fn handle_log_session_bounds(
     };
 
     if bounds_req.log_stop_unix < bounds_req.log_start_unix {
-        send_json(stream, 400, r#"{"ok":false,"message":"Limites de coleta invalidos."}"#).await;
+        send_json(
+            stream,
+            400,
+            r#"{"ok":false,"message":"Limites de coleta invalidos."}"#,
+        )
+        .await;
         return;
     }
 
@@ -405,13 +427,19 @@ async fn handle_log_session_bounds(
     };
 
     let Some(row) = session else {
-        send_json(stream, 409, r#"{"ok":false,"message":"Nenhuma coleta encerrada para atualizar."}"#).await;
+        send_json(
+            stream,
+            409,
+            r#"{"ok":false,"message":"Nenhuma coleta encerrada para atualizar."}"#,
+        )
+        .await;
         return;
     };
 
     let id: i64 = row.get("id");
     let log_stop_sec = bounds_req.log_stop_unix - bounds_req.log_start_unix;
-    match sqlx::query(r#"
+    match sqlx::query(
+        r#"
         UPDATE telemetry_log_sessions
         SET log_start_unix = ?,
             log_stop_unix = ?,
@@ -419,7 +447,8 @@ async fn handle_log_session_bounds(
             log_stop_sec = ?,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
-    "#)
+    "#,
+    )
     .bind(bounds_req.log_start_unix)
     .bind(bounds_req.log_stop_unix)
     .bind(log_stop_sec)
@@ -479,7 +508,7 @@ async fn send_json(stream: &mut TcpStream, status: u16, body: &str) {
         404 => "Not Found",
         409 => "Conflict",
         500 => "Internal Server Error",
-        _   => "Unknown",
+        _ => "Unknown",
     };
     let response = format!(
         "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: *\r\n\r\n{}",
@@ -489,11 +518,7 @@ async fn send_json(stream: &mut TcpStream, status: u16, body: &str) {
 }
 
 fn parse_json_body<T: for<'de> Deserialize<'de>>(request: &str) -> Result<T, u16> {
-    let body = request
-        .split("\r\n\r\n")
-        .nth(1)
-        .ok_or(400u16)?
-        .trim();
+    let body = request.split("\r\n\r\n").nth(1).ok_or(400u16)?.trim();
 
     serde_json::from_str(body).map_err(|_| 400)
 }
@@ -520,7 +545,12 @@ async fn api_request_has_permission(
     };
 
     if !claims_has_permission(&claims, permission) {
-        send_json(stream, 403, r#"{"ok":false,"message":"Permissao insuficiente."}"#).await;
+        send_json(
+            stream,
+            403,
+            r#"{"ok":false,"message":"Permissao insuficiente."}"#,
+        )
+        .await;
         return false;
     }
 
@@ -533,8 +563,14 @@ fn unix_seconds(dt: &DateTime<Utc>) -> f64 {
 
 pub async fn run_ntp_server(port: u16) {
     let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
-        Ok(l) => { info!("🕐 NTP server em 0.0.0.0:{}", port); l }
-        Err(e) => { error!("❌ Falha ao abrir porta NTP {}: {}", port, e); return; }
+        Ok(l) => {
+            info!("🕐 NTP server em 0.0.0.0:{}", port);
+            l
+        }
+        Err(e) => {
+            error!("❌ Falha ao abrir porta NTP {}: {}", port, e);
+            return;
+        }
     };
 
     loop {
@@ -542,7 +578,9 @@ pub async fn run_ntp_server(port: u16) {
             Ok((mut stream, addr)) => {
                 tokio::spawn(async move {
                     let mut buf = [0u8; 8];
-                    if stream.read_exact(&mut buf).await.is_err() { return; }
+                    if stream.read_exact(&mut buf).await.is_err() {
+                        return;
+                    }
 
                     let t2 = std::time::SystemTime::now()
                         .duration_since(std::time::UNIX_EPOCH)
@@ -558,7 +596,9 @@ pub async fn run_ntp_server(port: u16) {
                     resp[0..8].copy_from_slice(&t2.to_le_bytes());
                     resp[8..16].copy_from_slice(&t3.to_le_bytes());
 
-                    if stream.write_all(&resp).await.is_err() { return; }
+                    if stream.write_all(&resp).await.is_err() {
+                        return;
+                    }
                     info!("🕐 NTP respondido para {}", addr);
                 });
             }

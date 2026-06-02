@@ -1,8 +1,8 @@
-use tokio::net::TcpStream;
+use crate::auth::*;
 use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 use tracing::{info, warn};
-use crate::auth::*;
 
 pub async fn handle_ws_upgrade(
     mut stream: TcpStream,
@@ -20,7 +20,8 @@ pub async fn handle_ws_upgrade(
             return;
         }
         Some(t) if !validate_jwt(&t) => {
-            let resp = "HTTP/1.1 401 Unauthorized\r\nContent-Length: 21\r\n\r\nToken inválido/expirado";
+            let resp =
+                "HTTP/1.1 401 Unauthorized\r\nContent-Length: 21\r\n\r\nToken inválido/expirado";
             let _ = stream.write_all(resp.as_bytes()).await;
             warn!("🔒 WS rejeitado (token inválido): {}", addr);
             return;
@@ -117,26 +118,31 @@ impl Sha1 {
         for chunk in self.data.chunks(64) {
             let mut w = [0u32; 80];
             for i in 0..16 {
-                w[i] = u32::from_be_bytes(chunk[i*4..i*4+4].try_into().unwrap());
+                w[i] = u32::from_be_bytes(chunk[i * 4..i * 4 + 4].try_into().unwrap());
             }
             for i in 16..80 {
-                w[i] = (w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16]).rotate_left(1);
+                w[i] = (w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16]).rotate_left(1);
             }
             let (mut a, mut b, mut c, mut d, mut e) =
                 (self.h[0], self.h[1], self.h[2], self.h[3], self.h[4]);
             for i in 0..80 {
                 let (f, k) = match i {
-                    0..=19  => ((b & c) | ((!b) & d),          0x5A827999u32),
-                    20..=39 => (b ^ c ^ d,                     0x6ED9EBA1u32),
-                    40..=59 => ((b & c) | (b & d) | (c & d),   0x8F1BBCDCu32),
-                    _       => (b ^ c ^ d,                     0xCA62C1D6u32),
+                    0..=19 => ((b & c) | ((!b) & d), 0x5A827999u32),
+                    20..=39 => (b ^ c ^ d, 0x6ED9EBA1u32),
+                    40..=59 => ((b & c) | (b & d) | (c & d), 0x8F1BBCDCu32),
+                    _ => (b ^ c ^ d, 0xCA62C1D6u32),
                 };
-                let temp = a.rotate_left(5)
+                let temp = a
+                    .rotate_left(5)
                     .wrapping_add(f)
                     .wrapping_add(e)
                     .wrapping_add(k)
                     .wrapping_add(w[i]);
-                e = d; d = c; c = b.rotate_left(30); b = a; a = temp;
+                e = d;
+                d = c;
+                c = b.rotate_left(30);
+                b = a;
+                a = temp;
             }
             self.h[0] = self.h[0].wrapping_add(a);
             self.h[1] = self.h[1].wrapping_add(b);
@@ -146,7 +152,7 @@ impl Sha1 {
         }
         let mut out = [0u8; 20];
         for (i, &val) in self.h.iter().enumerate() {
-            out[i*4..i*4+4].copy_from_slice(&val.to_be_bytes());
+            out[i * 4..i * 4 + 4].copy_from_slice(&val.to_be_bytes());
         }
         out
     }
@@ -162,8 +168,16 @@ pub fn base64_encode_bytes(bytes: &[u8]) -> String {
         let n = (b0 << 16) | (b1 << 8) | b2;
         out.push(TABLE[(n >> 18) as usize] as char);
         out.push(TABLE[((n >> 12) & 0x3F) as usize] as char);
-        if chunk.len() > 1 { out.push(TABLE[((n >> 6) & 0x3F) as usize] as char); } else { out.push('='); }
-        if chunk.len() > 2 { out.push(TABLE[(n & 0x3F) as usize] as char); } else { out.push('='); }
+        if chunk.len() > 1 {
+            out.push(TABLE[((n >> 6) & 0x3F) as usize] as char);
+        } else {
+            out.push('=');
+        }
+        if chunk.len() > 2 {
+            out.push(TABLE[(n & 0x3F) as usize] as char);
+        } else {
+            out.push('=');
+        }
     }
     out
 }
@@ -186,7 +200,10 @@ pub async fn send_ws_text_frame(stream: &mut TcpStream, msg: &str) -> Result<(),
     stream.write_all(&frame).await
 }
 
-pub async fn send_ws_binary_frame(stream: &mut TcpStream, data: &[u8]) -> Result<(), std::io::Error> {
+pub async fn send_ws_binary_frame(
+    stream: &mut TcpStream,
+    data: &[u8],
+) -> Result<(), std::io::Error> {
     let len = data.len();
     let mut frame = Vec::new();
     frame.push(0x82u8);

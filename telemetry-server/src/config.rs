@@ -6,7 +6,10 @@ pub const DBC_DATA_PATH: &str = "./dbc_data";
 pub const MAX_PG_CONNECTIONS: u32 = 20;
 pub const JWT_EXPIRY_HOURS: i64 = 8;
 pub const NTP_PORT: u16 = 9999;
-pub const RPM_MOTOR_TO_MPS: f64 = 0.0381; // Ajuste conforme necessário
+// Calibracao oficial do veiculo para converter RPM do motor em m/s.
+// Mantem os parametros fisicos informados pela direcao tecnica; nao substituir
+// pela formula antiga sem nova validacao do conjunto mecanico.
+pub const RPM_MOTOR_TO_MPS: f64 = 0.0381;
 pub const RPM_CORRECTION_WEIGHT: f64 = 0.05;
 
 pub fn get_pg_url() -> String {

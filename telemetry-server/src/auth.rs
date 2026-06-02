@@ -28,9 +28,7 @@ pub fn permissions_for_role(role: &str) -> Vec<String> {
             PERMISSION_LOGS_READ.to_string(),
             PERMISSION_LOGS_DOWNLOAD.to_string(),
         ],
-        ROLE_MEMBER => vec![
-            PERMISSION_LOGS_READ.to_string(),
-        ],
+        ROLE_MEMBER => vec![PERMISSION_LOGS_READ.to_string()],
         _ => vec![],
     }
 }
@@ -42,7 +40,7 @@ pub fn claims_has_permission(claims: &Claims, permission: &str) -> bool {
 pub fn generate_jwt(username: &str, role: &str) -> Result<String, jsonwebtoken::errors::Error> {
     let now = chrono::Utc::now();
     let exp = now + chrono::Duration::hours(crate::config::JWT_EXPIRY_HOURS);
-    
+
     let norm_role = normalize_role(role);
     let perms = permissions_for_role(norm_role);
 
@@ -68,17 +66,16 @@ pub fn validate_jwt_claims(token: &str) -> Option<Claims> {
         token,
         &DecodingKey::from_secret(crate::config::get_jwt_secret().as_bytes()),
         &validation,
-    ).map(|data| data.claims).ok()
+    )
+    .map(|data| data.claims)
+    .ok()
 }
 
 pub fn validate_jwt(token: &str) -> bool {
     validate_jwt_claims(token).is_some()
 }
 
-pub async fn request_has_permission(
-    request: &str,
-    permission: &str,
-) -> bool {
+pub async fn request_has_permission(request: &str, permission: &str) -> bool {
     let token = if let Some(t) = extract_bearer_token(request) {
         t
     } else if let Some(t) = extract_query_token(request) {

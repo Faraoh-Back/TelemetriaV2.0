@@ -73,146 +73,249 @@ import { decodeSignal } from '../utils/canDecode.js'
 
 const CAN_MAP = {
     // ── INS ──────────────────────────────────────────────────────────────────
-    1: [ // 0x00000001
-        { n: 'Accel_Linear_X', sb: 0,  len: 16, f: 0.01, o: 0, u: 'm/s²',  t: 'int', signed: true },
-        { n: 'Velo_Angular_X', sb: 16, len: 16, f: 0.01, o: 0, u: 'rad/s', t: 'int' },
-        { n: 'Accel_Linear_Y', sb: 32, len: 16, f: 0.01, o: 0, u: 'm/s²',  t: 'int' },
-        { n: 'Velo_Angular_Y', sb: 48, len: 16, f: 0.01, o: 0, u: 'rad/s', t: 'int' },
+    1: [ // INS_01
+        { n: 'Accel_Linear_X', sb: 0,  len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'm/s²',  t: 'int', signed: true },
+        { n: 'Velo_Angular_X', sb: 16, len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'rad/s', t: 'int', signed: false },
+        { n: 'Accel_Linear_Y', sb: 32, len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'm/s²',  t: 'int', signed: false },
+        { n: 'Velo_Angular_Y', sb: 48, len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'rad/s', t: 'int', signed: false },
     ],
-    2: [ // 0x00000002
-        { n: 'Accel_Linear_Z', sb: 0,  len: 16, f: 0.01, o: 0, u: 'm/s²',  t: 'int' },
-        { n: 'Velo_Angular_Z', sb: 16, len: 16, f: 0.01, o: 0, u: 'rad/s', t: 'int' },
-        { n: 'Speed_Linear_X', sb: 32, len: 16, f: 0.01, o: 0, u: 'km/h',  t: 'int' },
-        { n: 'Speed_Linear_Y', sb: 48, len: 16, f: 0.01, o: 0, u: 'km/h',  t: 'int' },
-    ],
-
-    // ── PAINEL ───────────────────────────────────────────────────────────────
-    0x410: [
-        { n: 'fluid_temp_1',                          sb: 0,  len: 8, f: 2,    o: 0, u: '°C',  t: 'float' },
-        { n: 'fluid_temp_2',                          sb: 8,  len: 8, f: 2,    o: 0, u: '°C',  t: 'float' },
-        { n: 'fluid_temp_3',                          sb: 16, len: 8, f: 2,    o: 0, u: '°C',  t: 'float' },
-        { n: 'susp_compression_front_left_suspension', sb: 24, len: 8, f: 2.55, o: 0, u: '%',   t: 'float' },
-        { n: 'susp_compression_front_right_suspension',sb: 32, len: 8, f: 2.55, o: 0, u: '%',   t: 'float' },
-        { n: 'brake_front_fluid_press',               sb: 40, len: 8, f: 1,    o: 0, u: 'Bar', t: 'float' },
+    2: [ // INS_02
+        { n: 'Accel_Linear_Z', sb: 0,  len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'm/s²',  t: 'int', signed: false },
+        { n: 'Velo_Angular_Z', sb: 16, len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'rad/s', t: 'int', signed: false },
+        { n: 'Speed_Linear_X', sb: 32, len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'km/h',  t: 'int', signed: false },
+        { n: 'Speed_Linear_Y', sb: 48, len: 16, bo: 'Intel', f: 0.01, o: 0, u: 'km/h',  t: 'int', signed: false },
     ],
 
-    // ── PT ────────────────────────────────────────────────────────────────────
-    0x400: [
-        { n: 'fluid_temp_pt_1',       sb: 0,  len: 8, f: 2, o: 0, u: '°C',   t: 'float' },
-        { n: 'fluid_temp_pt_2',       sb: 8,  len: 8, f: 2, o: 0, u: '°C',   t: 'float' },
-        { n: 'fluid_temp_pt_3',       sb: 16, len: 8, f: 2, o: 0, u: '°C',   t: 'float' },
-        { n: 'fluid_temp_pt_4',       sb: 24, len: 8, f: 2, o: 0, u: '°C',   t: 'float' },
-        { n: 'fluid_flow_1',          sb: 32, len: 8, f: 8, o: 0, u: 'L/min', t: 'float' },
-        { n: 'fluid_flow_2',          sb: 40, len: 8, f: 8, o: 0, u: 'L/min', t: 'float' },
-        { n: 'brake_right_fluid_press',sb: 48, len: 8, f: 1, o: 0, u: 'Bar',  t: 'float' },
-    ],
-    0x402: [
-        { n: 'susp_compression_back_left_suspension',  sb: 0,  len: 8, f: 2.55, o: 0, u: '%',   t: 'float' },
-        { n: 'susp_compression_back_right_suspension', sb: 8,  len: 8, f: 2.55, o: 0, u: '%',   t: 'float' },
-        { n: 'arref_right_fluid_press', sb: 16, len: 8, f: 2, o: 0, u: 'kPa', t: 'float' },
-        { n: 'arref_left_fluid_press',  sb: 24, len: 8, f: 2, o: 0, u: 'kPa', t: 'float' },
+    // ── VCU ──────────────────────────────────────────────────────────────────
+    419370261: [ // 0x18FF1515 — VCU_DATA_OUT
+        { n: 'APPS_RANGE_ERROR', sb: 0,  len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'SAFETY_OK',        sb: 8,  len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'int',  signed: false },
+        { n: 'BRAKE',            sb: 16, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'int',  signed: false },
+        { n: 'VCU_STATE',        sb: 24, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'int',  signed: false },
+        { n: 'APS_PERC',         sb: 32, len: 8, bo: 'Intel', f: 1, o: 0, u: '%', t: 'int', signed: false },
+        { n: 'HV_on',            sb: 40, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'Buzzer',           sb: 48, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'APPS_PERC1',       sb: 56, len: 8, bo: 'Intel', f: 1, o: 0, u: '%', t: 'int', signed: false },
     ],
 
-    // ── VCU — Status master ───────────────────────────────────────────────────
-    0x18FF1080: [
-        { n: 'SystemEnable',            sb: 0,  len: 2,  f: 1,    o: 0, u: 'state', t: 'int' },
-        { n: 'Clamp15_CAN',             sb: 2,  len: 2,  f: 1,    o: 0, u: 'state', t: 'int' },
-        { n: 'setp_DcLinkVoltage',      sb: 8,  len: 8,  f: 0.25, o: 0, u: 'V',     t: 'int' },
-        { n: 'VoltagePrechargeDemand',  sb: 24, len: 8,  f: 0.25, o: 0, u: 'V',     t: 'int' },
+    // ── INVERSORES ───────────────────────────────────────────────────────────
+    419368426: [ // 0x18FF0DEA — SETPOINTS_CONTROL_0 (eixo dianteiro)
+        { n: 'RPM_0A',    sb: 16, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
+        { n: 'TORQUE_0B', sb: 32, len: 16, bo: 'Intel', f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
+        { n: 'RPM_0B',    sb: 48, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
+    ],
+    419368695: [ // 0x18FF0EF7 — SEPOINT_CONTROL_13 (eixo traseiro)
+        { n: 'TORQUE_13A', sb: 0,  len: 16, bo: 'Intel', f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
+        { n: 'RPM_13A',    sb: 16, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
+        { n: 'TORQUE_13B', sb: 32, len: 16, bo: 'Intel', f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
+        { n: 'RPM_13B',    sb: 48, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
     ],
 
-    // ── VCU — DATA OUT ────────────────────────────────────────────────────────
-    0x18FF1515: [
-        { n: 'APPS_RANGE_ERROR', sb: 0,  len: 1,  f: 1,      o: 0, u: 'state', t: 'bool' },
-        { n: 'SAFETY_OK',        sb: 1,  len: 1,  f: 1,      o: 0, u: 'state', t: 'bool' },
-        { n: 'BRAKE',            sb: 2,  len: 2,  f: 1,      o: 0, u: 'state', t: 'int'  },
-        { n: 'VCU_STATE',        sb: 8,  len: 3,  f: 1,      o: 0, u: 'state', t: 'int'  },
-        { n: 'APS_PERC',         sb: 16, len: 16, f: 100/65535, o: 0, u: '%',  t: 'float'},
+    // ── VCU FAULTS ───────────────────────────────────────────────────────────
+    259: [ // 0x00000103 — Faults
+        { n: 'IMD',                   sb: 0,  len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS',                   sb: 8,  len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BSPD',                  sb: 16, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'Safety_OK',             sb: 24, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_TIMEOUT',           sb: 32, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'PRE_CHARGE_TIME_EXCEEDED', sb: 40, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'GENERAL_ERROR',         sb: 48, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
     ],
 
-    // ── VCU — Device status MOBILE 0 ─────────────────────────────────────────
-    0x18FF00EA: [
-        { n: 'DeviceState_M0',        sb: 0,  len: 2, f: 1,     o: 0,   u: 'state', t: 'int'   },
-        { n: 'ErrorLamp_M0',          sb: 2,  len: 2, f: 1,     o: 0,   u: 'state', t: 'int'   },
-        { n: 'act_DCBusVoltage_M0',   sb: 32, len: 8, f: 4,     o: 0,   u: 'V',     t: 'int'   },
-        { n: 'act_DCBusPower_M0',     sb: 40, len: 16,f: 0.005, o: -160,u: 'kW',    t: 'float' },
-        { n: 'act_DeviceTemperature_M0',sb:56,len: 8, f: 1,     o: -40, u: '°C',    t: 'int'   },
+    // ── BMS DIAGNOSTIC ───────────────────────────────────────────────────────
+    431292423: [ // 0x19B50007 — Diagnostic_Codes_Ext (Motorola)
+        { n: 'BMS_CellUnderVoltage',   sb: 0,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellOverVoltage',    sb: 1,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_DchrgOvrCurrent',    sb: 2,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_ChrgOverCurrent',    sb: 3,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellModOverHeat',    sb: 4,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_Leakage',            sb: 5,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_NoCellComm',         sb: 6,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_MS_ConfError',       sb: 7,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_MSIntCANError',      sb: 8,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_MSCommCANErr',       sb: 9,  len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_ChargerConnected',   sb: 10, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellOverHeat',       sb: 11, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_NoCurrentSensor',    sb: 12, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_PackUnderVoltage',   sb: 13, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_PackOverVoltage',    sb: 14, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellUnderHeat',      sb: 15, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellVoltDev',        sb: 16, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_PackVoltDev',        sb: 17, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellModUnderHeat',   sb: 18, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_ExtTempSensLoss',    sb: 19, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_Wirebreak',          sb: 20, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_ParStringVoltDev',   sb: 21, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_VoltExtTempValid',   sb: 22, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_VoltReadDev',        sb: 23, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_UnderVoltRed',       sb: 32, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_DischgOvrCurrRed',   sb: 33, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_ModOvrHeatRed',      sb: 34, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_MS_ConfMMRed',       sb: 35, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_MS_CanMalfRed',      sb: 36, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellOvrHeatRed',     sb: 37, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellVoltValidity',   sb: 56, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellModTempValid',   sb: 57, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellBalancValid',    sb: 58, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_NumOfCellsValid',    sb: 59, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_BatChrgFinished',    sb: 60, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_CellTempValid',      sb: 61, len: 1, bo: 'Motorola', f: 1, o: 0, u: '', t: 'bool', signed: false },
     ],
 
-    // ── VCU — Device status MOBILE 13 ────────────────────────────────────────
-    0x18FF00F7: [
-        { n: 'DeviceState_M13',         sb: 0,  len: 2, f: 1,     o: 0,   u: 'state', t: 'int'   },
-        { n: 'ErrorLamp_M13',           sb: 2,  len: 2, f: 1,     o: 0,   u: 'state', t: 'int'   },
-        { n: 'act_DCBusVoltage_M13',    sb: 32, len: 8, f: 4,     o: 0,   u: 'V',     t: 'int'   },
-        { n: 'act_DCBusPower_M13',      sb: 40, len: 16,f: 0.005, o: -160,u: 'kW',    t: 'float' },
-        { n: 'act_DeviceTemperature_M13',sb:56, len: 8, f: 1,     o: -40, u: '°C',    t: 'int'   },
+    // ── TENSÕES INDIVIDUAIS DE CÉLULA (Motorola, 8 células por frame) ─────────
+    431292672: [ // 0x19B50100 — células 0-7
+        { n: 'vcell_0', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_1', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_2', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_3', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_4', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_5', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_6', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_7', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292673: [ // 0x19B50101 — células 8-15
+        { n: 'vcell_8',  sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_9',  sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_10', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_11', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_12', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_13', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_14', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_15', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292674: [ // 0x19B50102 — células 16-23
+        { n: 'vcell_16', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_17', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_18', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_19', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_20', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_21', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_22', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_23', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292675: [ // 0x19B50103 — células 24-31
+        { n: 'vcell_24', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_25', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_26', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_27', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_28', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_29', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_30', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_31', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292676: [ // 0x19B50104 — células 32-39
+        { n: 'vcell_32', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_33', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_34', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_35', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_36', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_37', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_38', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_39', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292677: [ // 0x19B50105 — células 40-47
+        { n: 'vcell_40', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_41', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_42', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_43', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_44', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_45', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_46', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_47', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292678: [ // 0x19B50106 — células 48-55
+        { n: 'vcell_48', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_49', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_50', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_51', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_52', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_53', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_54', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_55', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292679: [ // 0x19B50107 — células 56-63
+        { n: 'vcell_56', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_57', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_58', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_59', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_60', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_61', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_62', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_63', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292680: [ // 0x19B50108 — células 64-71
+        { n: 'vcell_64', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_65', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_66', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_67', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_68', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_69', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_70', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_71', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292681: [ // 0x19B50109 — células 72-79
+        { n: 'vcell_72', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_73', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_74', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_75', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_76', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_77', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_78', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_79', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292682: [ // 0x19B5010A — células 80-87
+        { n: 'vcell_80', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_81', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_82', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_83', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_84', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_85', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_86', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_87', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+    ],
+    431292683: [ // 0x19B5010B — células 88-95
+        { n: 'vcell_88', sb: 7,  len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_89', sb: 15, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_90', sb: 23, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_91', sb: 31, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_92', sb: 39, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_93', sb: 47, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_94', sb: 55, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
+        { n: 'vcell_95', sb: 63, len: 8, bo: 'Motorola', f: 0.01, o: 2, u: 'V', t: 'float', signed: false },
     ],
 
-    // ── VCU — Actual values motor A0 ─────────────────────────────────────────
-    0x18FF01EA: [
-        { n: 'act_Speed_A0',           sb: 8,  len: 16, f: 1,     o: -32000, u: 'rpm', t: 'int'   },
-        { n: 'act_Torque_A0',          sb: 24, len: 16, f: 0.2,   o: -6400,  u: 'Nm',  t: 'float' },
-        { n: 'act_Power_A0',           sb: 40, len: 16, f: 0.005, o: -160,   u: 'kW',  t: 'float' },
-        { n: 'act_MotorTemperature_A0',sb: 56, len: 8,  f: 1,     o: -40,    u: '°C',  t: 'int'   },
+    // ── TEMPERATURAS INDIVIDUAIS DE CÉLULA ────────────────────────────────────
+    431294464: [ // 0x19B50800 — tcells 0-7
+        { n: 'tcell_0', sb: 7,  len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_1', sb: 15, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_2', sb: 23, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_3', sb: 31, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_4', sb: 39, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_5', sb: 47, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_6', sb: 55, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_7', sb: 63, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
     ],
-
-        // ── VCU — Actual values motor B0 ─────────────────────────────────────────
-    0x18FF02EA: [
-        { n: 'act_Speed_B0',           sb: 8,  len: 16, f: 1,     o: -32000, u: 'rpm', t: 'int'   },
-        { n: 'act_Torque_B0',          sb: 24, len: 16, f: 0.2,   o: -6400,  u: 'Nm',  t: 'float' },
-        { n: 'act_Power_B0',           sb: 40, len: 16, f: 0.005, o: -160,   u: 'kW',  t: 'float' },
-        { n: 'act_MotorTemperature_B0',sb: 56, len: 8,  f: 1,     o: -40,    u: '°C',  t: 'int'   },
-        ],
-    
-        // ── VCU — Actual values motor A13 ────────────────────────────────────────
-    0x18FF01F7: [
-        { n: 'act_Speed_A13',           sb: 8,  len: 16, f: 1,     o: -32000, u: 'rpm', t: 'int'   },
-        { n: 'act_Torque_A13',          sb: 24, len: 16, f: 0.2,   o: -6400,  u: 'Nm',  t: 'float' },
-        { n: 'act_Power_A13',           sb: 40, len: 16, f: 0.005, o: -160,   u: 'kW',  t: 'float' },
-        { n: 'act_MotorTemperature_A13',sb: 56, len: 8,  f: 1,     o: -40,    u: '°C',  t: 'int'   },
-        ],
-    
-        // ── VCU — Actual values motor B13 ────────────────────────────────────────
-    0x18FF02F7: [
-        { n: 'act_Speed_B13',           sb: 8,  len: 16, f: 1,     o: -32000, u: 'rpm', t: 'int'   },
-        { n: 'act_Torque_B13',          sb: 24, len: 16, f: 0.2,   o: -6400,  u: 'Nm',  t: 'float' },
-        { n: 'act_Power_B13',           sb: 40, len: 16, f: 0.005, o: -160,   u: 'kW',  t: 'float' },
-        { n: 'act_MotorTemperature_B13',sb: 56, len: 8,  f: 1,     o: -40,    u: '°C',  t: 'int'   },
-        ],
-    
-        // ── BMS — Diagnóstico ─────────────────────────────────────────────────────
-    0x19B50007: [
-        { n: 'BMS_Under_voltage',     sb: 0,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'BMS_Over_voltage',      sb: 1,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'BMS_Discharge_OC',      sb: 2,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'BMS_Charge_OC',         sb: 3,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'BMS_Cell_Overheat',     sb: 4,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'BMS_Leakage',           sb: 5,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'BMS_No_Cell_Comm',      sb: 6,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'BMS_Pack_Under_Voltage',sb: 21, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        ],
-    
-        // ── LV BMS — Diagnóstico ──────────────────────────────────────────────────
-    0x19B70007: [
-        { n: 'LV_Under_voltage',      sb: 0,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'LV_Over_voltage',       sb: 1,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'LV_Discharge_OC',       sb: 2,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'LV_Charge_OC',          sb: 3,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'LV_Cell_Overheat',      sb: 4,  len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'LV_Pack_Under_Voltage', sb: 21, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        ],
-    
-        // ── ACD — Faults ──────────────────────────────────────────────────────────
-    0x00000103: [
-        { n: 'Fault_IMD',                    sb: 0, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'Fault_BMS',                    sb: 1, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'Fault_BSPD',                   sb: 2, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'Fault_Safety_OK',              sb: 3, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'Fault_General_Error',          sb: 4, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'Fault_PreCharge_Time_Exceeded',sb: 5, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        { n: 'Fault_BMS_Timeout',            sb: 6, len: 1, f: 1, o: 0, u: 'bool', t: 'bool' },
-        ],
-    };
+    431294466: [ // 0x19B50802 — tcells 16-23
+        { n: 'tcell_16', sb: 7,  len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_17', sb: 15, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_18', sb: 23, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_19', sb: 31, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_20', sb: 39, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_21', sb: 47, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_22', sb: 55, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_23', sb: 63, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+    ],
+    431294467: [ // 0x19B50803 — tcells 24-31
+        { n: 'tcell_24', sb: 7,  len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_25', sb: 15, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_26', sb: 23, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_27', sb: 31, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_28', sb: 39, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_29', sb: 47, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_30', sb: 55, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+        { n: 'tcell_31', sb: 63, len: 8, bo: 'Motorola', f: 1, o: -100, u: '°C', t: 'int', signed: false },
+    ],
+};
     
     // ─── UTILS EXTRAIDOS ─────────────────────────────────────────────────────────
     // CircularBuffer, lttb e decodeSignal vivem em src/utils. O worker mantém o

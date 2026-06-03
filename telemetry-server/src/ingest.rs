@@ -1,9 +1,9 @@
-use crate::db::*;
+use crate::db::save_timescale;
 use crate::decoder;
 use crate::models::ProcessedSignal;
 use crate::track_state::SharedTrackState;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::{TcpListener, TcpStream};
+use tokio::io::AsyncReadExt;
+use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 use tracing::{error, info, warn};
 
@@ -14,6 +14,7 @@ pub async fn handle_client(
     decoder_map: decoder::DecoderMap,
     ws_tx: broadcast::Sender<Vec<u8>>,
     track_state: SharedTrackState,
+    sqlite_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
 ) {
     info!("🚗 Carro conectado: {}", addr);
     let device_id = format!("car_{}", addr.ip().to_string().replace('.', "_"));
@@ -90,7 +91,11 @@ pub async fn handle_client(
             .collect();
 
         frames_decoded += processed.len() as u64;
-
+        
+        // Envia para o writer SQLite (não bloqueia — só empurra no canal)
+        let _ = sqlite_tx.try_send(processed.clone());
+        
+        // TimescaleDB em task separada
         let pg_pool_c = pg_pool.clone();
         let processed_ts = processed.clone();
 

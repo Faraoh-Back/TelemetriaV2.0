@@ -6,6 +6,7 @@
 //   Browser/App   ──HTTP──→ POST /login → JWT token
 //   Browser/App   ──WS──→   /ws         → broadcast JSON (requer JWT)
 
+use models::ProcessedSignal;
 use sqlx::postgres::PgPoolOptions;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -38,7 +39,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = get_pg_url();
     let _ = get_jwt_secret();
 
-    info!("🚀 Telemetry Server v2.1 — Dual DB + JWT Auth");
+    info!("🚀 Telemetry Server v2.2 — Dual DB + JWT Auth");
     info!("   TimescaleDB → tempo real | SQLite → histórico + users");
 
     std::fs::create_dir_all("./data")?;
@@ -99,6 +100,47 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (ws_tx, _) = broadcast::channel::<Vec<u8>>(10_000);
     let track_state = Arc::new(Mutex::new(RealtimeTrackState::new()));
 
+    // Canal SQLite: buffer de 50k vetores de sinais
+    let (sqlite_tx, mut sqlite_rx) =
+        tokio::sync::mpsc::channel::<Vec<ProcessedSignal>>(50_000);
+
+    // Task dedicada ao SQLite: acumula sinais e insere em lote a cada 2s ou 500 sinais
+    {
+        let sq = sqlite_pool.clone();
+        tokio::spawn(async move {
+            let mut pending: Vec<ProcessedSignal> = Vec::with_capacity(500);
+            let mut interval = tokio::time::interval(
+                tokio::time::Duration::from_secs(2)
+            );
+            loop {
+                tokio::select! {
+                    msg = sqlite_rx.recv() => {
+                        match msg {
+                            Some(signals) => {
+                                pending.extend(signals);
+                                if pending.len() >= 500 {
+                                    if let Err(e) = db::save_sqlite(&sq, &pending).await {
+                                        tracing::error!("❌ SQLite batch error: {:?}", e);
+                                    }
+                                    pending.clear();
+                                }
+                            }
+                            None => break, // canal fechado
+                        }
+                    }
+                    _ = interval.tick() => {
+                        if !pending.is_empty() {
+                            if let Err(e) = db::save_sqlite(&sq, &pending).await {
+                                tracing::error!("❌ SQLite batch error: {:?}", e);
+                            }
+                            pending.clear();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     // Spawn servidor HTTP+WS :8081
     {
         let tx = ws_tx.clone();
@@ -107,12 +149,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tokio::spawn(async move {
             api::run_http_ws_server(tx, pg, sqldb, HTTP_WS_PORT).await;
         });
+    }
 
         // Spawn servidor NTP :9999
         tokio::spawn(async move {
             ntp::run_ntp_server(NTP_PORT).await;
         });
-    }
 
     let tcp_listener = TcpListener::bind(format!("0.0.0.0:{}", TCP_PORT)).await?;
     info!("📡 TCP CAN listener em 0.0.0.0:{}", TCP_PORT);
@@ -125,8 +167,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let dec = decoder_map.clone();
         let tx = ws_tx.clone();
         let track = track_state.clone();
+        let sqlite_tx = sqlite_tx.clone();
         tokio::spawn(async move {
-            ingest::handle_client(socket, addr, pg, dec, tx, track).await;
+            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx).await;
         });
     }
 }

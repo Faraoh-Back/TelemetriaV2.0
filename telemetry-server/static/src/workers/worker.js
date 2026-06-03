@@ -98,28 +98,28 @@ const CAN_MAP = {
         { n: 'APPS_PERC1',       sb: 56, len: 8, bo: 'Intel', f: 1, o: 0, u: '%', t: 'int', signed: false },
     ],
 
-    // ── INVERSORES ───────────────────────────────────────────────────────────
-    419368426: [ // 0x18FF0DEA — SETPOINTS_CONTROL_0 (eixo dianteiro)
-        { n: 'RPM_0A',    sb: 16, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
-        { n: 'TORQUE_0B', sb: 32, len: 16, bo: 'Intel', f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
-        { n: 'RPM_0B',    sb: 48, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
+    // ── INVERSORES — SETPOINTS reais (IDs que chegam no banco) ───────────────
+    419368426: [ // 0x18FF0DEA — SETPOINTS_CONTROL_0 (eixo 0)
+        { n: 'RPM_0A',    sb: 16, len: 16, f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
+        { n: 'TORQUE_0B', sb: 32, len: 16, f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
+        { n: 'RPM_0B',    sb: 48, len: 16, f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
     ],
-    419368695: [ // 0x18FF0EF7 — SEPOINT_CONTROL_13 (eixo traseiro)
-        { n: 'TORQUE_13A', sb: 0,  len: 16, bo: 'Intel', f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
-        { n: 'RPM_13A',    sb: 16, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
-        { n: 'TORQUE_13B', sb: 32, len: 16, bo: 'Intel', f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
-        { n: 'RPM_13B',    sb: 48, len: 16, bo: 'Intel', f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
+    419368695: [ // 0x18FF0EF7 — SEPOINT_CONTROL_13 (eixo 13)
+        { n: 'TORQUE_13A', sb: 0,  len: 16, f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
+        { n: 'RPM_13A',    sb: 16, len: 16, f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
+        { n: 'TORQUE_13B', sb: 32, len: 16, f: 1, o: 0, u: 'Nm',  t: 'int', signed: true },
+        { n: 'RPM_13B',    sb: 48, len: 16, f: 1, o: 0, u: 'rpm', t: 'int', signed: true },
     ],
 
     // ── VCU FAULTS ───────────────────────────────────────────────────────────
-    259: [ // 0x00000103 — Faults
-        { n: 'IMD',                   sb: 0,  len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
-        { n: 'BMS',                   sb: 8,  len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
-        { n: 'BSPD',                  sb: 16, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
-        { n: 'Safety_OK',             sb: 24, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
-        { n: 'BMS_TIMEOUT',           sb: 32, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
-        { n: 'PRE_CHARGE_TIME_EXCEEDED', sb: 40, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
-        { n: 'GENERAL_ERROR',         sb: 48, len: 8, bo: 'Intel', f: 1, o: 0, u: '', t: 'bool', signed: false },
+    259: [ // 0x00000103 — Faults (decimal, não hex)
+        { n: 'IMD',                    sb: 0,  len: 8, f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS',                    sb: 8,  len: 8, f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BSPD',                   sb: 16, len: 8, f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'Safety_OK',              sb: 24, len: 8, f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'BMS_TIMEOUT',            sb: 32, len: 8, f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'PRE_CHARGE_TIME_EXCEEDED', sb: 40, len: 8, f: 1, o: 0, u: '', t: 'bool', signed: false },
+        { n: 'GENERAL ERROR',          sb: 48, len: 8, f: 1, o: 0, u: '', t: 'bool', signed: false },
     ],
 
     // ── BMS DIAGNOSTIC ───────────────────────────────────────────────────────

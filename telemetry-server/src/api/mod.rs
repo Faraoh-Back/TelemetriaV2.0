@@ -2,6 +2,7 @@ mod auth_handlers;
 mod collection;
 mod http;
 mod migrate;
+mod logs;
 
 use sqlx::sqlite::SqlitePool;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -83,6 +84,10 @@ async fn handle_http_connection(
         http::serve_static_file(&mut stream, first_line).await;
     } else if first_line.starts_with("POST /migrate") {
         migrate::handle_migrate(&mut stream, &request, &pg_pool, &sqlite_pool).await;
+    } else if first_line.starts_with("GET /telemetry/logs") && first_line.contains("/download") {
+        logs::handle_download_log(&mut stream, &request, &sqlite_pool, &pg_pool).await;
+    } else if first_line.starts_with("GET /telemetry/logs") {
+        logs::handle_list_logs(&mut stream, &request, &sqlite_pool).await;
     } else {
         let response = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\n\r\nNot Found";
         let _ = stream.write_all(response.as_bytes()).await;

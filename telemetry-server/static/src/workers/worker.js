@@ -348,6 +348,9 @@ const CAN_MAP = {
         ids: null,
         signals: null,
         unmappedImmediate: true,
+        durationMs: 19000,
+        startedAt: 0,
+        ended: false,
     };
     let statsFrames = 0;
     let statsDecodedSignals = 0;
@@ -386,24 +389,53 @@ const CAN_MAP = {
     }
 
     function applyDebugConfig(config = {}) {
+        const durationSeconds = Number(config.durationSeconds);
         debugConfig = {
             enabled: config.enabled === true || config.enabled === '1',
             ids: parseCanIdList(config.ids),
             signals: parseSignalList(config.signals),
             unmappedImmediate: config.unmappedImmediate !== false,
+            durationMs: Number.isFinite(durationSeconds) && durationSeconds > 0
+                ? durationSeconds * 1000
+                : 19000,
+            startedAt: performance.now(),
+            ended: false,
         };
+        statsFrames = 0;
+        statsDecodedSignals = 0;
+        statsUnmappedFrames = 0;
+        statsUnmappedIds.clear();
+        statsLastLogTs = performance.now();
         if (debugConfig.enabled) {
             console.info('[CAN_FRONT_DEBUG] ativo', {
                 ids: debugConfig.ids ? Array.from(debugConfig.ids).map((id) => `0x${id.toString(16).toUpperCase()}`) : null,
                 signals: debugConfig.signals ? Array.from(debugConfig.signals) : null,
                 unmappedImmediate: debugConfig.unmappedImmediate,
+                durationSeconds: debugConfig.durationMs / 1000,
                 mappedIds: Object.keys(CAN_MAP).length,
             });
         }
     }
 
+    function debugLogActive() {
+        if (!debugConfig.enabled || debugConfig.ended) return false;
+
+        if (performance.now() - debugConfig.startedAt <= debugConfig.durationMs) {
+            return true;
+        }
+
+        debugConfig.ended = true;
+        console.info(
+            `[CAN_FRONT_STATS] final_${Math.round(debugConfig.durationMs / 1000)}s | frames=${statsFrames} sinais=${statsDecodedSignals} sem_mapa=${statsUnmappedFrames}`
+        );
+        if (statsUnmappedIds.size > 0) {
+            console.warn(`[CAN_FRONT_UNMAPPED] resumo_final | ids=${formatIdCounts(statsUnmappedIds)}`);
+        }
+        return false;
+    }
+
     function shouldDebugFrame(canId) {
-        return debugConfig.enabled && (!debugConfig.ids || debugConfig.ids.has(canId));
+        return debugLogActive() && (!debugConfig.ids || debugConfig.ids.has(canId));
     }
 
     function shouldDebugSignal(name) {
@@ -433,7 +465,7 @@ const CAN_MAP = {
         const now = performance.now();
         if (now - statsLastLogTs < 5000) return;
 
-        if (debugConfig.enabled) {
+        if (debugLogActive()) {
             console.info(
                 `[CAN_FRONT_STATS] frames=${statsFrames} sinais=${statsDecodedSignals} sem_mapa=${statsUnmappedFrames}`
             );
@@ -499,7 +531,7 @@ const CAN_MAP = {
         const signals = CAN_MAP[canId];
         if (!signals) {
             recordUnmapped(canId);
-            if (debugFrame || (debugConfig.enabled && debugConfig.unmappedImmediate)) {
+            if (debugFrame || (debugLogActive() && debugConfig.unmappedImmediate)) {
                 console.warn(
                     `[CAN_FRONT_UNMAPPED] RX sem CAN_MAP | id_dec=${canId} | id_hex=0x${canId.toString(16).toUpperCase()} | raw=[${formatRawData(rawData)}]`
                 );

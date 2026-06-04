@@ -131,6 +131,7 @@ const [telemetrySession, setTelemetrySession] = createStore({
             ids: localStorage.getItem('CAN_FRONT_DEBUG_IDS') || '',
             signals: localStorage.getItem('CAN_FRONT_DEBUG_SIGNALS') || '',
             unmappedImmediate: localStorage.getItem('CAN_FRONT_DEBUG_UNMAPPED') !== '0',
+            durationSeconds: Number(localStorage.getItem('CAN_FRONT_DEBUG_SECONDS') || '19'),
         }
     }
 

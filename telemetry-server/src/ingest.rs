@@ -2,7 +2,7 @@ use crate::db::save_timescale;
 use crate::decoder;
 use crate::models::ProcessedSignal;
 use crate::track_state::SharedTrackState;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use tokio::io::AsyncReadExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
@@ -12,18 +12,20 @@ struct DecodeDebugConfig {
     enabled: bool,
     can_ids: Option<HashSet<u32>>,
     signal_names: Option<HashSet<String>>,
+    latency_enabled: bool,
+    unmapped_immediate: bool,
 }
 
 impl DecodeDebugConfig {
     fn from_env() -> Self {
-        let enabled = std::env::var("CAN_DECODE_DEBUG")
-            .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
-            .unwrap_or(false);
+        let enabled = env_bool("CAN_DECODE_DEBUG", false);
 
         Self {
             enabled,
             can_ids: parse_can_id_filter("CAN_DECODE_DEBUG_IDS"),
             signal_names: parse_string_filter("CAN_DECODE_DEBUG_SIGNALS"),
+            latency_enabled: env_bool("CAN_LATENCY_LOG", true),
+            unmapped_immediate: env_bool("CAN_DEBUG_UNMAPPED", false),
         }
     }
 
@@ -42,6 +44,12 @@ impl DecodeDebugConfig {
             .map(|names| names.contains(signal_name))
             .unwrap_or(true)
     }
+}
+
+fn env_bool(var_name: &str, default: bool) -> bool {
+    std::env::var(var_name)
+        .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES" | "on" | "ON"))
+        .unwrap_or(default)
 }
 
 fn parse_can_id_filter(var_name: &str) -> Option<HashSet<u32>> {
@@ -94,6 +102,18 @@ fn format_raw_data(raw_data: &[u8]) -> String {
         .join(" ")
 }
 
+fn format_can_counts(counts: &HashMap<u32, u64>, limit: usize) -> String {
+    let mut items: Vec<(u32, u64)> = counts.iter().map(|(id, count)| (*id, *count)).collect();
+    items.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+
+    items
+        .into_iter()
+        .take(limit)
+        .map(|(id, count)| format!("0x{:X}/{}={}", id, id, count))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
 pub async fn handle_client(
     mut socket: TcpStream,
     addr: std::net::SocketAddr,
@@ -108,13 +128,18 @@ pub async fn handle_client(
     let decode_debug = DecodeDebugConfig::from_env();
     if decode_debug.enabled {
         info!(
-            "🔎 CAN decode debug ativo | ids={:?} | signals={:?}",
-            decode_debug.can_ids, decode_debug.signal_names
+            "[CAN_DEBUG] ativo | ids={:?} | signals={:?} | unmapped_immediate={} | latency={}",
+            decode_debug.can_ids,
+            decode_debug.signal_names,
+            decode_debug.unmapped_immediate,
+            decode_debug.latency_enabled
         );
     }
 
     let mut frames_total: u64 = 0;
     let mut frames_decoded: u64 = 0;
+    let mut frames_unmapped: u64 = 0;
+    let mut unmapped_counts: HashMap<u32, u64> = HashMap::new();
     let mut last_log = std::time::Instant::now();
 
     loop {
@@ -155,7 +180,7 @@ pub async fn handle_client(
 
         if should_log_decode {
             info!(
-                "🔎 CAN RX | id_dec={} | id_hex=0x{:X} | timestamp={:.6} | raw=[{}] | payload_len={}",
+                "[CAN_DEBUG] RX | id_dec={} | id_hex=0x{:X} | timestamp={:.6} | raw=[{}] | payload_len={}",
                 can_id,
                 can_id,
                 timestamp,
@@ -170,8 +195,8 @@ pub async fn handle_client(
             .unwrap_or_default()
             .as_secs_f64();
         let latency_ms = (t_recv_srv - timestamp) * 1000.0;
-        if latency_ms >= 0.0 && latency_ms < 5000.0 {
-            info!("⏱️  Latência | CAN=0x{:X} | {:.1}ms", can_id, latency_ms);
+        if decode_debug.latency_enabled && latency_ms >= 0.0 && latency_ms < 5000.0 {
+            info!("[CAN_LATENCY] id=0x{:X} | {:.1}ms", can_id, latency_ms);
         }
 
         frames_total += 1;
@@ -179,9 +204,11 @@ pub async fn handle_client(
         let signals_config = match decoder_map.get(&can_id) {
             Some(s) => s,
             None => {
-                if should_log_decode {
+                frames_unmapped += 1;
+                *unmapped_counts.entry(can_id).or_insert(0) += 1;
+                if should_log_decode || decode_debug.unmapped_immediate {
                     warn!(
-                        "🔎 CAN RX sem mapeamento | id_dec={} | id_hex=0x{:X} | raw=[{}]",
+                        "[CAN_UNMAPPED] RX sem mapeamento | id_dec={} | id_hex=0x{:X} | raw=[{}]",
                         can_id,
                         can_id,
                         format_raw_data(raw_data)
@@ -193,7 +220,7 @@ pub async fn handle_client(
 
         if should_log_decode {
             info!(
-                "🔎 CAN map match | id_dec={} | id_hex=0x{:X} | sinais={}",
+                "[CAN_DEBUG] map match | id_dec={} | id_hex=0x{:X} | sinais={}",
                 can_id,
                 can_id,
                 signals_config.len()
@@ -206,7 +233,7 @@ pub async fn handle_client(
                 let trace = decoder::decode_signal_trace(raw_data, cfg);
                 if should_log_decode && decode_debug.should_log_signal(&cfg.signal_name) {
                     info!(
-                        "🔎 CAN decode | id=0x{:X} | signal={} | sb={} | len={} | order={:?} | signed={} | raw_unsigned={} | raw_signed={:?} | calc_input={} | factor={} | offset={} | final={} {}",
+                        "[CAN_DEBUG] decode | id=0x{:X} | signal={} | sb={} | len={} | order={:?} | signed={} | raw_unsigned={} | raw_signed={:?} | calc_input={} | factor={} | offset={} | final={} {}",
                         can_id,
                         cfg.signal_name,
                         cfg.start_bit,
@@ -270,14 +297,23 @@ pub async fn handle_client(
         if last_log.elapsed().as_secs() >= 10 {
             let elapsed = last_log.elapsed().as_secs_f64();
             info!(
-                "📊 {} | frames: {} | sinais: {} | taxa: {:.0} frames/s",
+                "[CAN_STATS] {} | frames={} | sinais={} | sem_mapa={} | taxa={:.0} frames/s",
                 device_id,
                 frames_total,
                 frames_decoded,
+                frames_unmapped,
                 frames_total as f64 / elapsed
             );
+            if !unmapped_counts.is_empty() {
+                warn!(
+                    "[CAN_UNMAPPED] resumo_10s | ids={}",
+                    format_can_counts(&unmapped_counts, 20)
+                );
+            }
             frames_total = 0;
             frames_decoded = 0;
+            frames_unmapped = 0;
+            unmapped_counts.clear();
             last_log = std::time::Instant::now();
         }
     }

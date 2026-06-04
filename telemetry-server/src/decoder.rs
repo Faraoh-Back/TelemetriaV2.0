@@ -155,7 +155,8 @@ fn parse_dbc_file(
     path: &Path,
     decoder_map: &mut DecoderMap,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let content = fs::read_to_string(path)?;
+    let bytes = fs::read(path)?;
+    let content = String::from_utf8_lossy(&bytes);
     let mut current_can_id: Option<u32> = None;
 
     for line in content.lines() {

@@ -125,8 +125,25 @@ const [telemetrySession, setTelemetrySession] = createStore({
 
     // ─── API PÚBLICA ──────────────────────────────────────────────────────────────
 
+    function readCanFrontDebugConfig() {
+        return {
+            enabled: localStorage.getItem('CAN_FRONT_DEBUG') === '1',
+            ids: localStorage.getItem('CAN_FRONT_DEBUG_IDS') || '',
+            signals: localStorage.getItem('CAN_FRONT_DEBUG_SIGNALS') || '',
+            unmappedImmediate: localStorage.getItem('CAN_FRONT_DEBUG_UNMAPPED') !== '0',
+        }
+    }
+
+    export function refreshCanFrontDebugConfig() {
+        worker.postMessage({
+            cmd: 'setDebugConfig',
+            config: readCanFrontDebugConfig(),
+        })
+    }
+
     export function connect(url) {
         setStatus({ state: 'connecting', frameRate: 0 })
+        refreshCanFrontDebugConfig()
         worker.postMessage({ cmd: 'connect', url })
     }
 

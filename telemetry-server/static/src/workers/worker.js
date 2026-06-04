@@ -343,10 +343,110 @@ const CAN_MAP = {
     let sessionStartTimestamp = null;
     let sessionStopTimestamp = null;
     let latestFrameTimestamp = null;
+    let debugConfig = {
+        enabled: false,
+        ids: null,
+        signals: null,
+        unmappedImmediate: true,
+    };
+    let statsFrames = 0;
+    let statsDecodedSignals = 0;
+    let statsUnmappedFrames = 0;
+    let statsUnmappedIds = new Map();
+    let statsLastLogTs = performance.now();
     
     function getOrCreateBuffer(name) {
         if (!buffers[name]) buffers[name] = new CircularBuffer(BUFFER_SIZE);
         return buffers[name];
+    }
+
+    function parseCanIdList(value) {
+        if (!value) return null;
+        const ids = new Set();
+        for (const item of String(value).split(',')) {
+            const trimmed = item.trim();
+            if (!trimmed) continue;
+            const parsed = trimmed.toLowerCase().startsWith('0x')
+                ? Number.parseInt(trimmed.slice(2), 16)
+                : Number.parseInt(trimmed, 10);
+            if (Number.isFinite(parsed)) ids.add(parsed >>> 0);
+        }
+        return ids.size > 0 ? ids : null;
+    }
+
+    function parseSignalList(value) {
+        if (!value) return null;
+        const signals = new Set(
+            String(value)
+                .split(',')
+                .map((item) => item.trim())
+                .filter(Boolean)
+        );
+        return signals.size > 0 ? signals : null;
+    }
+
+    function applyDebugConfig(config = {}) {
+        debugConfig = {
+            enabled: config.enabled === true || config.enabled === '1',
+            ids: parseCanIdList(config.ids),
+            signals: parseSignalList(config.signals),
+            unmappedImmediate: config.unmappedImmediate !== false,
+        };
+        if (debugConfig.enabled) {
+            console.info('[CAN_FRONT_DEBUG] ativo', {
+                ids: debugConfig.ids ? Array.from(debugConfig.ids).map((id) => `0x${id.toString(16).toUpperCase()}`) : null,
+                signals: debugConfig.signals ? Array.from(debugConfig.signals) : null,
+                unmappedImmediate: debugConfig.unmappedImmediate,
+                mappedIds: Object.keys(CAN_MAP).length,
+            });
+        }
+    }
+
+    function shouldDebugFrame(canId) {
+        return debugConfig.enabled && (!debugConfig.ids || debugConfig.ids.has(canId));
+    }
+
+    function shouldDebugSignal(name) {
+        return !debugConfig.signals || debugConfig.signals.has(name);
+    }
+
+    function formatRawData(rawData) {
+        return Array.from(rawData)
+            .map((byte) => byte.toString(16).toUpperCase().padStart(2, '0'))
+            .join(' ');
+    }
+
+    function recordUnmapped(canId) {
+        statsUnmappedFrames += 1;
+        statsUnmappedIds.set(canId, (statsUnmappedIds.get(canId) || 0) + 1);
+    }
+
+    function formatIdCounts(map, limit = 20) {
+        return Array.from(map.entries())
+            .sort((a, b) => b[1] - a[1] || a[0] - b[0])
+            .slice(0, limit)
+            .map(([id, count]) => `0x${id.toString(16).toUpperCase()}/${id}=${count}`)
+            .join(', ');
+    }
+
+    function maybeLogStats() {
+        const now = performance.now();
+        if (now - statsLastLogTs < 5000) return;
+
+        if (debugConfig.enabled) {
+            console.info(
+                `[CAN_FRONT_STATS] frames=${statsFrames} sinais=${statsDecodedSignals} sem_mapa=${statsUnmappedFrames}`
+            );
+            if (statsUnmappedIds.size > 0) {
+                console.warn(`[CAN_FRONT_UNMAPPED] resumo_5s | ids=${formatIdCounts(statsUnmappedIds)}`);
+            }
+        }
+
+        statsFrames = 0;
+        statsDecodedSignals = 0;
+        statsUnmappedFrames = 0;
+        statsUnmappedIds.clear();
+        statsLastLogTs = now;
     }
 
     function resetTelemetryData() {
@@ -379,6 +479,14 @@ const CAN_MAP = {
         const canId   = view.getUint32(0, true);       // little-endian
         const timestamp = view.getFloat64(4, true);    // little-endian
         const rawData = new Uint8Array(arrayBuffer, 12, 8);
+        const debugFrame = shouldDebugFrame(canId);
+        statsFrames += 1;
+
+        if (debugFrame) {
+            console.info(
+                `[CAN_FRONT_DEBUG] RX | id_dec=${canId} | id_hex=0x${canId.toString(16).toUpperCase()} | timestamp=${timestamp.toFixed(6)} | raw=[${formatRawData(rawData)}]`
+            );
+        }
 
         if (sessionStartTimestamp == null) {
         sessionStartTimestamp = timestamp;
@@ -389,11 +497,33 @@ const CAN_MAP = {
         latestFrameTimestamp = timestamp;
     
         const signals = CAN_MAP[canId];
-        if (!signals) return;
+        if (!signals) {
+            recordUnmapped(canId);
+            if (debugFrame || (debugConfig.enabled && debugConfig.unmappedImmediate)) {
+                console.warn(
+                    `[CAN_FRONT_UNMAPPED] RX sem CAN_MAP | id_dec=${canId} | id_hex=0x${canId.toString(16).toUpperCase()} | raw=[${formatRawData(rawData)}]`
+                );
+            }
+            maybeLogStats();
+            return;
+        }
+
+        if (debugFrame) {
+            console.info(
+                `[CAN_FRONT_DEBUG] map match | id_dec=${canId} | id_hex=0x${canId.toString(16).toUpperCase()} | sinais=${signals.length}`
+            );
+        }
     
         for (const sig of signals) {
         const value = decodeSignal(rawData, sig);
         const name  = sig.n;
+        statsDecodedSignals += 1;
+
+        if (debugFrame && shouldDebugSignal(name)) {
+            console.info(
+                `[CAN_FRONT_DEBUG] decode | id=0x${canId.toString(16).toUpperCase()} | signal=${name} | sb=${sig.sb} | len=${sig.len} | order=${sig.bo || 'Intel'} | signed=${sig.signed === true} | factor=${sig.f} | offset=${sig.o} | final=${value} ${sig.u || ''}`
+            );
+        }
     
         getOrCreateBuffer(name).push(timestamp, value);
         latest[name] = { value, unit: sig.u, timestamp };
@@ -411,6 +541,8 @@ const CAN_MAP = {
         frameCount  = 0;
         lastRateTs  = now;
         }
+
+        maybeLogStats();
     }
 
     function handleTextMessage(text) {
@@ -532,6 +664,10 @@ const CAN_MAP = {
     
     self.onmessage = ({ data }) => {
         switch (data.cmd) {
+        case 'setDebugConfig':
+            applyDebugConfig(data.config || {});
+            break;
+
         case 'connect':
             connect(data.url);
             break;

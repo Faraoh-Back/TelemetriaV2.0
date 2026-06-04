@@ -45,26 +45,52 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::create_dir_all("./data")?;
     std::fs::create_dir_all("./static")?;
 
-    let can_map_source = std::env::var("CAN_MAP_SOURCE").unwrap_or_else(|_| "dbc".to_string());
-    let decoder_map = match decoder::load_can_mappings_from_dbc_dir(DBC_DATA_PATH) {
-        Ok(map) => {
-            info!(
-                "✅ {} CAN IDs carregados de DBC ({})",
-                map.len(),
-                DBC_DATA_PATH
-            );
-            map
-        }
-        Err(e) => {
-            warn!(
-                "⚠️ Falha ao carregar DBC ({}) : {:?}. Tentando CSV...",
-                DBC_DATA_PATH, e
-            );
+    let can_map_source = std::env::var("CAN_MAP_SOURCE")
+        .unwrap_or_else(|_| "dbc".to_string())
+        .to_lowercase();
+    let decoder_map = match can_map_source.as_str() {
+        "csv" => {
             let map = decoder::load_can_mappings(CSV_DATA_PATH)?;
             info!(
                 "✅ {} CAN IDs carregados de CSV ({})",
                 map.len(),
                 CSV_DATA_PATH
+            );
+            map
+        }
+        "dbc" => match decoder::load_can_mappings_from_dbc_dir(DBC_DATA_PATH) {
+            Ok(map) => {
+                info!(
+                    "✅ {} CAN IDs carregados de DBC ({})",
+                    map.len(),
+                    DBC_DATA_PATH
+                );
+                map
+            }
+            Err(e) => {
+                warn!(
+                    "⚠️ Falha ao carregar DBC ({}) : {:?}. Tentando CSV...",
+                    DBC_DATA_PATH, e
+                );
+                let map = decoder::load_can_mappings(CSV_DATA_PATH)?;
+                info!(
+                    "✅ {} CAN IDs carregados de CSV ({})",
+                    map.len(),
+                    CSV_DATA_PATH
+                );
+                map
+            }
+        },
+        other => {
+            warn!(
+                "⚠️ CAN_MAP_SOURCE={} inválido. Use 'dbc' ou 'csv'. Usando DBC.",
+                other
+            );
+            let map = decoder::load_can_mappings_from_dbc_dir(DBC_DATA_PATH)?;
+            info!(
+                "✅ {} CAN IDs carregados de DBC ({})",
+                map.len(),
+                DBC_DATA_PATH
             );
             map
         }

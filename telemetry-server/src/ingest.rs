@@ -2,10 +2,97 @@ use crate::db::save_timescale;
 use crate::decoder;
 use crate::models::ProcessedSignal;
 use crate::track_state::SharedTrackState;
+use std::collections::HashSet;
 use tokio::io::AsyncReadExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 use tracing::{error, info, warn};
+
+struct DecodeDebugConfig {
+    enabled: bool,
+    can_ids: Option<HashSet<u32>>,
+    signal_names: Option<HashSet<String>>,
+}
+
+impl DecodeDebugConfig {
+    fn from_env() -> Self {
+        let enabled = std::env::var("CAN_DECODE_DEBUG")
+            .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+            .unwrap_or(false);
+
+        Self {
+            enabled,
+            can_ids: parse_can_id_filter("CAN_DECODE_DEBUG_IDS"),
+            signal_names: parse_string_filter("CAN_DECODE_DEBUG_SIGNALS"),
+        }
+    }
+
+    fn should_log_frame(&self, can_id: u32) -> bool {
+        self.enabled
+            && self
+                .can_ids
+                .as_ref()
+                .map(|ids| ids.contains(&can_id))
+                .unwrap_or(true)
+    }
+
+    fn should_log_signal(&self, signal_name: &str) -> bool {
+        self.signal_names
+            .as_ref()
+            .map(|names| names.contains(signal_name))
+            .unwrap_or(true)
+    }
+}
+
+fn parse_can_id_filter(var_name: &str) -> Option<HashSet<u32>> {
+    let value = std::env::var(var_name).ok()?;
+    let ids: HashSet<u32> = value
+        .split(',')
+        .filter_map(|item| {
+            let trimmed = item.trim();
+            if trimmed.is_empty() {
+                return None;
+            }
+            let hex = trimmed
+                .strip_prefix("0x")
+                .or_else(|| trimmed.strip_prefix("0X"));
+            match hex {
+                Some(hex) => u32::from_str_radix(hex, 16).ok(),
+                None => trimmed.parse::<u32>().ok(),
+            }
+        })
+        .collect();
+
+    if ids.is_empty() {
+        None
+    } else {
+        Some(ids)
+    }
+}
+
+fn parse_string_filter(var_name: &str) -> Option<HashSet<String>> {
+    let value = std::env::var(var_name).ok()?;
+    let names: HashSet<String> = value
+        .split(',')
+        .map(str::trim)
+        .filter(|item| !item.is_empty())
+        .map(ToOwned::to_owned)
+        .collect();
+
+    if names.is_empty() {
+        None
+    } else {
+        Some(names)
+    }
+}
+
+fn format_raw_data(raw_data: &[u8]) -> String {
+    raw_data
+        .iter()
+        .map(|byte| format!("{:02X}", byte))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
 
 pub async fn handle_client(
     mut socket: TcpStream,
@@ -18,6 +105,13 @@ pub async fn handle_client(
 ) {
     info!("🚗 Carro conectado: {}", addr);
     let device_id = format!("car_{}", addr.ip().to_string().replace('.', "_"));
+    let decode_debug = DecodeDebugConfig::from_env();
+    if decode_debug.enabled {
+        info!(
+            "🔎 CAN decode debug ativo | ids={:?} | signals={:?}",
+            decode_debug.can_ids, decode_debug.signal_names
+        );
+    }
 
     let mut frames_total: u64 = 0;
     let mut frames_decoded: u64 = 0;
@@ -57,6 +151,18 @@ pub async fn handle_client(
         let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
         let raw_data = &payload[12..20];
         let raw_data_owned: [u8; 8] = raw_data.try_into().unwrap();
+        let should_log_decode = decode_debug.should_log_frame(can_id);
+
+        if should_log_decode {
+            info!(
+                "🔎 CAN RX | id_dec={} | id_hex=0x{:X} | timestamp={:.6} | raw=[{}] | payload_len={}",
+                can_id,
+                can_id,
+                timestamp,
+                format_raw_data(raw_data),
+                payload.len()
+            );
+        }
 
         // Latência real = agora no servidor - timestamp já corrigido pelo offset da Jetson
         let t_recv_srv = std::time::SystemTime::now()
@@ -72,19 +178,56 @@ pub async fn handle_client(
 
         let signals_config = match decoder_map.get(&can_id) {
             Some(s) => s,
-            None => continue,
+            None => {
+                if should_log_decode {
+                    warn!(
+                        "🔎 CAN RX sem mapeamento | id_dec={} | id_hex=0x{:X} | raw=[{}]",
+                        can_id,
+                        can_id,
+                        format_raw_data(raw_data)
+                    );
+                }
+                continue;
+            }
         };
+
+        if should_log_decode {
+            info!(
+                "🔎 CAN map match | id_dec={} | id_hex=0x{:X} | sinais={}",
+                can_id,
+                can_id,
+                signals_config.len()
+            );
+        }
 
         let processed: Vec<ProcessedSignal> = signals_config
             .iter()
             .map(|cfg| {
-                let value = decoder::decode_signal(raw_data, cfg);
+                let trace = decoder::decode_signal_trace(raw_data, cfg);
+                if should_log_decode && decode_debug.should_log_signal(&cfg.signal_name) {
+                    info!(
+                        "🔎 CAN decode | id=0x{:X} | signal={} | sb={} | len={} | order={:?} | signed={} | raw_unsigned={} | raw_signed={:?} | calc_input={} | factor={} | offset={} | final={} {}",
+                        can_id,
+                        cfg.signal_name,
+                        cfg.start_bit,
+                        cfg.length,
+                        cfg.byte_order,
+                        cfg.is_signed,
+                        trace.raw_unsigned,
+                        trace.raw_signed,
+                        trace.raw_physical_input,
+                        trace.factor,
+                        trace.offset,
+                        trace.physical_value,
+                        cfg.unit
+                    );
+                }
                 ProcessedSignal {
                     timestamp,
                     device_id: device_id.clone(),
                     can_id,
                     signal_name: cfg.signal_name.clone(),
-                    value,
+                    value: trace.physical_value,
                     unit: cfg.unit.clone(),
                 }
             })

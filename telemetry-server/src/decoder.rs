@@ -23,6 +23,16 @@ pub struct SignalConfig {
     pub byte_order: ByteOrder,
 }
 
+#[derive(Debug, Clone)]
+pub struct DecodeTrace {
+    pub raw_unsigned: u64,
+    pub raw_signed: Option<i64>,
+    pub raw_physical_input: f64,
+    pub factor: f64,
+    pub offset: f64,
+    pub physical_value: f64,
+}
+
 pub type DecoderMap = HashMap<u32, Vec<SignalConfig>>;
 
 // ==================== CARREGAR CSVs (LEGADO) ====================
@@ -372,11 +382,12 @@ pub fn extract_bits_motorola(data: &[u8], start_bit: usize, length: usize) -> u6
     value
 }
 
-pub fn decode_signal(raw_data: &[u8], config: &SignalConfig) -> f64 {
+pub fn decode_signal_trace(raw_data: &[u8], config: &SignalConfig) -> DecodeTrace {
     let mut raw_val = match config.byte_order {
         ByteOrder::Intel => extract_bits_intel(raw_data, config.start_bit, config.length),
         ByteOrder::Motorola => extract_bits_motorola(raw_data, config.start_bit, config.length),
     };
+    let raw_unsigned = raw_val;
 
     if config.is_signed && config.length > 1 {
         let sign_bit = 1u64 << (config.length - 1);
@@ -392,7 +403,24 @@ pub fn decode_signal(raw_data: &[u8], config: &SignalConfig) -> f64 {
         raw_val as f64
     };
 
-    raw_f64 * config.factor + config.offset
+    let physical_value = raw_f64 * config.factor + config.offset;
+
+    DecodeTrace {
+        raw_unsigned,
+        raw_signed: if config.is_signed && config.length > 1 {
+            Some(raw_val as i64)
+        } else {
+            None
+        },
+        raw_physical_input: raw_f64,
+        factor: config.factor,
+        offset: config.offset,
+        physical_value,
+    }
+}
+
+pub fn decode_signal(raw_data: &[u8], config: &SignalConfig) -> f64 {
+    decode_signal_trace(raw_data, config).physical_value
 }
 
 #[cfg(test)]

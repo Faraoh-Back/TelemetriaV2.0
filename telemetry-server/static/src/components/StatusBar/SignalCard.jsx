@@ -14,21 +14,58 @@
 import { signals } from '../../store.js'
 
 function formatValue(value) {
-    if (value == null) return '—'
+    if (value == null || !Number.isFinite(Number(value))) return '—'
     return Number(value).toFixed(2)
+}
+
+function getFiniteSignalEntries(signalNames = []) {
+    return signalNames
+        .map((name) => ({ name, entry: signals[name] }))
+        .filter(({ entry }) => entry?.value != null && Number.isFinite(Number(entry.value)))
+}
+
+function getAggregateEntry(signalNames = [], aggregate = 'last') {
+    const entries = getFiniteSignalEntries(signalNames)
+    if (entries.length === 0) return null
+
+    if (aggregate === 'min') {
+        return entries.reduce((lowest, current) =>
+            Number(current.entry.value) < Number(lowest.entry.value) ? current : lowest
+        )
+    }
+
+    if (aggregate === 'max') {
+        return entries.reduce((highest, current) =>
+            Number(current.entry.value) > Number(highest.entry.value) ? current : highest
+        )
+    }
+
+    return entries[entries.length - 1]
 }
 
 /**
  * @param {string}  signalName
+ * @param {string[]} [signalNames]
  * @param {string}  label
  * @param {string}  dataClass
+ * @param {string}  [aggregate]
+ * @param {string}  [unit]
  * @param {object}  stats
  * @param {string}  [signalColor]  — cor da paleta do gráfico para este sinal
  */
-function SignalCard({ signalName, label, dataClass = 'default', stats, signalColor }) {
-    const entry = () => signals[signalName]
+function SignalCard({ signalName, signalNames, label, dataClass = 'default', aggregate, unit, stats, signalColor }) {
+    const aggregateEntry = () => signalNames?.length > 0
+        ? getAggregateEntry(signalNames, aggregate)
+        : null
+    const entry = () => aggregateEntry()?.entry ?? signals[signalName]
+    const sourceName = () => aggregateEntry()?.name
     const stat = () => stats[signalName]
     const average = () => stat() ? stat().sum / stat().count : null
+    const displayUnit = () => {
+        if (unit) return unit
+        if (dataClass === 'torque') return 'Nm'
+        return entry()?.unit ?? ''
+    }
 
     // Estilo inline apenas para a cor dinâmica do marcador lateral
     const borderStyle = () =>
@@ -48,8 +85,12 @@ function SignalCard({ signalName, label, dataClass = 'default', stats, signalCol
                     <span class="signal-card__value">
                         {formatValue(entry()?.value)}
                     </span>
-                    <span class="signal-card__unit">{entry()?.unit ?? ''}</span>
+                    <span class="signal-card__unit">{displayUnit()}</span>
                 </span>
+            </div>
+
+            <div class="signal-card__source">
+                {sourceName() ?? signalName}
             </div>
 
             <div class="signal-card__stats">

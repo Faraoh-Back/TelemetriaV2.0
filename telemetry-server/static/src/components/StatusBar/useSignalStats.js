@@ -21,30 +21,54 @@ import { createEffect } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { signals } from '../../store.js'
 
+function getSignalConfigKey(config) {
+    return config.signalName
+}
+
+function getFiniteSignalValues(signalNames = []) {
+    return signalNames
+        .map((name) => signals[name]?.value)
+        .filter((value) => value != null && Number.isFinite(Number(value)))
+        .map(Number)
+}
+
+function getConfigValue(config) {
+    if (config.signalNames?.length > 0) {
+        const values = getFiniteSignalValues(config.signalNames)
+        if (values.length === 0) return null
+        if (config.aggregate === 'min') return Math.min(...values)
+        if (config.aggregate === 'max') return Math.max(...values)
+        return values[values.length - 1]
+    }
+
+    return signals[config.signalName]?.value
+}
+
 export function useSignalStats(signalConfigs) {
     const [stats, setStats] = createStore({})
 
-    for (const { signalName } of signalConfigs) {
+    for (const config of signalConfigs) {
         createEffect(() => {
-        const entry = signals[signalName]
-        if (!entry) return
+        const value = getConfigValue(config)
+        if (value == null || !Number.isFinite(Number(value))) return
 
-        const value = entry.value
+        const key = getSignalConfigKey(config)
+        const numericValue = Number(value)
 
-        setStats(signalName, (prev) => {
+        setStats(key, (prev) => {
             if (!prev) {
             return {
-                max: value,
-                min: value,
-                sum: value,
+                max: numericValue,
+                min: numericValue,
+                sum: numericValue,
                 count: 1,
             }
             }
 
             return {
-            max: Math.max(prev.max, value),
-            min: Math.min(prev.min, value),
-            sum: prev.sum + value,
+            max: Math.max(prev.max, numericValue),
+            min: Math.min(prev.min, numericValue),
+            sum: prev.sum + numericValue,
             count: prev.count + 1,
             }
         })

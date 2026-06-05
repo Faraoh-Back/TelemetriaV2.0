@@ -206,6 +206,26 @@
     box-shadow: 0 0 0 6px rgba(221,102,63,0.14);
 }
 
+.track-map__label {
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    white-space: nowrap;
+    animation: track-pulse 2s ease-in-out infinite;
+}
+
+@keyframes track-pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
 .track-map__position--live {
     transform: translate(-50%, -50%);
     z-index: 2;

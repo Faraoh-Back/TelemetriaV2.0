@@ -13,6 +13,52 @@ import {
 } from './permissions.js'
 
 const TOKEN_KEY = 'jwt'
+const DEV_LOGIN_USERNAME = 'admin'
+const DEV_LOGIN_PASSWORD = 'admin123'
+
+function encodeBase64Url(value) {
+    return btoa(JSON.stringify(value))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/g, '')
+}
+
+function buildDevToken(username) {
+    const now = Math.floor(Date.now() / 1000)
+    return [
+        encodeBase64Url({ alg: 'none', typ: 'JWT' }),
+        encodeBase64Url({
+            sub: username,
+            username,
+            role: ROLES.admin,
+            permissions: normalizePermissions(null, ROLES.admin),
+            iat: now,
+            exp: now + 8 * 60 * 60,
+        }),
+        'dev',
+    ].join('.')
+}
+
+function buildDevSession(username) {
+    const token = buildDevToken(username)
+    storeToken(token)
+    return buildSessionFromAuthData({
+        token,
+        user: {
+            username,
+            role: ROLES.admin,
+            permissions: normalizePermissions(null, ROLES.admin),
+        },
+    }, username)
+}
+
+function canUseDevLogin(username, password) {
+    return (
+        import.meta.env.DEV &&
+        username === DEV_LOGIN_USERNAME &&
+        password === DEV_LOGIN_PASSWORD
+    )
+}
 
 export function decodeJwtPayload(token) {
     const [, rawPayload] = token.split('.')
@@ -104,12 +150,20 @@ export async function login(username, password) {
             body: JSON.stringify({ username, password }),
         })
     } catch (_) {
+        if (canUseDevLogin(username, password)) {
+            return buildDevSession(username)
+        }
+
         throw new Error('Servidor inacessivel. Verifique a rede.')
     }
 
     const data = await response.json().catch(() => ({}))
 
     if (!response.ok || !data.ok || !data.token) {
+        if (canUseDevLogin(username, password)) {
+            return buildDevSession(username)
+        }
+
         throw new Error(data.message || 'Credenciais invalidas.')
     }
 

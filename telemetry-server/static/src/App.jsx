@@ -22,6 +22,7 @@ import {
 } from './utils/permissions.js'
 import {
   persistTelemetryLogBounds,
+  sendEmergencyStop,
   startTelemetryCollection,
   stopTelemetryCollection,
 } from './services/telemetryCollection.js'
@@ -217,6 +218,12 @@ function App() {
     setSelectedSignals([])
   }
 
+  async function handleEmergencyStop() {
+    const currentSession = session()
+    if (!currentSession) return
+    await sendEmergencyStop(currentSession.token)
+  }
+
   return (
     <Show
       when={session()}
@@ -234,6 +241,7 @@ function App() {
         telemetryActionPending={telemetryActionPending()}
         onStartTelemetry={handleStartTelemetry}
         onStopTelemetry={handleStopTelemetryRequest}
+        onEmergencyStop={handleEmergencyStop}
         onLogout={handleLogout}
       />
       <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />

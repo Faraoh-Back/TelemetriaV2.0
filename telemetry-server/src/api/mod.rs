@@ -1,5 +1,6 @@
 mod auth_handlers;
 mod collection;
+mod emergency;
 mod http;
 mod migrate;
 mod logs;
@@ -76,6 +77,8 @@ async fn handle_http_connection(
         collection::handle_collection_stop(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/log-session-bounds") {
         collection::handle_log_session_bounds(&mut stream, &request, &sqlite_pool).await;
+    } else if first_line.starts_with("POST /telemetry/emergency-stop") {
+        emergency::handle_emergency_stop(&mut stream, &request, &ws_tx).await;
     } else if first_line.starts_with("GET /assets/")
         || first_line.starts_with("GET /worker.js")
         || first_line.starts_with("GET /favicon.svg")

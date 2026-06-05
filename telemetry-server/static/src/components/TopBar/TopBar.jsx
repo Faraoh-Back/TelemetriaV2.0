@@ -1,5 +1,6 @@
 import { status } from '../../store.js'
 import BrandLogo from '../BrandLogo/BrandLogo.jsx'
+import EmergencyButton from '../EmergencyButton/EmergencyButton.jsx'
 import './TopBar.css'
 
 function TopBar(props) {
@@ -73,6 +74,13 @@ function TopBar(props) {
                         </button>
                     )}
                 </div>
+
+                {canUseCurrentAction() && (
+                    <EmergencyButton
+                        onEmergencyStop={props.onEmergencyStop}
+                        disabled={props.telemetryActionPending}
+                    />
+                )}
 
                 <div class="session-chip" title="Sessao atual">
                     <span class="session-chip__label">Usuario</span>

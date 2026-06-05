@@ -42,6 +42,8 @@ Correções:
 .signal-card--temperature { --signal-card-color: #e09b2f; }
 .signal-card--voltage     { --signal-card-color: #3d8ef0; }
 .signal-card--power       { --signal-card-color: var(--brand-orange); }
+.signal-card--torque      { --signal-card-color: #1fb68e; }
+.signal-card--rpm         { --signal-card-color: #dd663f; }
 .signal-card--state       { --signal-card-color: #8b92a8; }
 
 .signal-card__label {
@@ -89,6 +91,18 @@ Correções:
     white-space: nowrap;
 }
 
+.signal-card__source {
+    min-height: 14px;
+    margin-top: 2px;
+    color: var(--text2);
+    font-size: 10px;
+    font-family: var(--mono);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* ── ESTATÍSTICAS ────────────────────────────────────────────────────────── */
 .signal-card__stats {
     display: grid;
@@ -119,4 +133,105 @@ Correções:
     text-align: center;
     display: block;
     white-space: nowrap;
+}
+
+/* ── INDICADORES DE ESTADO ───────────────────────────────────────────────── */
+.status-indicator-group {
+    display: flex;
+    flex: 1 1 320px;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 280px;
+    align-items: stretch;
+}
+
+.status-indicator {
+    --indicator-color: var(--text2);
+    --indicator-bg: rgba(255,255,255,0.02);
+    --indicator-border: var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 160px;
+    flex: 1 1 160px;
+    padding: 12px 14px;
+    border: 1px solid var(--indicator-border);
+    border-radius: 8px;
+    background: var(--indicator-bg);
+    transition: all 0.2s ease;
+}
+
+.status-indicator:hover {
+    background: color-mix(in srgb, var(--indicator-bg) 80%, white 20%);
+}
+
+.status-indicator--ok { 
+    --indicator-color: var(--ok); 
+    --indicator-border: color-mix(in srgb, var(--ok) 30%, transparent);
+    --indicator-bg: color-mix(in srgb, var(--ok) 8%, transparent);
+}
+.status-indicator--active { 
+    --indicator-color: var(--blue); 
+    --indicator-border: color-mix(in srgb, var(--blue) 30%, transparent);
+    --indicator-bg: color-mix(in srgb, var(--blue) 8%, transparent);
+}
+.status-indicator--alert {
+    --indicator-color: var(--red);
+    --indicator-border: color-mix(in srgb, var(--red) 40%, transparent);
+    --indicator-bg: color-mix(in srgb, var(--red) 12%, transparent);
+}
+
+.status-indicator__dot {
+    width: 10px;
+    height: 10px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--indicator-color);
+    box-shadow: 0 0 12px var(--indicator-color), 0 0 0 4px color-mix(in srgb, var(--indicator-color) 15%, transparent);
+}
+
+.status-indicator__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.status-indicator__label {
+    color: var(--text2);
+    font-size: 11px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.status-indicator__value {
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.2px;
+}
+
+.status-indicator__faults {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 3px;
+}
+
+.status-indicator__faults span {
+    max-width: 120px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: var(--red);
+    background: rgba(240,82,82,0.12);
+    font-size: 10px;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

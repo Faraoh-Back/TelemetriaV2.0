@@ -85,3 +85,19 @@ export async function persistTelemetryLogBounds(bounds, token, logName) {
         'Nao foi possivel registrar os limites da coleta.'
     )
 }
+
+export async function sendEmergencyStop(token) {
+    const { apiBase } = getServerConfig()
+    const response = await fetch(`${apiBase}/telemetry/emergency-stop`, {
+        method: 'POST',
+        headers: authHeaders(token),
+        body: JSON.stringify({
+            requested_at: new Date().toISOString(),
+        }),
+    })
+
+    return parseCollectionResponse(
+        response,
+        'Nao foi possivel enviar o comando de parada de emergencia.'
+    )
+}

@@ -198,7 +198,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let track = track_state.clone();
         let sqlite_tx = sqlite_tx.clone();
         tokio::spawn(async move {
-            ingest::handle_client(socket, addr, pg, dec, tx, cmd_tx, track, sqlite_tx).await;
+            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx, cmd_tx).await;
         });
     }
 }

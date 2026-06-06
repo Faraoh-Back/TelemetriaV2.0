@@ -71,6 +71,8 @@ async fn handle_http_connection(
         auth_handlers::handle_login(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("GET /ws") {
         handle_ws_upgrade(stream, &request, addr, ws_tx).await;
+    } else if first_line.starts_with("GET /telemetry/collection/status") {
+        collection::handle_collection_status(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/collection/start") {
         collection::handle_collection_start(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/collection/stop") {

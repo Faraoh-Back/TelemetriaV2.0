@@ -275,13 +275,13 @@ pub async fn handle_client(
             }
         });
 
-        for signal in &processed {
-            let mut frame = [0u8; 20];
-            frame[0..4].copy_from_slice(&signal.can_id.to_le_bytes());
-            frame[4..12].copy_from_slice(&signal.timestamp.to_le_bytes());
-            frame[12..20].copy_from_slice(&raw_data_owned);
-            let _ = ws_tx.send(frame.to_vec());
-        }
+        // Envia o frame CAN original apenas UMA VEZ para o broadcast, 
+        // em vez de repetir para cada sinal decodificado. Isso reduz o tráfego significativamente.
+        let mut frame = [0u8; 20];
+        frame[0..4].copy_from_slice(&can_id.to_le_bytes());
+        frame[4..12].copy_from_slice(&timestamp.to_le_bytes());
+        frame[12..20].copy_from_slice(&raw_data_owned);
+        let _ = ws_tx.send(frame.to_vec());
 
         let track_messages = match track_state.lock() {
             Ok(mut state) => state.update(&processed),

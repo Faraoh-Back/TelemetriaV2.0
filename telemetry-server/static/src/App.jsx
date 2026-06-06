@@ -25,6 +25,7 @@ import {
   sendEmergencyStop,
   startTelemetryCollection,
   stopTelemetryCollection,
+  getTelemetryCollectionStatus,
 } from './services/telemetryCollection.js'
 import LoginScreen from './components/Login/LoginScreen.jsx'
 import TopBar from './components/TopBar/TopBar.jsx'
@@ -86,10 +87,24 @@ function App() {
     return `${wsBase}/ws?token=${encodeURIComponent(token)}`
   }
 
-  function authenticateDashboard(nextSession) {
+  async function authenticateDashboard(nextSession) {
     connect(buildWsUrl(nextSession.token))
-    setTelemetryCollectionEnabled(false)
-    setTelemetryMode(TELEMETRY_MODE.idle)
+    
+    // Sincroniza o estado da coleta com o servidor ao conectar (F5 ou Login)
+    try {
+      const status = await getTelemetryCollectionStatus(nextSession.token)
+      if (status.ok && status.state === 'live') {
+        setTelemetryCollectionEnabled(true)
+        setTelemetryMode(TELEMETRY_MODE.live)
+      } else {
+        setTelemetryCollectionEnabled(false)
+        setTelemetryMode(TELEMETRY_MODE.idle)
+      }
+    } catch (error) {
+      console.error('Falha ao sincronizar status da telemetria:', error)
+      setTelemetryCollectionEnabled(false)
+      setTelemetryMode(TELEMETRY_MODE.idle)
+    }
 
     setSession(nextSession)
   }

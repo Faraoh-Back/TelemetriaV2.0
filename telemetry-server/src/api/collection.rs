@@ -12,6 +12,46 @@ use super::http::{
     STOP_PERMISSION,
 };
 
+pub(super) async fn handle_collection_status(
+    stream: &mut TcpStream,
+    _request: &str,
+    sqlite_pool: &SqlitePool,
+) {
+    let active = sqlx::query(
+        "SELECT id, started_at_unix, started_at_iso FROM telemetry_log_sessions WHERE state = 'active' AND ended_at_unix IS NULL ORDER BY id DESC LIMIT 1"
+    )
+    .fetch_optional(sqlite_pool)
+    .await;
+
+    match active {
+        Ok(Some(row)) => {
+            let id: i64 = row.get("id");
+            let started_at_unix: f64 = row.get("started_at_unix");
+            let started_at_iso: String = row.get("started_at_iso");
+            
+            let body = json!({
+                "ok": true,
+                "state": "live",
+                "id": id,
+                "started_at_unix": started_at_unix,
+                "started_at_iso": started_at_iso,
+            });
+            send_json(stream, 200, &body.to_string()).await;
+        }
+        Ok(None) => {
+            let body = json!({
+                "ok": true,
+                "state": "idle",
+            });
+            send_json(stream, 200, &body.to_string()).await;
+        }
+        Err(e) => {
+            error!("Erro ao consultar status da coleta: {}", e);
+            send_json(stream, 500, r#"{"ok":false,"message":"Erro interno"}"#).await;
+        }
+    }
+}
+
 pub(super) async fn handle_collection_start(
     stream: &mut TcpStream,
     request: &str,

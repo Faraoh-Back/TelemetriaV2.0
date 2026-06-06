@@ -101,3 +101,16 @@ export async function sendEmergencyStop(token) {
         'Nao foi possivel enviar o comando de parada de emergencia.'
     )
 }
+
+export async function getTelemetryCollectionStatus(token) {
+    const { apiBase } = getServerConfig()
+    const response = await fetch(`${apiBase}/telemetry/collection/status`, {
+        method: 'GET',
+        headers: authHeaders(token),
+    })
+
+    return parseCollectionResponse(
+        response,
+        'Nao foi possivel consultar o status da coleta.'
+    )
+}

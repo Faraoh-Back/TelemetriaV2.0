@@ -33,6 +33,7 @@ use tokio::net::TcpStream;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::mpsc;
 use tokio::time::{sleep, Duration};
+use tokio::io::AsyncReadExt;
 use tracing::{info, warn, error};
 use sqlx::sqlite::SqlitePool;
 use sqlx::Row;
@@ -258,7 +259,7 @@ async fn backup_to_sqlite(
 // Protocolo: [4 bytes: len][4 bytes: can_id][8 bytes: timestamp][8 bytes: data]
 // Total: 24 bytes por frame, tudo little-endian
 async fn send_batch(
-    stream: &mut TcpStream,
+    stream: &mut tokio::net::tcp::OwnedWriteHalf,
     frames: &[TelemetryFrame],
 ) -> Result<(), Box<dyn std::error::Error>> {
     for frame in frames {
@@ -331,7 +332,7 @@ async fn measure_clock_offset(
 // ─── Sincronização de Pendentes ─────────────────────────────────
 async fn sync_pending_data(
     pool: &SqlitePool,
-    stream: &mut TcpStream,
+    stream: &mut tokio::net::tcp::OwnedWriteHalf,
 ) -> Result<usize, Box<dyn std::error::Error>> {
     let rows = sqlx::query(
         "SELECT id, timestamp, can_id, data FROM raw_can_logs WHERE synced = 0 LIMIT 1000",
@@ -723,11 +724,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         info!("🔌 Tentando conectar ao servidor: {}", server_addr);
 
-        let mut stream = loop {
+        let (mut read_half, write_half) = loop {
             match TcpStream::connect(&server_addr).await {
                 Ok(s) => {
                     info!("✅ Conectado ao servidor!");
-                    break s;
+                    break s.into_split();
                 }
                 Err(e) => {
                     if !running.load(Ordering::Relaxed) {
@@ -739,9 +740,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         };
+        let write_half = Arc::new(tokio::sync::Mutex::new(write_half));
+
+        {
+            let running_cmd = running.clone();
+            tokio::spawn(async move {
+                loop {
+                    if !running_cmd.load(Ordering::Relaxed) { break; }
+
+                    let mut len_buf = [0u8; 4];
+                    if read_half.read_exact(&mut len_buf).await.is_err() {
+                        warn!("🔌 Conexão de comando encerrada");
+                        break;
+                    }
+
+                    let len = u32::from_le_bytes(len_buf) as usize;
+                    if len == 0 || len > 1024 { continue; }
+
+                    let mut payload = vec![0u8; len];
+                    if read_half.read_exact(&mut payload).await.is_err() { break; }
+
+                    if payload.len() >= 4 {
+                        let cmd_can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
+                        if cmd_can_id == 0x67 {
+                            info!("🛑 EMERGENCY STOP recebido do servidor — enviando 0x67 no CAN");
+                            send_emergency_can();
+                        }
+                    }
+                }
+            });
+        }
 
         // Sincroniza dados pendentes do backup
-        match sync_pending_data(&db_pool, &mut stream).await {
+        let mut wh = write_half.lock().await;
+        match sync_pending_data(&db_pool, &mut *wh).await {
             Ok(n) if n > 0 => info!("✅ {} registros pendentes sincronizados", n),
             Err(e) => warn!("⚠️  Erro ao sincronizar pendentes: {}", e),
             _ => {}
@@ -792,7 +824,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
 
             // Tenta enviar ao servidor
-            match send_batch(&mut stream, &frame_buffer).await {
+            let mut wh = write_half.lock().await;
+            match send_batch(&mut *wh, &frame_buffer).await {
                 Ok(_) => {
                     // Sucesso — segue
                 }
@@ -826,4 +859,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("📊 Resumo final — Enviados: {} | Backup local: {}", total_sent, total_backed_up);
     info!("👋 Telemetria Edge encerrada.");
     Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn send_emergency_can() {
+    use socketcan::{CanFrame, CanSocket, Id, Socket, StandardId};
+
+    match CanSocket::open("can0") {
+        Ok(socket) => {
+            let id = StandardId::new(0x67).expect("ID válido");
+            let frame = CanFrame::new(Id::Standard(id), &[0xFF; 8])
+                .expect("Frame válido");
+            match socket.write_frame(&frame) {
+                Ok(_) => tracing::info!("✅ Frame 0x67 enviado no barramento CAN"),
+                Err(e) => tracing::error!("❌ Falha ao enviar 0x67 no CAN: {}", e),
+            }
+        }
+        Err(e) => tracing::error!("❌ Não foi possível abrir can0 para emergency: {}", e),
+    }
+}
+
+#[cfg(not(target_os = "linux"))]
+fn send_emergency_can() {
+    tracing::warn!("⚠️  Emergency CAN não disponível fora de Linux");
 }

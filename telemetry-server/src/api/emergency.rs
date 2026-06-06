@@ -19,6 +19,7 @@ pub(super) async fn handle_emergency_stop(
     stream: &mut TcpStream,
     request: &str,
     ws_tx: &broadcast::Sender<Vec<u8>>,
+    edge_cmd_tx: &broadcast::Sender<Vec<u8>>,
 ) {
     // ── Autenticação: exige token JWT válido ──────────────────────────────────
     let token = match extract_bearer_token(request) {
@@ -79,6 +80,18 @@ pub(super) async fn handle_emergency_stop(
                 claims.sub
             );
         }
+    }
+
+    // Broadcast para clientes WebSocket (dashboard)
+    match ws_tx.send(frame.to_vec()) {
+        Ok(n) => info!("🛑 EMERGENCY → {} WS receivers", n),
+        Err(_) => warn!("⚠️  Nenhum WS receiver ativo"),
+    }
+
+    // Canal dedicado para o edge/carro
+    match edge_cmd_tx.send(frame.to_vec()) {
+        Ok(n) => info!("🛑 EMERGENCY → {} edge receivers", n),
+        Err(_) => warn!("⚠️  Nenhum edge conectado para receber o kill"),
     }
 
     let body = json!({

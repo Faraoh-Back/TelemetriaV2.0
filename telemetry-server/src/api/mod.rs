@@ -15,6 +15,7 @@ use crate::ws::handle_ws_upgrade;
 
 pub async fn run_http_ws_server(
     ws_broadcast_tx: broadcast::Sender<Vec<u8>>,
+    edge_cmd_tx: broadcast::Sender<Vec<u8>>,
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
     port: u16,
@@ -34,10 +35,11 @@ pub async fn run_http_ws_server(
         match listener.accept().await {
             Ok((stream, addr)) => {
                 let tx = ws_broadcast_tx.clone();
+                let edge_cmd_tx = edge_cmd_tx.clone();
                 let db = sqlite_pool.clone();
                 let pg = pg_pool.clone();
                 tokio::spawn(async move {
-                    handle_http_connection(stream, addr, tx, pg, db).await;
+                    handle_http_connection(stream, addr, tx, edge_cmd_tx, pg, db).await;
                 });
             }
             Err(e) => error!("Erro ao aceitar conexão: {}", e),
@@ -49,6 +51,7 @@ async fn handle_http_connection(
     mut stream: TcpStream,
     addr: std::net::SocketAddr,
     ws_tx: broadcast::Sender<Vec<u8>>,
+    edge_cmd_tx: broadcast::Sender<Vec<u8>>,
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
 ) {
@@ -80,7 +83,7 @@ async fn handle_http_connection(
     } else if first_line.starts_with("POST /telemetry/log-session-bounds") {
         collection::handle_log_session_bounds(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/emergency-stop") {
-        emergency::handle_emergency_stop(&mut stream, &request, &ws_tx).await;
+        emergency::handle_emergency_stop(&mut stream, &request, &ws_tx, &edge_cmd_tx).await;
     } else if first_line.starts_with("GET /assets/")
         || first_line.starts_with("GET /worker.js")
         || first_line.starts_with("GET /favicon.svg")

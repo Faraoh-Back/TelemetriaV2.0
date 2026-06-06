@@ -7,6 +7,8 @@ use tokio::io::AsyncReadExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 use tracing::{error, info, warn};
+use std::sync::Arc;
+use tokio::io::AsyncWriteExt;
 
 struct DecodeDebugConfig {
     enabled: bool,
@@ -122,8 +124,45 @@ pub async fn handle_client(
     ws_tx: broadcast::Sender<Vec<u8>>,
     track_state: SharedTrackState,
     sqlite_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
+    edge_cmd_tx_source: broadcast::Sender<Vec<u8>>,
 ) {
     info!("🚗 Carro conectado: {}", addr);
+
+    // Split: write_half fica na task de comandos, read_half no loop principal
+    let (mut read_half, write_half) = socket.into_split();
+    let write_half = Arc::new(tokio::sync::Mutex::new(write_half));
+
+    // Task que ouve comandos do servidor e escreve no TCP do carro
+    {
+        let write_half = write_half.clone();
+        let mut edge_cmd_rx = edge_cmd_tx_source.subscribe();
+        let addr_str = addr.to_string();
+        tokio::spawn(async move {
+            loop {
+                match edge_cmd_rx.recv().await {
+                    Ok(cmd_frame) => {
+                        if cmd_frame.len() >= 4 {
+                            let cmd_can_id = u32::from_le_bytes(cmd_frame[0..4].try_into().unwrap());
+                            if cmd_can_id == 0x67 {
+                                info!("🛑 EMERGENCY STOP → enviando 0x67 para {}", addr_str);
+                                let mut wh = write_half.lock().await;
+                                // Mesmo protocolo do edge: [4B len][payload]
+                                let len = cmd_frame.len() as u32;
+                                let _ = wh.write_all(&len.to_le_bytes()).await;
+                                let _ = wh.write_all(&cmd_frame).await;
+                                let _ = wh.flush().await;
+                            }
+                        }
+                    }
+                    Err(broadcast::error::RecvError::Lagged(n)) => {
+                        warn!("⚠️  edge_cmd canal atrasou {} mensagens", n);
+                    }
+                    Err(_) => break,
+                }
+            }
+        });
+    }
+
     let device_id = format!("car_{}", addr.ip().to_string().replace('.', "_"));
     let decode_debug = DecodeDebugConfig::from_env();
     if decode_debug.enabled {
@@ -144,7 +183,7 @@ pub async fn handle_client(
 
     loop {
         let mut len_buf = [0u8; 4];
-        match socket.read_exact(&mut len_buf).await {
+        match read_half.read_exact(&mut len_buf).await {
             Ok(_) => {}
             Err(_) => {
                 warn!("🔌 Carro desconectado: {}", addr);
@@ -159,7 +198,7 @@ pub async fn handle_client(
         }
 
         let mut payload = vec![0u8; len];
-        match socket.read_exact(&mut payload).await {
+        match read_half.read_exact(&mut payload).await {
             Ok(_) => {}
             Err(e) => {
                 warn!("Erro ao ler payload de {}: {}", addr, e);

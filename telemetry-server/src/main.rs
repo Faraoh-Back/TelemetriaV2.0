@@ -124,6 +124,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     let (ws_tx, _) = broadcast::channel::<Vec<u8>>(10_000);
+    let (edge_cmd_tx, _) = broadcast::channel::<Vec<u8>>(32);
     let track_state = Arc::new(Mutex::new(RealtimeTrackState::new()));
 
     // Canal SQLite: buffer de 50k vetores de sinais
@@ -170,10 +171,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Spawn servidor HTTP+WS :8081
     {
         let tx = ws_tx.clone();
+        let cmd_tx = edge_cmd_tx.clone();
         let pg = pg_pool.clone();
         let sqldb = sqlite_pool.clone();
         tokio::spawn(async move {
-            api::run_http_ws_server(tx, pg, sqldb, HTTP_WS_PORT).await;
+            api::run_http_ws_server(tx, cmd_tx, pg, sqldb, HTTP_WS_PORT).await;
         });
     }
 
@@ -192,10 +194,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pg = pg_pool.clone();
         let dec = decoder_map.clone();
         let tx = ws_tx.clone();
+        let cmd_tx = edge_cmd_tx.clone();
         let track = track_state.clone();
         let sqlite_tx = sqlite_tx.clone();
         tokio::spawn(async move {
-            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx).await;
+            ingest::handle_client(socket, addr, pg, dec, tx, cmd_tx, track, sqlite_tx).await;
         });
     }
 }

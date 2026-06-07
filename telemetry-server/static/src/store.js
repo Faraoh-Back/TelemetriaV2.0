@@ -141,10 +141,11 @@ const [telemetrySession, setTelemetrySession] = createStore({
             config: readCanFrontDebugConfig(),
         })
     }
-
-    export function connect(url) {
+    
+    export function connect(url, apiBase) {
         setStatus({ state: 'connecting', frameRate: 0 })
         refreshCanFrontDebugConfig()
+        worker.postMessage({ cmd: 'loadCanMap', apiBase })
         worker.postMessage({ cmd: 'connect', url })
     }
 

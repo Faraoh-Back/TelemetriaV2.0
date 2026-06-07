@@ -84,12 +84,17 @@ function App() {
   })
 
   function buildWsUrl(token) {
-    const { wsBase } = getServerConfig()
-    return `${wsBase}/ws?token=${encodeURIComponent(token)}`
+      const { wsBase } = getServerConfig()
+      return `${wsBase}/ws?token=${encodeURIComponent(token)}`
+  }
+
+  function buildApiBase() {
+      const { apiBase } = getServerConfig()
+      return apiBase
   }
 
   async function authenticateDashboard(nextSession) {
-    connect(buildWsUrl(nextSession.token))
+    connect(buildWsUrl(nextSession.token), buildApiBase())
     
     // Sincroniza o estado da coleta com o servidor ao conectar (F5 ou Login)
     try {

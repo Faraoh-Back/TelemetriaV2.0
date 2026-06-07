@@ -215,8 +215,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let cmd_tx = edge_cmd_tx.clone();
         let pg = pg_pool.clone();
         let sqldb = sqlite_pool.clone();
+        let dec_for_api = decoder_map.clone();
         tokio::spawn(async move {
-            api::run_http_ws_server(tx, cmd_tx, pg, sqldb, HTTP_WS_PORT).await;
+            api::run_http_ws_server(tx, cmd_tx, pg, sqldb, dec_for_api, HTTP_WS_PORT).await;
         });
     }
 

@@ -4,6 +4,7 @@ mod emergency;
 mod http;
 mod migrate;
 mod logs;
+mod can_map;
 
 use sqlx::sqlite::SqlitePool;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -18,6 +19,7 @@ pub async fn run_http_ws_server(
     edge_cmd_tx: broadcast::Sender<Vec<u8>>,
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
+    decoder_map: crate::decoder::DecoderMap,
     port: u16,
 ) {
     let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
@@ -38,8 +40,9 @@ pub async fn run_http_ws_server(
                 let edge_cmd_tx = edge_cmd_tx.clone();
                 let db = sqlite_pool.clone();
                 let pg = pg_pool.clone();
+                let dec = decoder_map.clone();
                 tokio::spawn(async move {
-                    handle_http_connection(stream, addr, tx, edge_cmd_tx, pg, db).await;
+                    handle_http_connection(stream, addr, tx, edge_cmd_tx, pg, db, dec).await;
                 });
             }
             Err(e) => error!("Erro ao aceitar conexão: {}", e),
@@ -54,6 +57,7 @@ async fn handle_http_connection(
     edge_cmd_tx: broadcast::Sender<Vec<u8>>,
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
+    decoder_map: crate::decoder::DecoderMap,
 ) {
     let mut buf = vec![0u8; 4096];
     let n = match stream.read(&mut buf).await {
@@ -98,6 +102,8 @@ async fn handle_http_connection(
         logs::handle_download_log(&mut stream, &request, &sqlite_pool, &pg_pool).await;
     } else if first_line.starts_with("GET /telemetry/logs") {
         logs::handle_list_logs(&mut stream, &request, &sqlite_pool).await;
+    } else if first_line.starts_with("GET /api/can-map") {
+        can_map::handle_can_map(&mut stream, &decoder_map).await;
     } else {
         let response = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\n\r\nNot Found";
         let _ = stream.write_all(response.as_bytes()).await;

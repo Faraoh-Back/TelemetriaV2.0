@@ -23,6 +23,7 @@ import {
 import {
   persistTelemetryLogBounds,
   sendEmergencyStop,
+  sendEmergencyResume,
   startTelemetryCollection,
   stopTelemetryCollection,
   getTelemetryCollectionStatus,
@@ -239,6 +240,12 @@ function App() {
     await sendEmergencyStop(currentSession.token)
   }
 
+  async function handleEmergencyResume() {
+    const currentSession = session()
+    if (!currentSession) return
+    await sendEmergencyResume(currentSession.token)
+  } 
+
   return (
     <Show
       when={session()}
@@ -257,6 +264,7 @@ function App() {
         onStartTelemetry={handleStartTelemetry}
         onStopTelemetry={handleStopTelemetryRequest}
         onEmergencyStop={handleEmergencyStop}
+        onEmergencyResume={handleEmergencyResume}
         onLogout={handleLogout}
       />
       <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />

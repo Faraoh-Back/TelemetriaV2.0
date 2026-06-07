@@ -78,6 +78,7 @@ function TopBar(props) {
                 {canUseCurrentAction() && (
                     <EmergencyButton
                         onEmergencyStop={props.onEmergencyStop}
+                        onEmergencyResume={props.onEmergencyResume}
                         disabled={props.telemetryActionPending}
                     />
                 )}

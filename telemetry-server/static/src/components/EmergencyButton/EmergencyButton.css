@@ -35,3 +35,14 @@
     cursor: not-allowed;
     transform: none;
 }
+
+.emergency-btn--killed {
+    border-color: rgba(31, 182, 142, 0.4);
+    background: rgba(31, 182, 142, 0.1);
+    color: var(--ok);
+}
+
+.emergency-btn--killed:hover {
+    background: rgba(31, 182, 142, 0.2);
+    border-color: rgba(31, 182, 142, 0.8);
+}

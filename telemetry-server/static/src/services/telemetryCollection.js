@@ -102,6 +102,22 @@ export async function sendEmergencyStop(token) {
     )
 }
 
+export async function sendEmergencyResume(token) {
+    const { apiBase } = getServerConfig()
+    const response = await fetch(`${apiBase}/telemetry/emergency-resume`, {
+        method: 'POST',
+        headers: authHeaders(token),
+        body: JSON.stringify({
+            requested_at: new Date().toISOString(),
+        }),
+    })
+
+    return parseCollectionResponse(
+        response,
+        'Nao foi possivel enviar o comando de religamento.'
+    )
+}
+
 export async function getTelemetryCollectionStatus(token) {
     const { apiBase } = getServerConfig()
     const response = await fetch(`${apiBase}/telemetry/collection/status`, {

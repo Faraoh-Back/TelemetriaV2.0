@@ -15,7 +15,8 @@ function EmergencyButton(props) {
     const [isModalOpen, setIsModalOpen] = createSignal(false)
     const [isPending, setIsPending] = createSignal(false)
     const [feedbackMessage, setFeedbackMessage] = createSignal('')
-    const [feedbackType, setFeedbackType] = createSignal('') // 'success' | 'error'
+    const [feedbackType, setFeedbackType,] = createSignal('') // 'success' | 'error'
+    const [isKilled, setIsKilled] = createSignal(false)
 
     function openModal() {
         if (props.disabled || isPending()) return
@@ -38,35 +39,40 @@ function EmergencyButton(props) {
         setFeedbackType('')
 
         try {
-            await props.onEmergencyStop?.()
-            setFeedbackMessage('Comando de emergência enviado com sucesso.')
+            if (isKilled()) {
+                await props.onEmergencyResume?.()
+                setIsKilled(false)
+                setFeedbackMessage('Veículo religado com sucesso.')
+            } else {
+                await props.onEmergencyStop?.()
+                setIsKilled(true)
+                setFeedbackMessage('Comando de emergência enviado com sucesso.')
+            }
             setFeedbackType('success')
-            // Fecha o modal após 2s de feedback positivo
             setTimeout(() => {
                 setIsModalOpen(false)
                 setFeedbackMessage('')
                 setFeedbackType('')
             }, 2000)
         } catch (error) {
-            setFeedbackMessage(error.message || 'Falha ao enviar comando de emergência.')
+            setFeedbackMessage(error.message || 'Falha ao enviar comando.')
             setFeedbackType('error')
         } finally {
             setIsPending(false)
         }
     }
-
     return (
         <>
             {/* Botão na TopBar */}
             <button
                 id="emergency-stop-btn"
-                class="emergency-btn"
+                class={`emergency-btn ${isKilled() ? 'emergency-btn--killed' : ''}`}
                 type="button"
-                title="Parada de emergência"
+                title={isKilled() ? 'Religar veículo' : 'Parada de emergência'}
                 disabled={props.disabled}
                 onClick={openModal}
             >
-                KILL
+                {isKilled() ? 'RESUME' : 'KILL'}
             </button>
 
             {/* Modal de confirmação */}
@@ -83,10 +89,13 @@ function EmergencyButton(props) {
                         role="dialog"
                         aria-modal="true"
                     >
-                        <h2>Parada de Emergência</h2>
-                        
+                        <h2>{isKilled() ? 'Religar Veículo' : 'Parada de Emergência'}</h2>
+
                         <p style={{ "margin-bottom": "12px" }}>
-                            Você tem certeza? Isso enviará o comando de <strong>desligamento imediato</strong> (0x67) para o veículo.
+                            {isKilled()
+                                ? 'Confirmar o religamento do veículo? Isso enviará o comando 0x67 com payload 0x01.'
+                                : 'Você tem certeza? Isso enviará o comando de desligamento imediato (0x67) para o veículo.'
+                            }
                         </p>
 
                         <Show when={feedbackMessage()}>
@@ -116,7 +125,7 @@ function EmergencyButton(props) {
                                 disabled={isPending()}
                                 onClick={confirmEmergencyStop}
                             >
-                                {isPending() ? 'Enviando...' : 'Confirmar'}
+                                {isPending() ? 'Enviando...' : isKilled() ? 'Religar' : 'Confirmar Kill'}
                             </button>
                         </div>
                     </div>

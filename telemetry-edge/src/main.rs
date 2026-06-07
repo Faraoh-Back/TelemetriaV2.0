@@ -624,12 +624,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         // Sincroniza dados pendentes do backup
-        let mut wh = write_half.lock().await;
-        match sync_pending_data(&db_pool, &mut *wh).await {
-            Ok(n) if n > 0 => info!("✅ {} registros pendentes sincronizados", n),
-            Err(e) => warn!("⚠️  Erro ao sincronizar pendentes: {}", e),
-            _ => {}
-        }
+        {
+            let mut wh = write_half.lock().await;
+            match sync_pending_data(&db_pool, &mut *wh).await {
+                Ok(n) if n > 0 => info!("✅ {} registros pendentes sincronizados", n),
+                Err(e) => warn!("⚠️  Erro ao sincronizar pendentes: {}", e),
+                _ => {}
+            }
+        } // lock solto aqui antes do 'send_loop
 
         // Loop de envio
         'send_loop: loop {

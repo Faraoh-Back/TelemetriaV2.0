@@ -502,7 +502,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 3. Canal de comunicação entre leitores CAN e loop de envio
     // Buffer de 1000 frames — se o servidor estiver lento, eles acumulam aqui
-    let (tx, mut rx) = mpsc::channel::<TelemetryFrame>(1000);
+    let (tx, mut rx) = mpsc::channel::<TelemetryFrame>(50_000);
 
     // Flag de controle para encerrar threads graciosamente
     let running = Arc::new(AtomicBool::new(true));

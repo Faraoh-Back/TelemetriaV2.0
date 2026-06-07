@@ -54,17 +54,17 @@ struct Args {
     #[arg(long)]
     ch0: Option<String>,
 
-    /// Canal 1: número do canal Kvaser (0, 1, 2...)
-    /// Se omitido, canal Kvaser é desabilitado
+    /// Canal 1: interface SocketCAN (ex: 'can1')
+    /// Se omitido, canal 1 é desabilitado
     #[arg(long)]
-    ch1: Option<u32>,
+    ch1: Option<String>,
 
     /// Bitrate canal 0 (padrão: 500000)
     #[arg(long, default_value = "500000")]
     bitrate0: u32,
 
-    /// Bitrate canal 1 (padrão: 250000)
-    #[arg(long, default_value = "250000")]
+    /// Bitrate canal 1 (padrão: 500000)
+    #[arg(long, default_value = "500000")]
     bitrate1: u32,
 
     /// Endereço do servidor (padrão: 143.106.207.95:8080)
@@ -459,160 +459,6 @@ async fn run_socketcan_reader(
     info!("🛑 Leitor SocketCAN '{}' encerrado", iface);
 }
 
-// ─── Leitor Kvaser (via canlib FFI) ────────────────────────────
-// A biblioteca oficial `kvaser-canlib` para Rust usa FFI com a canlib do Linux.
-// Requer: libcanlib.so instalada (pacote kvaser-drivers-dkms ou canlib SDK)
-//
-// Se a canlib não estiver disponível, este reader loga erro e retorna.
-async fn run_kvaser_reader(
-    ch_num: u32,
-    bitrate: u32,
-    priority_map: Arc<PriorityMap>,
-    tx: mpsc::Sender<TelemetryFrame>,
-    running: Arc<AtomicBool>,
-    clock_offset: f64,
-) {
-    // Tenta usar a canlib via comando de sistema (kvaser_stat) para verificar disponibilidade
-    // Na prática, usa FFI direto. Aqui usamos o crate `canlib` se disponível.
-    //
-    // IMPORTANTE: Para habilitar Kvaser real, adicione ao Cargo.toml:
-    //   [dependencies]
-    //   canlib = "0.3"          # wrapper do kvaser canlib para Rust
-    //
-    // E descomente o bloco abaixo. Por ora, implementamos via subprocess
-    // ou deixamos o aviso claro.
-
-    #[cfg(feature = "kvaser")]
-    {
-        use canlib::{Channel, Bitrate, OpenFlags};
-
-        info!("📡 Abrindo Kvaser canal {}...", ch_num);
-
-        let kvaser_bitrate = match bitrate {
-            1000000 => Bitrate::Bitrate1M,
-            500000  => Bitrate::Bitrate500K,
-            250000  => Bitrate::Bitrate250K,
-            125000  => Bitrate::Bitrate125K,
-            _       => Bitrate::Bitrate500K,
-        };
-
-        let mut ch = match Channel::open(ch_num as i32, OpenFlags::ACCEPT_VIRTUAL) {
-            Ok(c) => c,
-            Err(e) => {
-                error!("❌ Falha ao abrir Kvaser canal {}: {:?}", ch_num, e);
-                return;
-            }
-        };
-
-        if let Err(e) = ch.set_bus_params(kvaser_bitrate) {
-            error!("❌ Falha ao setar bitrate Kvaser: {:?}", e);
-            return;
-        }
-
-        if let Err(e) = ch.bus_on() {
-            error!("❌ Falha ao ativar barramento Kvaser: {:?}", e);
-            return;
-        }
-
-        info!("✅ Kvaser canal {} aberto ({} bit/s)", ch_num, bitrate);
-
-        let channel_name = format!("kvaser_ch{}", ch_num);
-
-        while running.load(Ordering::Relaxed) {
-            match ch.read(Some(std::time::Duration::from_millis(100))) {
-                Ok(frame) => {
-                    let timestamp = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap_or_default()
-                        .as_secs_f64() + clock_offset;
-
-                    let can_id = frame.id() as u32;
-
-                    let raw_data = frame.data();
-                    let mut data_fixed = [0u8; 8];
-                    data_fixed[..raw_data.len().min(8)].copy_from_slice(&raw_data[..raw_data.len().min(8)]);
-
-                    let priority = *priority_map.get(&can_id).unwrap_or(&4);
-
-                    let tframe = TelemetryFrame {
-                        timestamp,
-                        can_id,
-                        data: data_fixed,
-                        priority,
-                        channel: channel_name.clone(),
-                    };
-
-                    if tx.send(tframe).await.is_err() {
-                        break;
-                    }
-                }
-                Err(e) if e.is_no_msg() => {
-                    // Timeout — normal, continua
-                    tokio::task::yield_now().await;
-                }
-                Err(e) => {
-                    error!("❌ Erro Kvaser canal {}: {:?}", ch_num, e);
-                    tokio::time::sleep(Duration::from_millis(100)).await;
-                }
-            }
-        }
-
-        let _ = ch.bus_off();
-        info!("🛑 Leitor Kvaser canal {} encerrado", ch_num);
-    }
-
-    #[cfg(not(feature = "kvaser"))]
-    {
-        // Fallback: avisa que canlib não está compilada e simula dados para teste
-        warn!(
-            "⚠️  Kvaser canal {} solicitado, mas feature 'kvaser' não está habilitada.",
-            ch_num
-        );
-        warn!("   Para habilitar, adicione 'kvaser' às features no Cargo.toml e instale o SDK.");
-        warn!("   Rodando em modo SIMULAÇÃO para o canal Kvaser (dados sintéticos)...");
-
-        let channel_name = format!("kvaser_ch{}_sim", ch_num);
-        let mut fake_id: u32 = 0x100;
-        let mut counter: u8 = 0;
-
-        while running.load(Ordering::Relaxed) {
-            // Gera frame sintético a cada 10ms (simulando 100 Hz)
-            tokio::time::sleep(Duration::from_millis(10)).await;
-
-            let timestamp = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs_f64();
-
-            let mut data_fixed = [0u8; 8];
-            data_fixed[0] = counter;
-            data_fixed[1] = counter.wrapping_mul(2);
-            counter = counter.wrapping_add(1);
-
-            // Alterna entre alguns IDs simulados
-            fake_id = match fake_id {
-                0x100 => 0x200,
-                0x200 => 0x300,
-                _ => 0x100,
-            };
-
-            let priority = *priority_map.get(&fake_id).unwrap_or(&4);
-
-            let tframe = TelemetryFrame {
-                timestamp,
-                can_id: fake_id,
-                data: data_fixed,
-                priority,
-                channel: channel_name.clone(),
-            };
-
-            if tx.send(tframe).await.is_err() {
-                break;
-            }
-        }
-    }
-}
-
 // ─── Main ───────────────────────────────────────────────────────
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -691,8 +537,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    if let Some(ch1_num) = args.ch1 {
+    if let Some(ref iface) = args.ch1 {
         let offset = clock_offset.clone();
+        let iface_clone = iface.clone();
         let pmap = priority_map.clone();
         let tx_clone = tx.clone();
         let running_clone = running.clone();
@@ -700,7 +547,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         tokio::spawn(async move {
             #[cfg(target_os = "linux")]
-            run_kvaser_reader(ch1_num, bitrate, pmap, tx_clone, running_clone, *offset).await;
+            run_socketcan_reader(iface_clone, bitrate, pmap, tx_clone, running_clone, *offset).await;
+
+            #[cfg(not(target_os = "linux"))]
+            {
+                error!("❌ SocketCAN só funciona em Linux. Canal '{}' desabilitado.", iface_clone);
+            }
         });
     }
 

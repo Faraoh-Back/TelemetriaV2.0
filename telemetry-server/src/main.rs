@@ -131,6 +131,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (sqlite_tx, mut sqlite_rx) =
         tokio::sync::mpsc::channel::<Vec<ProcessedSignal>>(50_000);
 
+    // Canal TimescaleDB: buffer de 50k vetores de sinais
+    let (timescale_tx, mut timescale_rx) =
+        tokio::sync::mpsc::channel::<Vec<ProcessedSignal>>(50_000);
+
     // Task dedicada ao SQLite: acumula sinais e insere em lote a cada 2s ou 500 sinais
     {
         let sq = sqlite_pool.clone();
@@ -159,6 +163,43 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if !pending.is_empty() {
                             if let Err(e) = db::save_sqlite(&sq, &pending).await {
                                 tracing::error!("❌ SQLite batch error: {:?}", e);
+                            }
+                            pending.clear();
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Task dedicada ao TimescaleDB: acumula sinais e insere em lote a cada 1s ou 500 sinais
+    {
+        let pg = pg_pool.clone();
+        tokio::spawn(async move {
+            let mut pending: Vec<ProcessedSignal> = Vec::with_capacity(500);
+            let mut interval = tokio::time::interval(
+                tokio::time::Duration::from_secs(1)
+            );
+            loop {
+                tokio::select! {
+                    msg = timescale_rx.recv() => {
+                        match msg {
+                            Some(signals) => {
+                                pending.extend(signals);
+                                if pending.len() >= 500 {
+                                    if let Err(e) = db::save_timescale(&pg, &pending).await {
+                                        tracing::error!("❌ TimescaleDB batch error: {:?}", e);
+                                    }
+                                    pending.clear();
+                                }
+                            }
+                            None => break, // canal fechado
+                        }
+                    }
+                    _ = interval.tick() => {
+                        if !pending.is_empty() {
+                            if let Err(e) = db::save_timescale(&pg, &pending).await {
+                                tracing::error!("❌ TimescaleDB batch error: {:?}", e);
                             }
                             pending.clear();
                         }
@@ -197,8 +238,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let cmd_tx = edge_cmd_tx.clone();
         let track = track_state.clone();
         let sqlite_tx = sqlite_tx.clone();
+        let timescale_tx = timescale_tx.clone();
         tokio::spawn(async move {
-            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx, cmd_tx).await;
+            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx, timescale_tx, cmd_tx).await;
         });
     }
 }

@@ -124,6 +124,7 @@ pub async fn handle_client(
     ws_tx: broadcast::Sender<Vec<u8>>,
     track_state: SharedTrackState,
     sqlite_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
+    timescale_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
     edge_cmd_tx_source: broadcast::Sender<Vec<u8>>,
 ) {
     info!("🚗 Carro conectado: {}", addr);
@@ -301,18 +302,9 @@ pub async fn handle_client(
 
         frames_decoded += processed.len() as u64;
         
-        // Envia para o writer SQLite (não bloqueia — só empurra no canal)
+        // Envia para os buffers de banco de dados (não bloqueia — só empurra nos canais)
         let _ = sqlite_tx.try_send(processed.clone());
-        
-        // TimescaleDB em task separada
-        let pg_pool_c = pg_pool.clone();
-        let processed_ts = processed.clone();
-
-        tokio::spawn(async move {
-            if let Err(e) = save_timescale(&pg_pool_c, &processed_ts).await {
-                error!("❌ TimescaleDB insert error: {:?}", e);
-            }
-        });
+        let _ = timescale_tx.try_send(processed.clone());
 
         // Envia o frame CAN original apenas UMA VEZ para o broadcast, 
         // em vez de repetir para cada sinal decodificado. Isso reduz o tráfego significativamente.

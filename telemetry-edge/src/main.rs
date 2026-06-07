@@ -615,8 +615,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if payload.len() >= 4 {
                         let cmd_can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
                         if cmd_can_id == 0x67 {
-                            info!("🛑 EMERGENCY STOP recebido do servidor — enviando 0x67 no CAN");
-                            send_emergency_can();
+                            let mut p = [0u8; 8];
+                            if payload.len() >= 20 {
+                                p.copy_from_slice(&payload[12..20]);
+                            }
+                            if p[0] == 0x01 {
+                                info!("🟢 RESUME recebido do servidor — enviando 0x67 [0x01] no CAN");
+                            } else {
+                                info!("🛑 EMERGENCY STOP recebido do servidor — enviando 0x67 [0x00] no CAN");
+                            }
+                            send_emergency_can(p);
                         }
                     }
                 }
@@ -716,13 +724,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[cfg(target_os = "linux")]
-fn send_emergency_can() {
-    use socketcan::{CanFrame, CanSocket, Id, Socket, StandardId};
+fn send_emergency_can(payload: [u8; 8]) {
+    use socketcan::{CanFrame, CanSocket, ExtendedId, Id, Socket};
 
     match CanSocket::open("can0") {
         Ok(socket) => {
-            let id = StandardId::new(0x67).expect("ID válido");
-            let frame = CanFrame::new(Id::Standard(id), &[0xFF; 8])
+            let id = ExtendedId::new(0x67).expect("ID válido");
+            let frame = CanFrame::new(Id::Extended(id), &payload)
                 .expect("Frame válido");
             match socket.write_frame(&frame) {
                 Ok(_) => tracing::info!("✅ Frame 0x67 enviado no barramento CAN"),

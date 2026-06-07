@@ -84,6 +84,8 @@ async fn handle_http_connection(
         collection::handle_log_session_bounds(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/emergency-stop") {
         emergency::handle_emergency_stop(&mut stream, &request, &ws_tx, &edge_cmd_tx).await;
+    } else if first_line.starts_with("POST /telemetry/emergency-resume") {
+        emergency::handle_emergency_resume(&mut stream, &request, &ws_tx, &edge_cmd_tx).await;
     } else if first_line.starts_with("GET /assets/")
         || first_line.starts_with("GET /worker.js")
         || first_line.starts_with("GET /favicon.svg")

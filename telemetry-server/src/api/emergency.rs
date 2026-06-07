@@ -104,3 +104,58 @@ pub(super) async fn handle_emergency_stop(
 
     send_json(stream, 200, &body.to_string()).await;
 }
+
+/// POST /telemetry/emergency-resume
+pub(super) async fn handle_emergency_resume(
+    stream: &mut TcpStream,
+    request: &str,
+    ws_tx: &broadcast::Sender<Vec<u8>>,
+    edge_cmd_tx: &broadcast::Sender<Vec<u8>>,
+) {
+    let token = match extract_bearer_token(request) {
+        Some(t) => t,
+        None => {
+            send_json(stream, 401, r#"{"ok":false,"message":"Token necessário"}"#).await;
+            return;
+        }
+    };
+
+    let claims = match validate_jwt_claims(&token) {
+        Some(c) => c,
+        None => {
+            send_json(stream, 401, r#"{"ok":false,"message":"Token inválido"}"#).await;
+            return;
+        }
+    };
+
+    if claims.role != ROLE_ADMIN {
+        send_json(stream, 403, r#"{"ok":false,"message":"Apenas administradores podem religar o carro."}"#).await;
+        return;
+    }
+
+    let can_id: u32 = 0x67;
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs_f64();
+
+    let mut frame = [0u8; 20];
+    frame[0..4].copy_from_slice(&can_id.to_le_bytes());
+    frame[4..12].copy_from_slice(&timestamp.to_le_bytes());
+    frame[12..20].copy_from_slice(&[0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
+
+    let _ = ws_tx.send(frame.to_vec());
+    let _ = edge_cmd_tx.send(frame.to_vec());
+
+    info!("🟢 EMERGENCY RESUME enviado por '{}'", claims.sub);
+
+    let body = serde_json::json!({
+        "ok": true,
+        "message": "Comando de religamento enviado.",
+        "can_id": format!("0x{:X}", can_id),
+        "sent_by": claims.sub,
+        "timestamp": timestamp,
+    });
+
+    send_json(stream, 200, &body.to_string()).await;
+}

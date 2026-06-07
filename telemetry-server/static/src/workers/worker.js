@@ -71,26 +71,23 @@ import { decodeSignal } from '../utils/canDecode.js'
 // Se o backend adicionar novos CAN IDs, basta incluir a entrada aqui —
 // nenhuma outra parte do código precisa mudar.
 
-const CAN_MAP = {};
+    const CAN_MAP = {};
 
-async function loadCanMap(apiBase) {
-    try {
-        const response = await fetch(`${apiBase}/api/can-map`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const raw = await response.json();
-        // Converte chaves string para número (igual ao CAN_MAP estático)
-        const map = {};
-        for (const [key, signals] of Object.entries(raw)) {
-            map[Number(key)] = signals;
+    async function loadCanMap(apiBase) {
+        try {
+            const response = await fetch(`${apiBase}/api/can-map`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const raw = await response.json();
+            // Converte chaves string para número (igual ao CAN_MAP estático)
+            for (const key of Object.keys(CAN_MAP)) delete CAN_MAP[key];
+            for (const [key, signals] of Object.entries(raw)) {
+                CAN_MAP[Number(key)] = signals;
+            }
+        } catch (err) {
+            console.error('[CAN_MAP] falha ao carregar do servidor:', err);
+            self.postMessage({ type: 'can_map_error', error: String(err) });
         }
-        CAN_MAP = map;
-        console.info(`[CAN_MAP] carregado: ${Object.keys(CAN_MAP).length} IDs do servidor`);
-        self.postMessage({ type: 'can_map_loaded', count: Object.keys(CAN_MAP).length });
-    } catch (err) {
-        console.error('[CAN_MAP] falha ao carregar do servidor:', err);
-        self.postMessage({ type: 'can_map_error', error: String(err) });
     }
-}
     
     // ─── UTILS EXTRAIDOS ─────────────────────────────────────────────────────────
     // CircularBuffer, lttb e decodeSignal vivem em src/utils. O worker mantém o

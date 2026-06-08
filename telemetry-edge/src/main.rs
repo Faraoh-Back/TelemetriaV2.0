@@ -191,10 +191,8 @@ pub fn load_priority_map(csv_dir: &str) -> PriorityMap {
 
 // ─── Banco de Dados Local (Backup) ─────────────────────────────
 async fn init_database(db_path: &str) -> Result<SqlitePool, Box<dyn std::error::Error>> {
-    // Garante que o arquivo existe antes de conectar
     let file_path = db_path.trim_start_matches("sqlite:");
     if !file_path.is_empty() && file_path != ":memory:" {
-        // Cria o arquivo vazio se não existir
         if !Path::new(file_path).exists() {
             std::fs::File::create(file_path)?;
         }
@@ -205,9 +203,15 @@ async fn init_database(db_path: &str) -> Result<SqlitePool, Box<dyn std::error::
         .connect(db_path)
         .await?;
 
+    // WAL mode: escrita não bloqueia leitura, muito mais rápido para inserções contínuas
+    sqlx::query("PRAGMA journal_mode=WAL").execute(&pool).await?;
+    // Cache de 64MB em memória
+    sqlx::query("PRAGMA cache_size=-65536").execute(&pool).await?;
+    // Sync menos agressivo — aceita perder último segundo em caso de crash
+    sqlx::query("PRAGMA synchronous=NORMAL").execute(&pool).await?;
+
     sqlx::query(
-        r#"
-        CREATE TABLE IF NOT EXISTS raw_can_logs (
+        "CREATE TABLE IF NOT EXISTS raw_can_logs (
             id         INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp  REAL    NOT NULL,
             can_id     INTEGER NOT NULL,
@@ -217,25 +221,75 @@ async fn init_database(db_path: &str) -> Result<SqlitePool, Box<dyn std::error::
             channel    TEXT    NOT NULL DEFAULT 'unknown',
             synced     INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS idx_synced    ON raw_can_logs(synced);
-        CREATE INDEX IF NOT EXISTS idx_timestamp ON raw_can_logs(timestamp);
-        "#,
-    )
-    .execute(&pool)
-    .await?;
+        )"
+    ).execute(&pool).await?;
 
-    info!("✅ Banco SQLite inicializado: {}", db_path);
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_synced ON raw_can_logs(synced)")
+        .execute(&pool).await?;
+    sqlx::query("CREATE INDEX IF NOT EXISTS idx_timestamp ON raw_can_logs(timestamp)")
+        .execute(&pool).await?;
+
+    info!("✅ Banco SQLite inicializado (WAL): {}", db_path);
     Ok(pool)
 }
 
-async fn backup_to_sqlite(
+// Writer SQLite dedicado — recebe frames pelo canal e insere em lote
+async fn run_sqlite_writer(
+    pool: SqlitePool,
+    mut rx: mpsc::Receiver<TelemetryFrame>,
+    device_id: String,
+) {
+    let mut pending: Vec<TelemetryFrame> = Vec::with_capacity(500);
+    let mut interval = tokio::time::interval(Duration::from_secs(2));
+    let mut total_saved: u64 = 0;
+
+    loop {
+        tokio::select! {
+            frame = rx.recv() => {
+                match frame {
+                    Some(f) => {
+                        pending.push(f);
+                        if pending.len() >= 500 {
+                            if let Err(e) = flush_to_sqlite(&pool, &pending, &device_id).await {
+                                error!("❌ SQLite batch error: {:?}", e);
+                            } else {
+                                total_saved += pending.len() as u64;
+                                info!("💾 {} frames salvos no backup local (total: {})", pending.len(), total_saved);
+                            }
+                            pending.clear();
+                        }
+                    }
+                    None => {
+                        // Canal fechado — flush final
+                        if !pending.is_empty() {
+                            let _ = flush_to_sqlite(&pool, &pending, &device_id).await;
+                        }
+                        info!("💾 SQLite writer encerrado. Total salvo: {}", total_saved);
+                        break;
+                    }
+                }
+            }
+            _ = interval.tick() => {
+                if !pending.is_empty() {
+                    if let Err(e) = flush_to_sqlite(&pool, &pending, &device_id).await {
+                        error!("❌ SQLite batch error: {:?}", e);
+                    } else {
+                        total_saved += pending.len() as u64;
+                        info!("💾 {} frames salvos no backup local (total: {})", pending.len(), total_saved);
+                    }
+                    pending.clear();
+                }
+            }
+        }
+    }
+}
+
+async fn flush_to_sqlite(
     pool: &SqlitePool,
     frames: &[TelemetryFrame],
     device_id: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut tx = pool.begin().await?;
-
     for frame in frames {
         sqlx::query(
             "INSERT INTO raw_can_logs (timestamp, can_id, data, device_id, priority, channel)
@@ -250,7 +304,6 @@ async fn backup_to_sqlite(
         .execute(&mut *tx)
         .await?;
     }
-
     tx.commit().await?;
     Ok(())
 }
@@ -398,61 +451,69 @@ async fn run_socketcan_reader(
 ) {
     use socketcan::{CanSocket, Socket};
 
-    info!("📡 Abrindo SocketCAN '{}'...", iface);
-
-    let socket = match CanSocket::open(&iface) {
-        Ok(s) => s,
-        Err(e) => {
-            error!("❌ Falha ao abrir SocketCAN '{}': {}", iface, e);
-            return;
-        }
-    };
-
-    if let Err(e) = socket.set_nonblocking(true) {
-        warn!("⚠️  Não foi possível setar non-blocking em '{}': {}", iface, e);
-    }
-
-    info!("✅ SocketCAN '{}' aberto", iface);
-
     while running.load(Ordering::Relaxed) {
-        match socket.read_frame() {
-            Ok(frame) => {
-                let timestamp = SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_secs_f64() + clock_offset;
+        info!("📡 Tentando abrir SocketCAN '{}'...", iface);
 
-                let can_id: u32 = match frame.id() {
-                    socketcan::Id::Standard(id) => id.as_raw() as u32,
-                    socketcan::Id::Extended(id) => id.as_raw(),
-                };
-
-                let data_slice = frame.data();
-                let mut data_fixed = [0u8; 8];
-                data_fixed[..data_slice.len().min(8)].copy_from_slice(&data_slice[..data_slice.len().min(8)]);
-
-                let priority = *priority_map.get(&can_id).unwrap_or(&4);
-
-                let tframe = TelemetryFrame {
-                    timestamp,
-                    can_id,
-                    data: data_fixed,
-                    priority,
-                    channel: iface.clone(),
-                };
-
-                if tx.send(tframe).await.is_err() {
-                    break; // Canal fechado
-                }
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
-                // Sem dados disponíveis, yield para outras tasks
-                tokio::time::sleep(Duration::from_micros(500)).await;
+        let socket = match CanSocket::open(&iface) {
+            Ok(s) => {
+                info!("✅ SocketCAN '{}' aberto com sucesso", iface);
+                s
             }
             Err(e) => {
-                error!("❌ Erro ao ler SocketCAN '{}': {:?}", iface, e);
-                tokio::time::sleep(Duration::from_millis(100)).await;
+                error!("❌ Falha ao abrir SocketCAN '{}': {}. Tentando novamente em 2s...", iface, e);
+                tokio::time::sleep(Duration::from_secs(2)).await;
+                continue;
             }
+        };
+
+        if let Err(e) = socket.set_nonblocking(true) {
+            warn!("⚠️  Não foi possível setar non-blocking em '{}': {}", iface, e);
+        }
+
+        // Loop de leitura
+        while running.load(Ordering::Relaxed) {
+            match socket.read_frame() {
+                Ok(frame) => {
+                    let timestamp = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs_f64() + clock_offset;
+
+                    let can_id: u32 = match frame.id() {
+                        socketcan::Id::Standard(id) => id.as_raw() as u32,
+                        socketcan::Id::Extended(id) => id.as_raw(),
+                    };
+
+                    let data_slice = frame.data();
+                    let mut data_fixed = [0u8; 8];
+                    data_fixed[..data_slice.len().min(8)].copy_from_slice(&data_slice[..data_slice.len().min(8)]);
+
+                    let priority = *priority_map.get(&can_id).unwrap_or(&4);
+
+                    let tframe = TelemetryFrame {
+                        timestamp,
+                        can_id,
+                        data: data_fixed,
+                        priority,
+                        channel: iface.clone(),
+                    };
+
+                    if tx.send(tframe).await.is_err() {
+                        return; // Canal fechado, encerra a task
+                    }
+                }
+                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                    tokio::time::sleep(Duration::from_micros(500)).await;
+                }
+                Err(e) => {
+                    error!("❌ Erro crítico ao ler SocketCAN '{}': {:?}. Reiniciando socket...", iface, e);
+                    break; // Sai do loop de leitura para tentar reabrir o socket
+                }
+            }
+        }
+        
+        if running.load(Ordering::Relaxed) {
+            tokio::time::sleep(Duration::from_millis(500)).await;
         }
     }
 
@@ -499,6 +560,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // 2. Inicializa banco local de backup
     let db_pool = init_database(&args.db_path).await?;
+    let (sqlite_tx, sqlite_rx) = mpsc::channel::<TelemetryFrame>(100_000);
+    {
+        let pool = db_pool.clone();
+        let dev = device_id.clone();
+        tokio::spawn(async move {
+            run_sqlite_writer(pool, sqlite_rx, dev).await;
+        });
+    }
 
     // 3. Canal de comunicação entre leitores CAN e loop de envio
     // Buffer de 1000 frames — se o servidor estiver lento, eles acumulam aqui
@@ -692,19 +761,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // Sucesso — segue
                 }
                 Err(e) => {
-                    warn!("❌ Erro ao enviar: {}. Salvando {} frames localmente...", e, frame_buffer.len());
-
-                    match backup_to_sqlite(&db_pool, &frame_buffer, &device_id).await {
-                        Ok(_) => {
-                            total_backed_up += frame_buffer.len() as u64;
-                            info!("💾 {} frames salvos no backup local", frame_buffer.len());
-                        }
-                        Err(e) => {
-                            error!("❌ CRÍTICO: Falha ao salvar backup: {:?}", e);
+                    warn!("❌ Erro ao enviar: {}. Desviando {} frames para backup local...", e, frame_buffer.len());
+                    for frame in &frame_buffer {
+                        if sqlite_tx.try_send(frame.clone()).is_err() {
+                            error!("❌ Buffer SQLite cheio — frame descartado");
                         }
                     }
-
-                    // Sai do loop de envio para reconectar
+                    total_backed_up += frame_buffer.len() as u64;
                     break 'send_loop;
                 }
             }

@@ -12,7 +12,7 @@ kvaser = []
 tokio = { version = "1", features = ["full"] }
 clap = { version = "4", features = ["derive"] }
 socketcan = "3"
-sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls"] }
+sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-native-tls", "macros"] }
 csv = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt"] }

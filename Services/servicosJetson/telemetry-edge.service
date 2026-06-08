@@ -13,7 +13,8 @@ ExecStart=/bin/bash -c '/home/sauva/TelemetriaV2.0/telemetry-edge/target/release
   --ch0 can0 \
   --ch1 can1 \
   --server ${SERVER_IP}:${SERVER_TCP_PORT} \
-  --device-id car_001'
+  --device-id car_001 \
+  --ntp-port 0'
 Restart=always
 RestartSec=5
 StandardOutput=journal

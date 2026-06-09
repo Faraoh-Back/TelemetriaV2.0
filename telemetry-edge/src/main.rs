@@ -698,10 +698,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             if payload.len() >= 20 {
                                 p.copy_from_slice(&payload[12..20]);
                             }
+                            let hex_payload: Vec<String> = p.iter().map(|b| format!("{:02X}", b)).collect();
                             if p[0] == 0x01 {
-                                info!("🟢 RESUME recebido do servidor — enviando 0x67 [0x01] no CAN");
+                                info!("🟢 RESUME recebido do servidor — enviando 0x67 [{}] no CAN", hex_payload.join(" "));
                             } else {
-                                info!("🛑 EMERGENCY STOP recebido do servidor — enviando 0x67 [0x00] no CAN");
+                                info!("🛑 EMERGENCY STOP recebido do servidor — enviando 0x67 [{}] no CAN", hex_payload.join(" "));
                             }
                             send_emergency_can(p);
                         }

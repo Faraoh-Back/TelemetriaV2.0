@@ -64,7 +64,7 @@ pub(super) async fn handle_emergency_stop(
     frame[0..4].copy_from_slice(&can_id.to_le_bytes());
     frame[4..12].copy_from_slice(&timestamp.to_le_bytes());
     // Payload: 0xFF em todos os 8 bytes — convenção de kill
-    frame[12..20].copy_from_slice(&[0xFF; 8]);
+    frame[12..20].copy_from_slice(&[0x00; 8]);
 
     // Broadcast para todos os listeners (WS clients + edge devices)
     match ws_tx.send(frame.to_vec()) {

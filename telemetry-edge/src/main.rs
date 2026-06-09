@@ -815,6 +815,6 @@ fn send_emergency_can(payload: [u8; 8]) {
 }
 
 #[cfg(not(target_os = "linux"))]
-fn send_emergency_can() {
+fn send_emergency_can(_payload: [u8; 8]) {
     tracing::warn!("⚠️  Emergency CAN não disponível fora de Linux");
 }

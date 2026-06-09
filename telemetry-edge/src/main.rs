@@ -529,6 +529,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let args = Args::parse();
+    let device_id = args.device_id.clone();
 
     // Validação mínima
     if args.ch0.is_none() && args.ch1.is_none() {

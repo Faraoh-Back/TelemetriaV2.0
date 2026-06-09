@@ -498,6 +498,15 @@ async fn run_socketcan_reader(
                         channel: iface.clone(),
                     };
 
+                    // Log periódico de recepção (debug)
+                    static mut RECV_COUNT: u64 = 0;
+                    unsafe {
+                        RECV_COUNT += 1;
+                        if RECV_COUNT % 1000 == 0 {
+                            info!("📥 [CAN RECV] {} | Total: {}", iface, RECV_COUNT);
+                        }
+                    }
+
                     if tx.send(tframe).await.is_err() {
                         return; // Canal fechado, encerra a task
                     }

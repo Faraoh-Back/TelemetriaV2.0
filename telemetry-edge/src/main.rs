@@ -800,17 +800,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn send_emergency_can(payload: [u8; 8]) {
     use socketcan::{CanFrame, CanSocket, ExtendedId, Id, Socket};
 
-    match CanSocket::open("can0") {
-        Ok(socket) => {
-            let id = ExtendedId::new(0x67).expect("ID válido");
-            let frame = CanFrame::new(Id::Extended(id), &payload)
-                .expect("Frame válido");
-            match socket.write_frame(&frame) {
-                Ok(_) => tracing::info!("✅ Frame 0x67 enviado no barramento CAN"),
-                Err(e) => tracing::error!("❌ Falha ao enviar 0x67 no CAN: {}", e),
+    for iface in &["can0", "can1"] {
+        match CanSocket::open(iface) {
+            Ok(socket) => {
+                let id = ExtendedId::new(0x67).expect("ID válido");
+                let frame = CanFrame::new(Id::Extended(id), &payload)
+                    .expect("Frame válido");
+                match socket.write_frame(&frame) {
+                    Ok(_) => tracing::info!("✅ Frame 0x67 enviado em {}", iface),
+                    Err(e) => tracing::error!("❌ Falha ao enviar 0x67 em {}: {}", iface, e),
+                }
             }
+            Err(e) => tracing::error!("❌ Não foi possível abrir {} para emergency: {}", iface, e),
         }
-        Err(e) => tracing::error!("❌ Não foi possível abrir can0 para emergency: {}", e),
     }
 }
 

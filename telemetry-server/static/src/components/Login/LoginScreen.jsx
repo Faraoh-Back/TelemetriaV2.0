@@ -64,7 +64,7 @@ function LoginScreen({ onLogin }) {
                 <div class="login-status-grid" aria-label="Estado da interface">
                     <div class="login-status">
                         <span class="login-status__label">Interface</span>
-                        <strong>V2.1</strong>
+                        <strong>V2.2</strong>
                     </div>
                     <div class="login-status">
                         <span class="login-status__label">Servidor</span>

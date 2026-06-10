@@ -32,14 +32,21 @@ pub(super) async fn serve_html(stream: &mut TcpStream) {
 
 pub(super) async fn serve_static_file(stream: &mut TcpStream, first_line: &str) {
     let path = first_line.split_whitespace().nth(1).unwrap_or("/");
-    let file_path = format!("./static/dist{}", path);
+    let path_without_qs = path.split('?').next().unwrap_or(path);
+    let file_path = format!("./static/dist{}", path_without_qs);
 
-    let content_type = if path.ends_with(".js") {
+    let content_type = if path_without_qs.ends_with(".js") {
         "application/javascript"
-    } else if path.ends_with(".css") {
+    } else if path_without_qs.ends_with(".css") {
         "text/css"
-    } else if path.ends_with(".svg") {
+    } else if path_without_qs.ends_with(".svg") {
         "image/svg+xml"
+    } else if path_without_qs.ends_with(".png") {
+        "image/png"
+    } else if path_without_qs.ends_with(".jpg") || path_without_qs.ends_with(".jpeg") {
+        "image/jpeg"
+    } else if path_without_qs.ends_with(".ico") {
+        "image/x-icon"
     } else {
         "application/octet-stream"
     };

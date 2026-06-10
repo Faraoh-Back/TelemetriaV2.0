@@ -3,14 +3,12 @@ import { signals } from '../../store.js'
 
 const MOTOR_GROUPS = [
     {
-        label: '13',
-        up: { name: 'TORQUE_13B', label: 'B' },
-        down: { name: 'TORQUE_13A', label: 'A' },
+        up: { name: 'TORQUE_13B', label: '13B' },
+        down: { name: 'TORQUE_13A', label: '13A' },
     },
     {
-        label: '0',
-        up: { name: 'TORQUE_0B', label: 'B' },
-        down: { name: 'TORQUE_0A', label: 'A' },
+        up: { name: 'TORQUE_0B', label: '0B' },
+        down: { name: 'TORQUE_0A', label: '0A' },
     },
 ]
 
@@ -37,7 +35,6 @@ function TorqueDistribution() {
             const upPct = maxTorque() > 0 ? Math.min(Math.abs(upVal) / maxTorque(), 1) : 0
             const downPct = maxTorque() > 0 ? Math.min(Math.abs(downVal) / maxTorque(), 1) : 0
             return {
-                label: group.label,
                 up: { ...group.up, value: upVal, pct: upPct, isPositive: upVal >= 0 },
                 down: { ...group.down, value: downVal, pct: downPct, isPositive: downVal >= 0 },
             }
@@ -54,8 +51,6 @@ function TorqueDistribution() {
                 <For each={groups()}>
                     {(group) => (
                         <div class="torque-dist__col">
-                            <span class="torque-dist__col-label">{group.label}</span>
-
                             <div class="torque-dist__half torque-dist__half--top">
                                 <div
                                     class="torque-dist__bar"
@@ -65,15 +60,15 @@ function TorqueDistribution() {
                                     }}
                                     style={{ height: `${(group.up.pct * 100).toFixed(1)}%` }}
                                 />
-                                <span class="torque-dist__tag">{group.up.label}</span>
                                 <span class="torque-dist__val">{Math.round(group.up.value)}</span>
+                                <span class="torque-dist__tag">{group.up.label}</span>
                             </div>
 
                             <div class="torque-dist__center" />
 
                             <div class="torque-dist__half torque-dist__half--bot">
-                                <span class="torque-dist__val">{Math.round(group.down.value)}</span>
                                 <span class="torque-dist__tag">{group.down.label}</span>
+                                <span class="torque-dist__val">{Math.round(group.down.value)}</span>
                                 <div
                                     class="torque-dist__bar"
                                     classList={{

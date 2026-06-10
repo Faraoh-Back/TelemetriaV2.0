@@ -451,33 +451,25 @@
     border-left: 1px solid rgba(255,255,255,0.06);
 }
 
-.torque-dist__col-label {
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1;
-    padding: 3px 0 1px;
-    flex: 0 0 auto;
-}
-
 .torque-dist__half {
     flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
+    gap: 3px;
     min-height: 0;
     position: relative;
 }
 
 .torque-dist__half--top {
     justify-content: flex-end;
+    padding-bottom: 4px;
 }
 
 .torque-dist__half--bot {
     justify-content: flex-start;
+    padding-top: 4px;
 }
 
 .torque-dist__center {
@@ -514,20 +506,20 @@
 }
 
 .torque-dist__tag {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 700;
     color: var(--text2);
-    line-height: 1;
+    line-height: 1.2;
     flex: 0 0 auto;
 }
 
 .torque-dist__val {
-    font-size: 10px;
+    font-size: 11px;
     font-family: var(--mono);
     font-weight: 600;
     color: var(--text);
     font-variant-numeric: tabular-nums;
-    line-height: 1;
+    line-height: 1.2;
     flex: 0 0 auto;
 }
 

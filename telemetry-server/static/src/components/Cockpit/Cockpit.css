@@ -434,24 +434,9 @@
 }
 
 .torque-dist__body {
-    padding: 6px 8px 8px;
-    min-height: 0;
-}
-
-.torque-dist__chart {
     display: flex;
-    height: 100px;
-    position: relative;
-}
-
-.torque-dist__chart::before {
-    content: '';
-    position: absolute;
-    inset: 50% 4px auto;
-    height: 1px;
-    background: rgba(255,255,255,0.12);
-    pointer-events: none;
-    z-index: 0;
+    height: 118px;
+    padding: 2px 0 4px;
 }
 
 .torque-dist__col {
@@ -459,9 +444,47 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
-    position: relative;
     min-width: 0;
+}
+
+.torque-dist__col + .torque-dist__col {
+    border-left: 1px solid rgba(255,255,255,0.06);
+}
+
+.torque-dist__col-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    padding: 3px 0 1px;
+    flex: 0 0 auto;
+}
+
+.torque-dist__half {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    min-height: 0;
+    position: relative;
+}
+
+.torque-dist__half--top {
+    justify-content: flex-end;
+}
+
+.torque-dist__half--bot {
+    justify-content: flex-start;
+}
+
+.torque-dist__center {
+    flex: 0 0 1px;
+    width: calc(100% + 8px);
+    margin: 0 -4px;
+    background: rgba(255,255,255,0.1);
 }
 
 .torque-dist__bar {
@@ -469,40 +492,43 @@
     left: 50%;
     transform: translateX(-50%);
     width: 100%;
-    max-width: 28px;
+    max-width: 22px;
+    border-radius: 2px;
     transition: height 0.2s ease;
-    z-index: 1;
+}
+
+.torque-dist__half--top .torque-dist__bar {
+    bottom: 0;
+}
+
+.torque-dist__half--bot .torque-dist__bar {
+    top: 0;
 }
 
 .torque-dist__bar--pos {
-    bottom: 50%;
     background: #1fb68e;
-    border-radius: 3px 3px 0 0;
 }
 
 .torque-dist__bar--neg {
-    top: 50%;
     background: #f05252;
-    border-radius: 0 0 3px 3px;
 }
 
-.torque-dist__value {
-    font-size: 11px;
+.torque-dist__tag {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--text2);
+    line-height: 1;
+    flex: 0 0 auto;
+}
+
+.torque-dist__val {
+    font-size: 10px;
     font-family: var(--mono);
     font-weight: 600;
     color: var(--text);
     font-variant-numeric: tabular-nums;
     line-height: 1;
-}
-
-.torque-dist__label {
-    font-size: 10px;
-    font-weight: 650;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    line-height: 1;
-    margin-top: 2px;
+    flex: 0 0 auto;
 }
 
 @media (max-width: 1120px) {

@@ -46,6 +46,54 @@ const [trackState, setTrackState] = createStore({
     vehicle: null,
     timestamp: null,
 })
+const [lapState, setLapState] = createStore({
+    lastLapTime: null,
+    lastLapAt: null,
+    allLaps: [],
+    bestLaps: [],
+    lapCount: 0,
+})
+
+function formatLapTime(seconds) {
+    if (seconds == null || !isFinite(seconds)) return null
+    const min = Math.floor(seconds / 60)
+    const sec = (seconds % 60).toFixed(3)
+    return `${min}:${sec.padStart(6, '0')}`
+}
+
+function updateLapDetection(vehicle, trackLength, now) {
+    if (!vehicle || !trackLength || trackLength <= 0) return
+    if (!Number.isFinite(vehicle.distance_m)) return
+
+    const currentLapNumber = Math.floor(vehicle.distance_m / trackLength)
+    const prevLapNumber = lapState.lapCount ?? 0
+    const lapStart = lapState._lapStart
+
+    if (currentLapNumber > prevLapNumber) {
+        const elapsed = lapStart ? (now - lapStart) / 1000 : null
+        if (elapsed != null && elapsed > 0) {
+            const formatted = formatLapTime(elapsed)
+            const entry = { lap: currentLapNumber, time: elapsed, formatted }
+
+            const updatedAll = [...lapState.allLaps, entry]
+            const updatedBest = [...lapState.bestLaps, entry]
+                .sort((a, b) => a.time - b.time)
+                .slice(0, 5)
+
+            setLapState({
+                lastLapTime: formatted,
+                lastLapAt: now,
+                allLaps: updatedAll,
+                bestLaps: updatedBest,
+                lapCount: currentLapNumber,
+                _lapStart: now,
+            })
+        }
+    } else if (currentLapNumber === prevLapNumber && !lapStart) {
+        setLapState({ _lapStart: now })
+    }
+}
+
 const [telemetrySession, setTelemetrySession] = createStore({
     startTimestamp: null,
     stopTimestamp: null,
@@ -109,6 +157,11 @@ const [telemetrySession, setTelemetrySession] = createStore({
                     vehicle: data.payload.vehicle ?? null,
                     timestamp: data.payload.timestamp ?? null,
                 })
+                updateLapDetection(
+                    data.payload.vehicle,
+                    trackState.track?.length_m,
+                    Date.now(),
+                )
             }
             break
         }
@@ -191,6 +244,13 @@ const [telemetrySession, setTelemetrySession] = createStore({
             startTimestamp: null,
             stopTimestamp: null,
         })
+        setLapState({
+            lastLapTime: null,
+            lastLapAt: null,
+            allLaps: [],
+            bestLaps: [],
+            lapCount: 0,
+        })
         worker.postMessage({ cmd: 'resetTelemetryData' })
     }
 
@@ -215,4 +275,4 @@ const [telemetrySession, setTelemetrySession] = createStore({
         })
     }
 
-    export { signals, status, telemetrySession, trackState }
+    export { signals, status, telemetrySession, trackState, lapState }

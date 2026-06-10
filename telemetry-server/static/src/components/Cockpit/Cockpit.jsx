@@ -16,6 +16,7 @@ import { For } from 'solid-js'
 import CockpitGauge from './CockpitGauge.jsx'
 import RaceVideoPanel from './RaceVideoPanel.jsx'
 import TrackMapPanel from './TrackMapPanel.jsx'
+import LapTimePanel from './LapTimePanel.jsx'
 import './Cockpit.css'
 
 function Cockpit(props) {
@@ -41,6 +42,7 @@ function Cockpit(props) {
 
                 <div class="cockpit__lower-grid">
                     <TrackMapPanel source={trackMapSource()} data={trackMap()} isTelemetryLive={isTelemetryLive()} />
+                    <LapTimePanel />
                 </div>
             </section>
 

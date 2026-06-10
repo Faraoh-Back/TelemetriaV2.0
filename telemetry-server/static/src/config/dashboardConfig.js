@@ -49,10 +49,9 @@ export const STATUS_INDICATORS = [
     { signalName: 'BRAKE', label: 'Freio', kind: 'brake' },
     { signalName: 'VCU_STATE', label: 'VCU State', kind: 'state' },
     {
-        signalName: 'FAULTS_GENERAL',
+        signalName: 'SAFETY_NOT_OK',
         label: 'Faults',
         kind: 'faultGroup',
-        signals: ['IMD', 'BMS', 'BSPD', 'BMS_TIMEOUT', 'PRE_CHARGE_TIME_EXCEEDED', 'GENERAL ERROR'],
     },
     {
         signalName: 'BMS_CELL_ALERTS',

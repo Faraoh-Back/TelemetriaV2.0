@@ -425,6 +425,86 @@
     color: #3ddbab;
 }
 
+.torque-dist {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.torque-dist__body {
+    padding: 6px 8px 8px;
+    min-height: 0;
+}
+
+.torque-dist__chart {
+    display: flex;
+    height: 100px;
+    position: relative;
+}
+
+.torque-dist__chart::before {
+    content: '';
+    position: absolute;
+    inset: 50% 4px auto;
+    height: 1px;
+    background: rgba(255,255,255,0.12);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.torque-dist__col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+    min-width: 0;
+}
+
+.torque-dist__bar {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 28px;
+    transition: height 0.2s ease;
+    z-index: 1;
+}
+
+.torque-dist__bar--pos {
+    bottom: 50%;
+    background: #1fb68e;
+    border-radius: 3px 3px 0 0;
+}
+
+.torque-dist__bar--neg {
+    top: 50%;
+    background: #f05252;
+    border-radius: 0 0 3px 3px;
+}
+
+.torque-dist__value {
+    font-size: 11px;
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+}
+
+.torque-dist__label {
+    font-size: 10px;
+    font-weight: 650;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1;
+    margin-top: 2px;
+}
+
 @media (max-width: 1120px) {
     .cockpit {
         grid-template-columns: 1fr;

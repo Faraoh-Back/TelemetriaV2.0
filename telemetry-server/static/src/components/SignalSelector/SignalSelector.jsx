@@ -21,7 +21,7 @@
 
 import { For, Show, createMemo, createSignal } from 'solid-js'
 import { signals } from '../../store.js'
-import { groupSignals } from '../../utils/signalGrouping'
+import { groupSignalsByComponent } from '../../utils/signalGrouping'
 import './SignalSelector.css'
 
 const EMPTY_SIGNAL_GROUPS = [
@@ -85,6 +85,7 @@ function SignalSelector(props) {
             .map(([name, entry]) => ({
                 name,
                 unit: entry.unit,
+                component: entry.component,
             }))
             .filter(({ name, unit }) => {
                 if (!normalizedQuery) return true
@@ -97,7 +98,7 @@ function SignalSelector(props) {
             .sort((a, b) => a.name.localeCompare(b.name))
     })
 
-    const groupedSignals = createMemo(() => groupSignals(signalEntries()))
+    const groupedSignals = createMemo(() => groupSignalsByComponent(signalEntries()))
     const totalSignals = createMemo(() => Object.keys(signals).length)
     const selectedCount = createMemo(() => props.selectedSignals?.length ?? 0)
 

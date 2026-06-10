@@ -333,7 +333,7 @@ import { decodeSignal } from '../utils/canDecode.js'
         latest[name] = { value, unit: sig.u, timestamp };
     
         // Notifica a UI com o valor mais recente (granular — por sinal)
-        self.postMessage({ type: 'signal', name, value, unit: sig.u, timestamp, canId });
+        self.postMessage({ type: 'signal', name, value, unit: sig.u, timestamp, canId, component: sig.c });
         }
     
         // Taxa de frames (log a cada 5s)

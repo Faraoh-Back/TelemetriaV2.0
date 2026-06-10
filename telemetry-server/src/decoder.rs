@@ -21,6 +21,7 @@ pub struct SignalConfig {
     pub value_type: String, // legado CSV
     pub is_signed: bool,
     pub byte_order: ByteOrder,
+    pub component: String,
 }
 
 #[derive(Debug, Clone)]
@@ -123,6 +124,7 @@ fn parse_csv_file(
                 value_type: value_type.clone(),
                 is_signed: value_type.to_lowercase().contains("int") && length > 1,
                 byte_order: ByteOrder::Intel,
+                component: String::from("unknown"),
             });
         }
     }
@@ -155,6 +157,11 @@ fn parse_dbc_file(
     path: &Path,
     decoder_map: &mut DecoderMap,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    let component = path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("unknown")
+        .to_string();
     let bytes = fs::read(path)?;
     let content = String::from_utf8_lossy(&bytes);
     let mut current_can_id: Option<u32> = None;
@@ -228,6 +235,7 @@ fn parse_dbc_file(
             value_type: if is_signed { "int" } else { "float" }.to_string(),
             is_signed,
             byte_order,
+            component: component.clone(),
         });
     }
 
@@ -470,6 +478,7 @@ mod tests {
             value_type: "int".to_string(),
             is_signed: true,
             byte_order: ByteOrder::Intel,
+            component: String::from("test"),
         };
         let data = [0x0A];
         let val = decode_signal(&data, &config);

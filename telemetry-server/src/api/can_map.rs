@@ -25,6 +25,7 @@ pub(super) async fn handle_can_map(
                     "u":      s.unit,
                     "t":      s.value_type,
                     "signed": s.is_signed,
+                    "c":      s.component,
                 })
             })
             .collect();

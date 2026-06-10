@@ -107,6 +107,7 @@ const [telemetrySession, setTelemetrySession] = createStore({
                 value:     data.value,
                 unit:      data.unit,
                 timestamp: data.timestamp,
+                component: data.component,
             })
             break
 

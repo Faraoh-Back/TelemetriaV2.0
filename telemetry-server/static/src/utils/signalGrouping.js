@@ -120,3 +120,28 @@ export function groupSignals(signalEntries) {
         }))
         .sort((a, b) => a.label.localeCompare(b.label))
 }
+
+export function groupSignalsByComponent(signalEntries) {
+    const groups = new Map()
+
+    for (const signal of signalEntries) {
+        const component = signal.component || 'Desconhecido'
+
+        if (!groups.has(component)) {
+            groups.set(component, {
+                id: component,
+                label: component,
+                signals: [],
+            })
+        }
+
+        groups.get(component).signals.push(signal)
+    }
+
+    return [...groups.values()]
+        .map((group) => ({
+            ...group,
+            signals: group.signals.sort((a, b) => a.name.localeCompare(b.name)),
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+}

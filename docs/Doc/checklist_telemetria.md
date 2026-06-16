@@ -74,6 +74,7 @@
 | Instalar PostgreSQL 14 | <span style="color:#006400;font-weight:bold;">OK FEITO | Instalado e rodando — Dia 2 |
 | Instalar extensão TimescaleDB | <span style="color:#006400;font-weight:bold;">OK FEITO | timescaledb-2-postgresql-14 — Dia 2 |
 | Criar banco telemetria no PostgreSQL | <span style="color:#006400;font-weight:bold;">OK FEITO | Usuário eracing, senha no .env — Dia 2 |
+| Criar hypertable sensor_data | <span style="color:#006400;font-weight:bold;">OK FEITO | Criado automaticamente pelo servidor durante a inicialização |
 | Configurar WAL mode no SQLite | <span style="color:#006400;font-weight:bold;">OK FEITO | PRAGMA journal_mode=WAL na inicialização |
 | Configurar política de retenção TimescaleDB 7 dias | <span style="color:#006400;font-weight:bold;">OK FEITO | add_retention_policy aplicada — Dia 2 |
 | Corrigir arquitetura: remover SQLite do fluxo ao vivo | <span style="color:#D4AF37;font-weight:bold;"> OK FEITO  | SQLite não recebe mais dados em tempo real — Dia 6 |
@@ -90,6 +91,7 @@
 | Item | Status | Observação |
 | :--- | :---: | :--- |
 | Instalar Rust toolchain no servidor (rustup) | <span style="color:#0047AB;font-weight:bold;">OK FEITO | v1.93.1 — source ~/.cargo/env |
+| Corrigir decoder.rs para formato CSV da E-Racing |<span style="color:#006400;font-weight:bold;">OK FEITO | Implementado parser hierárquico com suporte a bit(X-Y) e byte(X-Y) |
 | Compilar telemetry-server | <span style="color:#006400;font-weight:bold;">OK FEITO| Finished release em ~8s — Dia 2 |
 | Corrigir main.rs para Dual DB (TimescaleDB + SQLite) | <span style="color:#006400;font-weight:bold;">OK FEITO| Dual write paralelo + .env — Dia 2 |
 | Corrigir Cargo.toml do servidor | <span style="color:#0047AB;font-weight:bold;">OK FEITO | Dependências postgres + sqlite + serde_json + dotenvy |
@@ -115,12 +117,12 @@
 ### 2.2 Decoder CAN
 | Item | Status | Observação |
 | :--- | :---: | :--- |
-| Carregar CSVs de mapeamento CAN | <span style="color:#0047AB;font-weight:bold;">OK FEITO' | Parser hierárquico reescrito — 38 IDs carregados |
-| Extração de bits Intel (Little Endian) | <span style="color:#0047AB;font-weight:bold;">OK FEITO' | extract_bits() — suporte bit(X), bit(X-Y) |
-| Extração de bits Motorola (Big Endian) | <span style="color:#0047AB;font-weight:bold;">OK FEITO' | extract_bits_motorola() preservado |
-| Aplicar factor e offset ao valor físico | <span style="color:#0047AB;font-weight:bold;">OK FEITO' | decode_signal() |
-| Suporte a signed integers | <span style="color:#0047AB;font-weight:bold;">OK FEITO' | Sign extension implementado |
-| Testes unitários do decoder | <span style="color:#0047AB;font-weight:bold;">OK FEITO' | 5 testes — bit, byte, range, decode unsigned/signed |
+| Carregar CSVs de mapeamento CAN | <span style="color:#0047AB;font-weight:bold;">OK FEITO | Parser hierárquico reescrito — 38 IDs carregados |
+| Extração de bits Intel (Little Endian) | <span style="color:#0047AB;font-weight:bold;">OK FEITO | extract_bits() — suporte bit(X), bit(X-Y) |
+| Extração de bits Motorola (Big Endian) | <span style="color:#0047AB;font-weight:bold;">OK FEITO | extract_bits_motorola() preservado |
+| Aplicar factor e offset ao valor físico | <span style="color:#0047AB;font-weight:bold;">OK FEITO | decode_signal() |
+| Suporte a signed integers | <span style="color:#0047AB;font-weight:bold;">OK FEITO | Sign extension implementado |
+| Testes unitários do decoder | <span style="color:#0047AB;font-weight:bold;">OK FEITO | 5 testes — bit, byte, range, decode unsigned/signed |
 | Carregar DBCs reais (VCU, BMS, Inversores, INS) | <span style="color:#1e4620;font-weight:bold;">OK FEITO | Codex CLI atualizou parser DBC — suporte J1939 bit 31 + Motorola + Intel — Dia 10 |
 | Remover bit J1939 (bit 31) no lookup de IDs | <span style="color:#1e4620;font-weight:bold;">OK FEITO | id_bus = id_dbc & 0x1FFFFFFF — correto para frame CAN extended — Dia 10 |
 | Endpoint GET /api/can-map (serializa DecoderMap) | <span style="color:#B8860B;font-weight:bold;">OK FEITO | src/api/can_map.rs — serializa 342 IDs como JSON para o frontend — Dia 11 |
@@ -371,16 +373,8 @@
 | Validação de origem das conexões TCP (edge) | <span style="color:#FF0000;font-weight:bold;">XX PENDENTE| Aceitar apenas IPs conhecidos no :8080 |
 | Autenticação JWT com validação no servidor | OK FEITO | Token validado em /ws e /migrate |
 
-## ITENS DO PLANO ORIGINAL QUE NÃO SÃO NECESSÁRIOS
-**Os itens abaixo estavam no checklist original mas foram descartados com base na topologia de rede real e nas decisões técnicas tomadas durante a implementação.**
-| Item | Status | Observação |
-|--------|--------|------------|
-| hostapd (Access Point Wi-Fi no servidor) |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Chip Wi-Fi não suporta modo AP. Rede feita via Unifi. |
-| dnsmasq (DHCP server no servidor) |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Roteador já faz o DHCP |
-| Mosquitto / MQTT Integration |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Todo o serviddor é Rust. Python não é usado no servidor |
-| Raspberry Pi como base station |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Usando servidor com Ubuntu Server jáa instalado. |
-
 ## MELHORIAS FUTURAS (ALÉM DO ESCOPO INICIAL)
+
 ### Melhoria 1 — Unifi em Modo PtP Bridge
 Atualmente as antenas Unifi operam em modo AP + Station. Configurar como Point-to-Point Bridge elimina o overhead de Wi-Fi gerenciado pelo roteador, reduzindo a latência no trecho sem fio de ~5ms para ~2ms. As antenas funcionam como um cabo virtual transparente.
 | Item | Status | Observação |
@@ -412,5 +406,14 @@ O WebSocket atual é TCP raw com JSON por linha — funciona, mas não é o prot
 | Adicionar tokio-tungstenite ao Cargo.toml | <span style="color:#FF0000;font-weight:bold;"><span style="color:#FF0000;font-weight:bold;">XX PENDENTE| tokio-tungstenite = { version = "0.21", features = ["native-tls"] } |
 | Substituir TCP raw por WebSocket upgrade | <span style="color:#FF0000;font-weight:bold;"><span style="color:#FF0000;font-weight:bold;">XX PENDENTE| Compatível com qualquer lib WebSocket do Android |
 
+
+## ITENS DO PLANO ORIGINAL QUE NÃO SÃO NECESSÁRIOS
+**Os itens abaixo estavam no checklist original mas foram descartados com base na topologia de rede real e nas decisões técnicas tomadas durante a implementação.**
+| Item | Status | Observação |
+|--------|--------|------------|
+| hostapd (Access Point Wi-Fi no servidor) |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Chip Wi-Fi não suporta modo AP. Rede feita via Unifi. |
+| dnsmasq (DHCP server no servidor) |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Roteador já faz o DHCP |
+| Mosquitto / MQTT Integration |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Todo o serviddor é Rust. Python não é usado no servidor |
+| Raspberry Pi como base station |<span style="color:#000000;font-weight:bold;">NÃO NECESSÁRIO | Usando servidor com Ubuntu Server jáa instalado. |
 
 E-Racing Ultra Blaster · Telemetria V2 · 01/03/2026

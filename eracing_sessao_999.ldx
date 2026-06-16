@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LDXFile Locale="C" DefaultLocale="C" Version="1.6">
+    <Layers>
+        <Layer>
+            <MarkerBlock Version="2.0">
+                <MarkerGroup Index="0" Type="Beacon" Count="0"></MarkerGroup>
+            </MarkerBlock>
+        </Layer>
+    </Layers>
+    <Details>
+        <String Id="Event" Value="Sessao 999"/>
+        <String Id="Session" Value="Sessao 999"/>
+        <String Id="Venue" Value="UNICAMP"/>
+        <String Id="Vehicle Id" Value="UNICAMP E-RACING"/>
+        <String Id="Driver" Value="UNICAMP E-RACING Team"/>
+        <String Id="Engine Id" Value="E-Racing Powertrain"/>
+        <String Id="Comment" Value="Telemetria V2.2 - exportacao automatica"/>
+        <String Id="Start Time" Value="2026-06-16T14:30:00Z"/>
+    </Details>
+</LDXFile>

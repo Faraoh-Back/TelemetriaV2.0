@@ -4,7 +4,7 @@ use tokio::net::TcpStream;
 use tokio::process::Command;
 use tracing::warn;
 
-use super::http::{api_request_has_permission, send_json};
+use super::http::send_json;
 use crate::auth::ROLE_ADMIN;
 
 // Verifica se o request tem role admin (não só permissão, mas role)

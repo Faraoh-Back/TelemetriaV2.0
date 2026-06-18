@@ -48,7 +48,7 @@ pub async fn run_http_ws_server(
                 let lat = latency_us.clone();
                 let rate = msg_rate.clone();
                 tokio::spawn(async move {
-                    handle_http_connection(stream, addr, tx, edge_cmd_tx, pg, db, dec).await;
+                    handle_http_connection(stream, addr, tx, edge_cmd_tx, pg, db, dec, lat, rate).await;
                 });
             }
             Err(e) => error!("Erro ao aceitar conexão: {}", e),

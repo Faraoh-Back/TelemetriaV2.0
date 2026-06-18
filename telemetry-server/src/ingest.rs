@@ -127,7 +127,7 @@ pub async fn handle_client(
     sqlite_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
     timescale_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
     edge_cmd_tx_source: broadcast::Sender<Vec<u8>>,
-    latenccy_us: Arc<AtomicI64>,
+    latency_us: Arc<AtomicI64>,
     msg_rate: Arc<AtomicU64>,
 ) {
     info!("🚗 Carro conectado: {}", addr);

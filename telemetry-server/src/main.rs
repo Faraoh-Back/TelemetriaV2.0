@@ -10,6 +10,7 @@ use models::ProcessedSignal;
 use sqlx::postgres::PgPoolOptions;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicI64, AtomicU64};
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tracing::{info, warn};
@@ -126,6 +127,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (ws_tx, _) = broadcast::channel::<Vec<u8>>(10_000);
     let (edge_cmd_tx, _) = broadcast::channel::<Vec<u8>>(32);
     let track_state = Arc::new(Mutex::new(RealtimeTrackState::new()));
+    let latency_us = Arc::new(AtomicI64::new(0));
+    let msg_rate   = Arc::new(AtomicU64::new(0));
 
     // Canal SQLite: buffer de 50k vetores de sinais
     let (sqlite_tx, mut sqlite_rx) =
@@ -216,8 +219,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pg = pg_pool.clone();
         let sqldb = sqlite_pool.clone();
         let dec_for_api = decoder_map.clone();
+        let lat = latency_us.clone();
+        let rate = msg_rate.clone();
         tokio::spawn(async move {
-            api::run_http_ws_server(tx, cmd_tx, pg, sqldb, dec_for_api, HTTP_WS_PORT).await;
+            api::run_http_ws_server(tx, cmd_tx, pg, sqldb, dec_for_api, lat, rate, HTTP_WS_PORT).await;
         });
     }
 
@@ -240,8 +245,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let track = track_state.clone();
         let sqlite_tx = sqlite_tx.clone();
         let timescale_tx = timescale_tx.clone();
+        let lat = latency_us.clone();
+        let rate = msg_rate.clone();
         tokio::spawn(async move {
-            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx, timescale_tx, cmd_tx).await;
+            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx, timescale_tx, cmd_tx, lat, rate).await;
         });
     }
 }

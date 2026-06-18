@@ -1,3 +1,4 @@
+mod admin;
 mod auth_handlers;
 mod collection;
 mod emergency;
@@ -7,6 +8,7 @@ mod logs;
 mod can_map;
 
 use sqlx::sqlite::SqlitePool;
+use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::broadcast;
@@ -20,6 +22,8 @@ pub async fn run_http_ws_server(
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
     decoder_map: crate::decoder::DecoderMap,
+    latency_us: Arc<std::sync::atomic::AtomicI64>,
+    msg_rate: Arc<std::sync::atomic::AtomicU64>,
     port: u16,
 ) {
     let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
@@ -41,6 +45,8 @@ pub async fn run_http_ws_server(
                 let db = sqlite_pool.clone();
                 let pg = pg_pool.clone();
                 let dec = decoder_map.clone();
+                let lat = latency_us.clone();
+                let rate = msg_rate.clone();
                 tokio::spawn(async move {
                     handle_http_connection(stream, addr, tx, edge_cmd_tx, pg, db, dec).await;
                 });
@@ -58,6 +64,8 @@ async fn handle_http_connection(
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
     decoder_map: crate::decoder::DecoderMap,
+    latency_us: Arc<std::sync::atomic::AtomicI64>,
+    msg_rate: Arc<std::sync::atomic::AtomicU64>,
 ) {
     let mut buf = vec![0u8; 4096];
     let n = match stream.read(&mut buf).await {
@@ -104,6 +112,10 @@ async fn handle_http_connection(
         logs::handle_list_logs(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("GET /api/can-map") {
         can_map::handle_can_map(&mut stream, &decoder_map).await;
+    } else if first_line.starts_with("GET /api/admin/stats") {
+        admin::handle_admin_stats(&mut stream, &request, latency_us, msg_rate).await;
+    } else if first_line.starts_with("GET /api/admin/network") {
+        admin::handle_admin_network(&mut stream, &request).await;
     } else {
         let response = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\n\r\nNot Found";
         let _ = stream.write_all(response.as_bytes()).await;

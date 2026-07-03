@@ -7,6 +7,7 @@ use tokio::io::AsyncReadExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 use tracing::{error, info, warn};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 
@@ -126,6 +127,8 @@ pub async fn handle_client(
     sqlite_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
     timescale_tx: tokio::sync::mpsc::Sender<Vec<ProcessedSignal>>,
     edge_cmd_tx_source: broadcast::Sender<Vec<u8>>,
+    latency_us: Arc<AtomicI64>,
+    msg_rate: Arc<AtomicU64>,
 ) {
     info!("🚗 Carro conectado: {}", addr);
 
@@ -238,6 +241,9 @@ pub async fn handle_client(
         if decode_debug.latency_enabled && latency_ms >= 0.0 && latency_ms < 5000.0 {
             info!("[CAN_LATENCY] id=0x{:X} | {:.1}ms", can_id, latency_ms);
         }
+        if latency_ms >= 0.0 && latency_ms < 5000.0 {
+            latency_us.store((latency_ms * 1000.0) as i64, Ordering::Relaxed);
+        }
 
         frames_total += 1;
 
@@ -327,6 +333,8 @@ pub async fn handle_client(
 
         if last_log.elapsed().as_secs() >= 10 {
             let elapsed = last_log.elapsed().as_secs_f64();
+            let rate = (frames_total as f64 / elapsed) as u64;
+            msg_rate.store(rate, Ordering::Relaxed);
             info!(
                 "[CAN_STATS] {} | frames={} | sinais={} | sem_mapa={} | taxa={:.0} frames/s",
                 device_id,

@@ -41,11 +41,13 @@ import HistoryReferenceChart from './components/HistoryReferenceChart/HistoryRef
 import Cockpit from './components/Cockpit/Cockpit.jsx'
 import DownloadsPage from './components/Downloads/DownloadsPage.jsx'
 import { DEFAULT_CHART_LAYOUT, GAUGE_CONFIG } from './config/dashboardConfig.js'
+import AdminPage from './components/AdminPage/AdminPage.jsx'
 
 const TABS = [
   { id: 'analise',  label: 'Análise' },
   { id: 'cockpit',  label: 'Cockpit' },
   { id: 'downloads', label: 'Downloads' },
+  { id: 'admin', label: '⚙ Admin' },
 ]
 
 const TELEMETRY_MODE = {
@@ -272,7 +274,11 @@ function App() {
         onEmergencyResume={handleEmergencyResume}
         onLogout={handleLogout}
       />
-      <TabBar tabs={TABS} activeTab={activeTab()} onSelect={setActiveTab} />
+      <TabBar
+        tabs={TABS.filter(t => t.id !== 'admin' || session()?.role === 'admin')}
+        activeTab={activeTab()}
+        onSelect={setActiveTab}
+      />
       <Show when={telemetryActionError()}>
         <div class="app-alert app-alert--error" role="alert">
           {telemetryActionError()}
@@ -327,6 +333,14 @@ function App() {
         </div>
       </Show>
 
+      <Show
+        when={activeTab() === 'admin'}
+      >
+        <AdminPage session={session()} />
+      </Show>
+      <Show
+        when={activeTab() !== 'admin'}
+      >
       <Show
         when={activeTab() === 'downloads'}
         fallback={
@@ -404,6 +418,7 @@ function App() {
       >
         <DownloadsPage session={session()} />
       </Show>
+    </Show>
     </Show>
   )
 }

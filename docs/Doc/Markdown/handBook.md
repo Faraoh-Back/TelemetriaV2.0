@@ -160,9 +160,43 @@ Procedimento empírico mandatário: As tabelas abaixo representam os testes exec
 
 A transição para a Arquitetura Edge unificando telemetria em alta frequência fomenta o desenvolvimento direto das inovações abaixo para a próxima geração (V3.0):
 
-### 5.1. Virtual Pit Engineer (Machine Learning Acoplado)
-* **Engenharia de Decisão:** O excesso de metadados gera sobrecarga cognitiva brutal para o Race Engineer sob estresse.
-* **Pipeline:** Ingestão contínua do TimescaleDB cruzada com *Math Channels* nativos do MoTeC para inferência de Machine Learning via PyTorch no Servidor Central. O modelo detectará desvios padrão latentes e acionará alertas semânticos em tempo real na interface Admin. (e.g., *"Sobreaquecimento de estator inferido; recomendar piloto ajustar curva regen"*).
+### 5.1. Virtual Pit Engineer (IA de Engenharia de Pista)
+
+O próximo salto da Telemetria V3.0 não é apenas medir mais sinais; é transformar cada sessão em aprendizado acumulado sobre **performance veicular**. A visão do *Virtual Pit Engineer* é criar uma camada de inteligência pós-sessão que leia o log recém-gerado, compare voltas, setores, pilotos e configurações, e traduza massa de dados em hipóteses de engenharia para o debrief.
+
+Hoje a equipe enxerga RPM, torque, temperatura, tensão, aceleração, estado de VCU, mapa e vídeo. Na V3.0, esses canais deixam de ser ilhas e passam a formar uma narrativa técnica depois da sessão:
+
+```text
+"A volta 4 foi 1.2 s mais lenta que a volta 2.
+A maior perda veio na retomada do setor 3:
+menos aceleração longitudinal, mais oscilação de pedal
+e torque traseiro menos consistente na saída."
+```
+
+Essa é a ambição: uma IA que não substitui o engenheiro, mas atua como um segundo par de olhos depois que o carro volta para o box. Ela não precisa decidir sozinha nem competir com o julgamento humano em tempo real; seu valor inicial está em organizar evidências, apontar padrões que merecem discussão e acelerar o trabalho de pessoas com conhecimentos complementares.
+
+**Engenharia de performance:** o gargalo não é só encontrar falha; é entender por que o carro andou daquele jeito. O sistema já consegue adquirir centenas de sinais. O desafio V3.0 é transformar logs em perguntas melhores para dinâmica, powertrain, elétrica, controle e piloto. O Virtual Pit Engineer deve responder perguntas como:
+
+- "Onde a volta rápida ganhou tempo em relação à volta lenta?"
+- "A perda veio de frenagem, contorno, retomada, tração ou entrega de torque?"
+- "O piloto repetiu o mesmo padrão de pedal e volante?"
+- "A aceleração longitudinal esperada apareceu quando o acelerador abriu?"
+- "O carro ficou limitado por energia, temperatura, grip, controle ou pilotagem?"
+- "Esse comportamento já apareceu em outro treino com outro setup?"
+
+**Pipeline visionário:** ao fim de cada coleta, o TimescaleDB, os logs exportáveis, o mapa de pista, o vídeo e *Math Channels* inspirados no MoTeC serão cruzados em uma análise automática de sessão. A IA poderá segmentar voltas, comparar setores, destacar trechos de perda de tempo e gerar um relatório técnico inicial para guiar o debrief:
+
+```text
+"Resumo pós-sessão:
+Melhor volta: volta 2.
+Maior perda recorrente: setor 3, saída de baixa velocidade.
+Hipótese: aplicação de acelerador antes de estabilizar yaw,
+gerando controle de torque mais conservador e menor aceleração longitudinal."
+```
+
+O objetivo não é criar um "chatbot de telemetria", mas um **analista virtual de performance**: explicável, auditável, treinado com a história do próprio carro e integrado ao fluxo real da equipe. Ele deve aprender o que é normal para o nosso protótipo, reconhecer padrões de ganho/perda de tempo e transformar cada sessão em memória acumulada para a próxima.
+
+**Valor V3.0:** sair de uma telemetria que mostra curvas isoladas para uma telemetria que ajuda a explicar performance.
 
 ### 5.2. Antenas Patch/Microstrip Customizadas In-House
 * **Engenharia RF Aerodinâmica:** Antenas COTS tipo Haste/Chicote destroem a fluidez aerodinâmica (arrasto parasita) e perdem seu padrão ótimo de impedância VSWR devido à resistividade da fibra de carbono do chassi, que atua como condutor anisotrópico mitigando o sinal.

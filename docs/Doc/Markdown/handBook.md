@@ -128,6 +128,94 @@ sequenceDiagram
     UI->>UI: Memory-Safe ArrayBuffer Decode e Render DOM
 ```
 
+### 3.4. Cybersecurity e Observabilidade de Rede (Rede OT + Blue Team)
+
+A camada de segurança da telemetria não pode ser tratada como "colocar senha no dashboard". O sistema opera em uma rede OT (*Operational Technology*) em que disponibilidade e integridade dos dados são tão importantes quanto confidencialidade. Em uma competição, o risco prático não é apenas alguém "ver" a tela; é alguém degradar o enlace, injetar tráfego, ocupar banda de vídeo, derrubar o WebSocket ou contaminar a origem dos frames CAN.
+
+**Tese de segurança:** a telemetria precisa defender três superfícies ao mesmo tempo:
+
+| Superfície | Ativo protegido | Vetor de risco | Controle V2.3/V3.0 |
+| :--- | :--- | :--- | :--- |
+| **Enlace RF 5 GHz** | Continuidade carro → box | RSSI baixo, interferência, cliente rogue, saturação | Unifi, RSSI/PER/PDR, canal DFS, MAC allowlist, WPA3 |
+| **Servidor de telemetria** | Ingestão CAN, DB e dashboard | IP não autorizado em `:8080`, brute force em `/login`, token vazado | UFW, fail2ban, JWT, role admin, Suricata |
+| **Operação em pista** | Decisão da equipe | Latência alta, jitter, queda de QoS, serviço reiniciado | Dashboard Admin, QoS HTB, logs systemd, Netdata/Cockpit |
+
+O objetivo não é transformar o carro em um datacenter corporativo pesado. A lógica é **segurança proporcional ao risco de pista**: bloquear o que não precisa existir, observar o que pode degradar a volta e ter resposta rápida quando algo sai da curva normal.
+
+#### 3.4.1. Por que RSSI, PDR e PER são dados de cybersecurity
+
+RSSI costuma ser tratado como métrica de rádio, mas no contexto da telemetria ele também é métrica de segurança operacional. Um RSSI degradando pode indicar:
+
+- o carro está entrando em zona de sombra ou multipath severo;
+- uma antena foi mal orientada ou perdeu visada;
+- o canal sofreu interferência externa;
+- há cliente/dispositivo próximo gerando contenção;
+- a rede está próxima de um ponto em que TCP vai acumular retransmissão e burst.
+
+Por isso, o dashboard de rede não deve mostrar apenas "conectado/desconectado". Ele deve expor a saúde física do enlace:
+
+| Métrica | Leitura | Interpretação |
+| :--- | :--- | :--- |
+| **RSSI (dBm)** | Potência recebida | Acima de `-65 dBm` tende a ser saudável; abaixo disso cresce risco de jitter e perda |
+| **SNR (dB)** | Sinal sobre ruído | Indica margem real contra interferência |
+| **PDR (%)** | Packet Delivery Ratio | Percentual de pacotes entregues sem perda observada |
+| **PER (%)** | Packet Error Rate | Erros/retransmissões no enlace |
+| **Jitter (ms)** | Variação de latência | Piora leitura em tempo real mesmo quando média parece boa |
+| **Frames/s CAN** | Vazão lógica | Queda súbita pode indicar problema de rede ou edge |
+
+**Dor resolvida:** sem essas métricas, uma falha de telemetria parece "bug do software". Com elas, a equipe separa rapidamente falha de aplicação, falha de RF, saturação de rede e problema de autenticação.
+
+#### 3.4.2. QoS HTB: segurança contra auto-DOS
+
+O sistema carrega pelo mesmo ecossistema tráfego com prioridades muito diferentes: CAN, WebSocket, HTTP, vídeo RTSP/WebRTC, SSH e serviços administrativos. O risco mais comum não é um ataque externo sofisticado; é o próprio vídeo ou uma sessão administrativa consumir banda/CPU e degradar a telemetria. Isso é um *self-denial-of-service*.
+
+A mitigação planejada é QoS HTB em três classes:
+
+| Classe HTB | Tráfego | Por quê |
+| :--- | :--- | :--- |
+| `1:10` | CAN Telemetria (`:8080`) | Caminho mais crítico; não pode esperar vídeo |
+| `1:20` | WebSocket/Dashboard (`:8081`) | Precisa ser responsivo para o box |
+| `1:30` | Geral: vídeo, SSH, updates, tráfego auxiliar | Pode ceder banda sob contenção |
+
+O serviço `eracing-qos.service` chama `/etc/eracing/setup_qos.sh` no boot para aplicar essas classes. O backend já expõe os contadores de classe por `/api/admin/network`, lendo `tc -s class show dev <iface>`. Isso transforma QoS em algo verificável na UI, não em uma configuração invisível que "talvez esteja ativa".
+
+#### 3.4.3. Segurança por cenário: competição vs. oficina
+
+```mermaid
+flowchart TD
+    subgraph COMP["Competição offline"]
+        C1["Rede Unifi dedicada"]
+        C2["WPA3 + MAC allowlist"]
+        C3["UFW deny incoming default"]
+        C4["Sem dependência de internet"]
+        C5["Dashboard Admin para RSSI/QoS/latência"]
+    end
+
+    subgraph OFIC["Oficina / desenvolvimento"]
+        O1["Serveo ou VPN para SSH reverso"]
+        O2["fail2ban para SSH e /login"]
+        O3["Suricata/Wazuh para laboratório Blue Team"]
+        O4["Cockpit/Netdata para operação"]
+        O5["Logs e playbooks de incidente"]
+    end
+```
+
+Na competição, segurança é principalmente **contenção e previsibilidade**: rede fechada, portas mínimas, telemetria priorizada, visibilidade de RF. Na oficina, segurança também vira aprendizado: brute force controlado, IDS, SIEM, hardening e resposta a incidente.
+
+#### 3.4.4. Controles implementados e pendentes
+
+| Controle | Estado no repositório | Observação |
+| :--- | :--- | :--- |
+| **JWT + roles** | Implementado | `/api/admin/*` exige `role == admin` |
+| **Admin stats** | Implementado | `/api/admin/stats` retorna `latency_us` e `msg_per_sec` |
+| **Admin network** | Implementado parcial | `/api/admin/network` retorna interface, RX/TX, HTB e `rssi:null` |
+| **QoS HTB service** | Serviço systemd versionado | `Services/servicosJetson/eracing-qos.service` |
+| **Serveo tunnel** | Serviço systemd versionado | Útil em oficina; deve ser controlado em competição |
+| **RSSI Unifi** | Pendente | UI já possui card "RSSI — Sinal Wi-Fi" como placeholder |
+| **UFW/fail2ban/Suricata/Wazuh** | Planejado | Detalhado em `planejamento_v22_v23_eracing.md` |
+
+**Próximo passo técnico:** integrar o RSSI real das antenas Unifi ao endpoint `/api/admin/network`, seja por API local Unifi, SSH/API da antena, SNMP ou coleta ativa por script no servidor. A UI já está preparada para receber esse dado; falta ligar a fonte de verdade.
+
 ---
 
 ## 4. PROJECT VALIDATION (TABELAS DE SITE SURVEY EM PISTA)
@@ -541,6 +629,143 @@ Esse recurso existe para uma dor muito específica: quando um sinal não aparece
 5. coleta local está pausada (`telemetryCollectionEnabled=false`).
 
 Sem logs no Worker, todas essas hipóteses parecem iguais para o operador: "não apareceu". O debug separa as camadas. Ele imprime RX bruto, match de mapa, sinais decodificados, contagem de IDs sem mapa e estatística agregada por janela. Isso encurta diagnóstico de integração CAN sem precisar abrir DevTools do backend ou recompilar Rust.
+
+### 6.16. Dashboard Admin de rede: latência, QoS, RSSI e cybersecurity operacional
+
+A aba `Admin` do frontend é a ponte entre engenharia de software, rádio e cybersecurity. Ela não existe para substituir Wazuh, Netdata ou Unifi Controller; ela existe para responder rapidamente, dentro da própria aplicação de telemetria:
+
+```text
+"O problema está no carro, no link RF, no servidor ou na rede?"
+```
+
+O frontend consome dois endpoints administrativos, ambos protegidos por JWT e `role == admin` no backend Rust:
+
+| Endpoint | Dados | Uso operacional |
+| :--- | :--- | :--- |
+| `GET /api/admin/stats` | `latency_us`, `msg_per_sec` | Saber se frames CAN estão chegando e com qual atraso |
+| `GET /api/admin/network` | `iface`, `rx_bytes`, `tx_bytes`, `htb_classes`, `rssi` | Saber interface ativa, tráfego total, QoS e sinal RF |
+
+O polling ocorre a cada `3000 ms`, o suficiente para painel administrativo: rápido para perceber degradação, lento o bastante para não virar carga extra relevante no servidor.
+
+#### 6.16.1. Latência CAN → Servidor
+
+O backend calcula a latência em `ingest.rs`:
+
+```text
+latency_ms = agora_servidor - timestamp_corrigido_da_jetson
+latency_us = latency_ms * 1000
+```
+
+No `AdminPage.jsx`, a latência vira badge:
+
+| Faixa | Badge | Interpretação |
+| :--- | :--- | :--- |
+| `<= 0` | OFFLINE | Sem frame recente ou sem dado |
+| `< 5 ms` | OK | Caminho saudável |
+| `< 20 ms` | ATENÇÃO | Possível jitter, fila ou RF degradando |
+| `>= 20 ms` | ALTO | Investigar rede, CPU, RF ou clock |
+
+**Valor:** separa queda de dado de queda de render. Se o gráfico não atualiza mas `msg_per_sec` e `latency_us` estão bons, o problema está mais perto da UI/worker. Se `latency_us` sobe junto com RSSI ruim, o problema está mais perto do enlace.
+
+#### 6.16.2. Frequência de mensagens
+
+`msg_per_sec` é contador lógico de frames chegando ao servidor. Ele é uma métrica simples, mas muito poderosa:
+
+- `> 0`: edge conectado e enviando;
+- queda súbita: edge, CAN, TCP ou RF;
+- taxa instável: possível jitter, reconexão, saturação ou perda intermitente.
+
+Isso também ajuda na segurança: um IP não autorizado tentando mandar frames na porta `8080` pode alterar o padrão esperado de taxa, e deve ser cruzado com firewall/Suricata.
+
+#### 6.16.3. QoS HTB no dashboard
+
+O endpoint `/api/admin/network` executa:
+
+```text
+tc -s class show dev <iface>
+```
+
+e parseia as classes:
+
+| Handle | Label na UI | Significado |
+| :--- | :--- | :--- |
+| `1:10` | CAN Telemetria | Prioridade máxima |
+| `1:20` | WebSocket Dashboard | Interface operacional |
+| `1:30` | Geral | Vídeo/SSH/tráfego auxiliar |
+
+A UI mostra bytes e pacotes enviados por classe, além de `rx_bytes` e `tx_bytes` totais lidos de `/proc/net/dev`.
+
+**Por que isso é cybersecurity:** QoS é defesa contra degradação. Se vídeo, SSH reverso ou tráfego auxiliar cresce demais, a equipe consegue ver se a classe crítica de CAN continua protegida. Sem esse painel, a rede pode estar "funcionando" enquanto a prioridade real está errada.
+
+#### 6.16.4. RSSI — Sinal Wi-Fi
+
+O card de RSSI já existe no frontend, mas está marcado como `PENDENTE`. O contrato do backend também já reserva o campo:
+
+```json
+{
+  "ok": true,
+  "iface": "enp4s0f1",
+  "rx_bytes": 0,
+  "tx_bytes": 0,
+  "htb_classes": [],
+  "rssi": null
+}
+```
+
+A integração ideal deve preencher `rssi` e, se possível, expandir para:
+
+```json
+{
+  "rssi_dbm": -58,
+  "snr_db": 31,
+  "tx_rate_mbps": 240,
+  "rx_rate_mbps": 240,
+  "pdr_pct": 99.2,
+  "per_pct": 0.8,
+  "ap_box_ip": "143.106.207.101",
+  "ap_car_ip": "143.106.207.49",
+  "station_name": "AC_carro_laranja"
+}
+```
+
+**Fontes possíveis:**
+
+- API local do Unifi Controller;
+- SSH/API direta nas antenas Ubiquiti;
+- SNMP, se habilitado;
+- script periódico no servidor gravando snapshot em arquivo/SQLite;
+- coleta manual de fallback durante site survey.
+
+**Leitura operacional sugerida:**
+
+| RSSI | Estado | Ação |
+| :--- | :--- | :--- |
+| `>= -60 dBm` | Excelente | Operação normal |
+| `-60..-65 dBm` | Bom | Monitorar durante setores distantes |
+| `-65..-75 dBm` | Atenção | Ajustar antena/canal/visada; risco de jitter |
+| `< -75 dBm` | Crítico | Esperar perda, burst TCP e atraso de dashboard |
+
+#### 6.16.5. Painel Admin como SOC mínimo de pista
+
+O painel Admin é o "SOC mínimo" da telemetria em pista: uma visão curta, operacional e acionável. Ele deve reunir:
+
+- estado do caminho CAN (`msg_per_sec`);
+- latência fim-a-fim (`latency_us`);
+- saúde da interface (`rx_bytes`, `tx_bytes`);
+- QoS (`htb_classes`);
+- rádio (`rssi`, SNR, PDR/PER);
+- futuro: eventos de segurança (`login_failed`, IP bloqueado, MAC desconhecido).
+
+Isso cria uma linha de raciocínio rápida:
+
+```text
+Dashboard travou?
+  msg_per_sec = 0        -> edge/CAN/TCP/RF
+  latency_us alto        -> RF/jitter/fila/clock
+  RSSI ruim              -> antena/canal/distância/interferência
+  QoS sem classes        -> setup_qos.sh/eracing-qos.service
+  login/admin negado     -> JWT/role/permissão
+```
 
 ---
 

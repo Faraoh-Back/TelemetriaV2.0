@@ -1,0 +1,12 @@
+[package]
+name = "telemetry-edge-mock"
+version = "0.1.0"
+edition = "2021"
+description = "Mock da Jetson para Telemetria V2.2"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+

@@ -1,0 +1,72 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_:
+
+
+BO_ 259 ACD_1: 8 Vector__XXX
+ SG_ GENERAL_ERROR_OK : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ SAFETY_OK : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ BSPD_OK : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ BMS_PIN_OK : 24|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IMD_OK : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ CHARGE_ON : 40|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ HV_ON : 48|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ AIRS_OK : 56|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 260 ACD_2: 8 Vector__XXX
+ SG_ PreCharge_ST : 0|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_mais : 8|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ AIR_menos : 16|1@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 3221225472 VECTOR__INDEPENDENT_SIG_MSG: 0 Vector__XXX
+ SG_ NewSignal_0004 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
+
+
+
+CM_ BO_ 259 "Mensagens CAN ACD, 1 byte para cada sinal devido a dificuldades de leitura da VCU";
+CM_ BO_ 260 "Mensagens CAN ACD de menor prioridade\t\t";
+VAL_ 259 GENERAL_ERROR_OK 1 "GENERAL_ERROR_OK" 0 "GENERAL_ERROR_NOT_OK" ;
+VAL_ 259 SAFETY_OK 1 "SAFETY_OK" 0 "SAFETY_NOT_OK" ;
+VAL_ 259 BSPD_OK 1 "BSPD_OK" 0 "BSPD_NOT_OK" ;
+VAL_ 259 BMS_PIN_OK 1 "BMS_PIN_OK" 0 "BMS_PIN_NOT_OK" ;
+VAL_ 259 IMD_OK 1 "IMD_OK" 0 "IMD_NOT_OK" ;
+VAL_ 259 CHARGE_ON 1 "CHARGE_ON" 0 "CHARGE_OFF" ;
+VAL_ 259 HV_ON 1 "HV_ON" 0 "HV_OFF" ;
+VAL_ 259 AIRS_OK 1 "AIRS_OK" 0 "AIRS_NOT_OK" ;
+VAL_ 260 PreCharge_ST 1 "PRECHARGE_OK" 0 "PRECHARGE_NOT" ;
+VAL_ 260 AIR_mais 1 "AIR+_ON" 0 "AIR+_OFF" ;
+VAL_ 260 AIR_menos 1 "AIR-_ON" 0 "AIR-_OFF" ;
+

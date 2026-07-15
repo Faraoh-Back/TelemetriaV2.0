@@ -15,7 +15,7 @@
 O sistema de telemetria da E-Racing tem como missão central **transformar dados brutos do barramento CAN em decisões de engenharia acionáveis**, com o menor intervalo de tempo possível entre o evento no carro e a percepção do engenheiro no box.
 
 Essa missão se desdobra em três objetivos operacionais:
-* **Segurança em tempo real:** monitorar continuamente os parâmetros críticos do veículo — tensão mínima de célula, temperatura máxima de célula, estado da VCU — com latência suficientemente baixa para que uma decisão de box possa ser tomada antes que o carro complete mais meia volta. Com latência nominal de 1–2 ms, o engenheiro vê o dado no mesmo instante em que ele é gerado no carro.
+* **Segurança em tempo real:** monitorar continuamente os parâmetros críticos do veículo — tensão mínima de célula, temperatura máxima de célula, estado da VCU — com latência suficientemente baixa para que uma decisão de box possa ser tomada antes que o carro complete mais meia volta. O sistema foi projetado para manter a leitura em tempo praticamente imediato no contexto de telemetria de pista.
 * **Análise pós-sessão com precisão profissional:** gerar arquivos `.ld` e `.ldx` compatíveis com MoTeC i2 Pro imediatamente ao fim de cada sessão, permitindo análise de voltas, comparação de setups e correlação de sinais com a mesma profundidade de um sistema comercial — sem custo de licença.
 * **Base histórica para desenvolvimento contínuo:** acumular logs estruturados de cada sessão de teste em banco de dados persistente, construindo uma memória técnica do comportamento do carro que informa o desenvolvimento do próximo protótipo.
 
@@ -88,6 +88,13 @@ Os requisitos foram definidos a partir de três fontes: regras FSAE, dores opera
 | AP Carro (omni) | 143.106.207.49 | Ponto de acesso veículo |
 
 A rede segue arquitetura OT (Operational Technology) isolada — sem conexão à internet durante operação. O servidor Ubuntu assume todas as funções lógicas de rede: DHCP via dnsmasq, DNS interno, roteamento de requisições. O roteador físico opera em modo bridge, responsável apenas pela criação do meio físico.
+
+#### Infra de deploy
+Esta camada descreve o que sobe nos hosts e não o comportamento do pipeline em si.
+
+- `Services/servicosJetson/`: unit files da borda, incluindo `can-interfaces.service`, `can-replay.service`, `telemetry-edge.service`, `eracing-qos.service`, `zed-stream.service` e `serveo-tunnel.service`.
+- `Services/servicosServidor/`: unit files do servidor, incluindo `telemetry.service`, `mediamtx.service`, `postgresql@14-main.service`, `rtsp-relay.service`, `udp-to-rtsp.service`, `video-backup.service` e `serveo-tunnel.service`.
+- Esta organização é deploy/operacao; a arquitetura lógica continua descrita pelo fluxo CAN -> servidor -> banco -> dashboard/MoTeC.
 
 ```mermaid
 graph LR
@@ -289,7 +296,7 @@ flowchart TD
         AP_CAR -."UDP — H.264 video".-> AP_BOX
     end
     subgraph SERVER["🖥️ Servidor 143.106.207.21"]
-        SRV["telemetry-server Rust/Tokio\nDBC decoder 344 IDs · HTB QoS · JWT auth"]
+        SRV["telemetry-server Rust/Tokio\nDBC decoder 6 DBCs · HTB QoS · JWT auth"]
         TS["TimescaleDB PostgreSQL 14\nretencao 7 dias"]
         SQ["SQLite historico.db\nhistorico permanente"]
         MEDIA["MediaMTX v1.12\nRTSP · WebRTC :8555"]
@@ -341,7 +348,7 @@ flowchart LR
         SERIAL --> TCP
     end
     subgraph SERVIDOR["Servidor Base"]
-        INGEST["Ingestao Rust/Tokio\ndecodificacao DBC 344 IDs"]
+        INGEST["Ingestao Rust/Tokio\ndecodificacao DBC 6 DBCs"]
         TSDB["TimescaleDB\ntempo real — 7 dias"]
         SQLDB["SQLite\nhistorico permanente"]
         TCP --> INGEST --> TSDB
@@ -442,7 +449,7 @@ ip link set up can0
 Ao receber uma conexão TCP da Jetson:
 1. Faz `TcpStream::into_split()` — `read_half` recebe frames CAN, `write_half` envia comandos ao carro
 2. Task de comandos: ouve `edge_cmd_tx`, escreve kills/resumes no TCP via `write_half` protegido por `Arc<Mutex<>>`
-3. Loop principal: lê frames de 20 bytes, decodifica via DecoderMap (344 CAN IDs, 7 DBCs: BMS, Inversor_Public, Inversor_Private, VCU, ACD, INS, dbc_ins)
+3. Loop principal: lê frames de 20 bytes, decodifica via DecoderMap (6 DBCs: BMS, Inversor_Public, Inversor_Private, VCU, ACD, INS)
 4. Distribui via canais mpsc:
    * `timescale_tx` → writer TimescaleDB (batch 500 sinais ou 1s)
    * `sqlite_tx` → writer SQLite histórico (batch 500 sinais ou 2s)
@@ -489,7 +496,7 @@ for (const [key, val] of Object.entries(novoMapa)) CAN_MAP[Number(key)] = val;
 
 ### 3.8 Dashboard frontend — SolidJS
 **Por que Web Worker:**
-O navegador tem uma única main thread para layout, paint e execução de JS. Se o WebSocket vivesse na main thread, bursts de dados saturariam a thread e travariam os gauges — exatamente quando o engenheiro mais precisa de atualização visual. 
+O navegador tem uma única main thread para layout, paint e execução de JS. Se o WebSocket vivesse na main thread, bursts de dados saturariam a thread e travariam os gauges — exatamente quando o engenheiro mais precisa de atualização visual. A taxa de 60 Hz aqui descreve a atualização da interface; os dados continuam chegando no ritmo do stream CAN.
 
 O Web Worker roda em thread separada: abre seu próprio WebSocket, decodifica frames, mantém buffers circulares, e envia apenas o resultado processado para a UI via `postMessage` com Transferable ArrayBuffers (zero-copy, $O(1)$).
 
@@ -512,7 +519,7 @@ sequenceDiagram
 
 | Aba | Pergunta respondida | Atualização |
 |---|---|---|
-| **StatusBar** | O carro está saudável agora? | Por frame (< 2 ms) |
+| **StatusBar** | O carro está saudável agora? | Por frame; renderização da UI até 60 Hz |
 | **Cockpit** | O que precisa ser lido em um olhar? | 60 Hz via `requestAnimationFrame` |
 | **Análise** | Qual foi a forma da curva nos últimos N segundos? | 5 Hz (throttle 200 ms) |
 | **Downloads** | Qual log posso entregar para análise offline? | On-demand |

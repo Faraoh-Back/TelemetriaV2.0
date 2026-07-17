@@ -87,8 +87,8 @@ export function buildTrackOverlay(track, vehicle) {
     const start = toDisplayPoint(points[0])
     const vehiclePoint = vehicle
         ? {
-            x: vehicle.x * 100,
-            y: (1 - vehicle.y) * 100,
+            x: clamp01(vehicle.x) * 100,
+            y: (1 - clamp01(vehicle.y)) * 100,
         }
         : null
 

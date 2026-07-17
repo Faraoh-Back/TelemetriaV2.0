@@ -155,18 +155,24 @@ impl RealtimeTrackState {
                     messages.push(self.track_map_message(timestamp));
                     self.map_sent = true;
                 }
-            } else if (self.learning_points.len() % 25) == 0 {
-                messages.push(
-                    json!({
-                        "type": "track_status",
-                        "state": "learning_first_lap",
-                        "timestamp": timestamp,
-                        "elapsed_sec": elapsed,
-                        "lap_period_sec": self.lap_period_sec,
-                        "points": self.learning_points.len(),
-                    })
-                    .to_string(),
-                );
+            } else {
+                if self.learning_points.len() >= 2 && (self.learning_points.len() % 5) == 0 {
+                    messages.push(self.learning_track_message(timestamp));
+                    messages.push(self.learning_pose_message(timestamp));
+                }
+                if (self.learning_points.len() % 25) == 0 {
+                    messages.push(
+                        json!({
+                            "type": "track_status",
+                            "state": "learning_first_lap",
+                            "timestamp": timestamp,
+                            "elapsed_sec": elapsed,
+                            "lap_period_sec": self.lap_period_sec,
+                            "points": self.learning_points.len(),
+                        })
+                        .to_string(),
+                    );
+                }
             }
         }
 
@@ -285,14 +291,7 @@ impl RealtimeTrackState {
 
     fn track_map_message(&self, timestamp: f64) -> String {
         let (min_x, max_x, min_y, max_y) = bounds(&self.map_points);
-        let points: Vec<_> = self
-            .map_points
-            .iter()
-            .map(|p| {
-                let (x, y) = normalize_point(*p, min_x, max_x, min_y, max_y);
-                json!([x, y])
-            })
-            .collect();
+        let points = normalized_points(&self.map_points, min_x, max_x, min_y, max_y);
         json!({
             "type": "track_map",
             "timestamp": timestamp,
@@ -301,6 +300,24 @@ impl RealtimeTrackState {
                 "points": points,
                 "bounds": { "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y },
                 "length_m": self.map_len_m,
+            }
+        })
+        .to_string()
+    }
+
+    fn learning_track_message(&self, timestamp: f64) -> String {
+        let (min_x, max_x, min_y, max_y) = bounds(&self.learning_points);
+        let points = normalized_points(&self.learning_points, min_x, max_x, min_y, max_y);
+        json!({
+            "type": "track_map",
+            "timestamp": timestamp,
+            "state": "learning_first_lap",
+            "elapsed_sec": timestamp - self.t0.unwrap_or(timestamp),
+            "lap_period_sec": self.lap_period_sec,
+            "track": {
+                "points": points,
+                "bounds": { "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y },
+                "learning": true,
             }
         })
         .to_string()
@@ -321,6 +338,35 @@ impl RealtimeTrackState {
                 "heading": self.heading_rad.to_degrees(),
                 "speed": self.velocity_mps,
                 "distance_m": self.distance_m,
+            }
+        })
+        .to_string()
+    }
+
+    fn learning_pose_message(&self, timestamp: f64) -> String {
+        let (min_x, max_x, min_y, max_y) = bounds(&self.learning_points);
+        let (nx, ny) = normalize_point(
+            Point2 {
+                x: self.x_m,
+                y: self.y_m,
+            },
+            min_x,
+            max_x,
+            min_y,
+            max_y,
+        );
+        json!({
+            "type": "track_pose",
+            "timestamp": timestamp,
+            "vehicle": {
+                "x": nx,
+                "y": ny,
+                "x_m": self.x_m,
+                "y_m": self.y_m,
+                "heading": self.heading_rad.to_degrees(),
+                "speed": self.velocity_mps,
+                "distance_m": self.distance_m,
+                "learning": true,
             }
         })
         .to_string()
@@ -365,6 +411,22 @@ fn normalize_point(p: Point2, min_x: f64, max_x: f64, min_y: f64, max_y: f64) ->
     let dx = (max_x - min_x).abs().max(1e-9);
     let dy = (max_y - min_y).abs().max(1e-9);
     ((p.x - min_x) / dx, (p.y - min_y) / dy)
+}
+
+fn normalized_points(
+    points: &[Point2],
+    min_x: f64,
+    max_x: f64,
+    min_y: f64,
+    max_y: f64,
+) -> Vec<serde_json::Value> {
+    points
+        .iter()
+        .map(|p| {
+            let (x, y) = normalize_point(*p, min_x, max_x, min_y, max_y);
+            json!([x, y])
+        })
+        .collect()
 }
 
 pub type SharedTrackState = Arc<Mutex<RealtimeTrackState>>;

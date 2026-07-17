@@ -149,7 +149,7 @@ const [telemetrySession, setTelemetrySession] = createStore({
                 })
             } else if (data.payload?.type === 'track_map') {
                 setTrackState({
-                    status: 'tracking',
+                    status: data.payload.state || 'tracking',
                     track: data.payload.track ?? null,
                     timestamp: data.payload.timestamp ?? null,
                 })

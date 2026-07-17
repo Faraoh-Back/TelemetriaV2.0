@@ -13,6 +13,7 @@ function TrackMapPanel({ source, data, isTelemetryLive }) {
 
     const hasRealtimeMap = () => (data?.track?.points?.length ?? 0) > 1
     const telemetryLive = () => Boolean(isTelemetryLive)
+    const isLearning = () => data?.status === 'learning_first_lap' || data?.track?.learning === true
     const liveOverlay = createMemo(() => buildTrackOverlay(data?.track, data?.vehicle))
     const pausedOverlay = createMemo(() => buildTrackOverlay(data?.track, null))
     const displayOverlay = createMemo(() => {
@@ -36,7 +37,7 @@ function TrackMapPanel({ source, data, isTelemetryLive }) {
                 <span>Mapa da pista</span>
                 <strong>
                     {hasRealtimeMap()
-                        ? telemetryLive() ? 'tracking' : 'coleta pausada'
+                        ? isLearning() ? 'aprendendo' : telemetryLive() ? 'tracking' : 'coleta pausada'
                         : source ? 'sincronizado' : 'aguardando volta'}
                 </strong>
             </header>

@@ -61,16 +61,17 @@ function formatLapTime(seconds) {
     return `${min}:${sec.padStart(6, '0')}`
 }
 
-function updateLapDetection(vehicle, trackLength, now) {
+function updateLapDetection(vehicle, trackLength, timestamp) {
     if (!vehicle || !trackLength || trackLength <= 0) return
     if (!Number.isFinite(vehicle.distance_m)) return
+    if (!Number.isFinite(timestamp)) return
 
     const currentLapNumber = Math.floor(vehicle.distance_m / trackLength)
     const prevLapNumber = lapState.lapCount ?? 0
     const lapStart = lapState._lapStart
 
     if (currentLapNumber > prevLapNumber) {
-        const elapsed = lapStart ? (now - lapStart) / 1000 : null
+        const elapsed = lapStart != null ? timestamp - lapStart : null
         if (elapsed != null && elapsed > 0) {
             const formatted = formatLapTime(elapsed)
             const entry = { lap: currentLapNumber, time: elapsed, formatted }
@@ -82,15 +83,15 @@ function updateLapDetection(vehicle, trackLength, now) {
 
             setLapState({
                 lastLapTime: formatted,
-                lastLapAt: now,
+                lastLapAt: Date.now(),
                 allLaps: updatedAll,
                 bestLaps: updatedBest,
                 lapCount: currentLapNumber,
-                _lapStart: now,
+                _lapStart: timestamp,
             })
         }
     } else if (currentLapNumber === prevLapNumber && !lapStart) {
-        setLapState({ _lapStart: now })
+        setLapState({ _lapStart: timestamp })
     }
 }
 
@@ -161,7 +162,7 @@ const [telemetrySession, setTelemetrySession] = createStore({
                 updateLapDetection(
                     data.payload.vehicle,
                     trackState.track?.length_m,
-                    Date.now(),
+                    Number(data.payload.timestamp),
                 )
             }
             break

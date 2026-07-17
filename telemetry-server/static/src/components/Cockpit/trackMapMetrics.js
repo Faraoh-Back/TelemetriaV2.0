@@ -72,6 +72,11 @@ function formatKmh(value) {
     return `${Math.max(0, value).toFixed(1)} km/h`
 }
 
+function metersPerSecondToKmh(value) {
+    if (!Number.isFinite(value)) return value
+    return value * 3.6
+}
+
 function formatHeading(value) {
     if (!Number.isFinite(value)) return '--'
     return `${Math.round(value)}°`
@@ -105,7 +110,7 @@ export function buildTrackOverlay(track, vehicle) {
             { label: 'Pista', value: formatMeters(trackLengthM) },
             { label: 'Falta', value: formatMeters(remainingM) },
             { label: 'Volta', value: Number.isFinite(progressPct) ? `${progressPct.toFixed(1)}%` : '--' },
-            { label: 'Vel', value: formatKmh(vehicle?.speed) },
+            { label: 'Vel', value: formatKmh(metersPerSecondToKmh(vehicle?.speed)) },
             { label: 'Rumo', value: formatHeading(vehicle?.heading) },
         ],
     }

@@ -1,11 +1,11 @@
 mod admin;
 mod auth_handlers;
+mod can_map;
 mod collection;
 mod emergency;
 mod http;
-mod migrate;
 mod logs;
-mod can_map;
+mod migrate;
 
 use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
@@ -14,6 +14,7 @@ use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::broadcast;
 use tracing::{error, info};
 
+use crate::track_state::SharedTrackState;
 use crate::ws::handle_ws_upgrade;
 
 pub async fn run_http_ws_server(
@@ -22,6 +23,7 @@ pub async fn run_http_ws_server(
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
     decoder_map: crate::decoder::DecoderMap,
+    track_state: SharedTrackState,
     latency_us: Arc<std::sync::atomic::AtomicI64>,
     msg_rate: Arc<std::sync::atomic::AtomicU64>,
     port: u16,
@@ -45,10 +47,23 @@ pub async fn run_http_ws_server(
                 let db = sqlite_pool.clone();
                 let pg = pg_pool.clone();
                 let dec = decoder_map.clone();
+                let track = track_state.clone();
                 let lat = latency_us.clone();
                 let rate = msg_rate.clone();
                 tokio::spawn(async move {
-                    handle_http_connection(stream, addr, tx, edge_cmd_tx, pg, db, dec, lat, rate).await;
+                    handle_http_connection(
+                        stream,
+                        addr,
+                        tx,
+                        edge_cmd_tx,
+                        pg,
+                        db,
+                        dec,
+                        track,
+                        lat,
+                        rate,
+                    )
+                    .await;
                 });
             }
             Err(e) => error!("Erro ao aceitar conexão: {}", e),
@@ -64,6 +79,7 @@ async fn handle_http_connection(
     pg_pool: sqlx::PgPool,
     sqlite_pool: SqlitePool,
     decoder_map: crate::decoder::DecoderMap,
+    track_state: SharedTrackState,
     latency_us: Arc<std::sync::atomic::AtomicI64>,
     msg_rate: Arc<std::sync::atomic::AtomicU64>,
 ) {
@@ -89,7 +105,8 @@ async fn handle_http_connection(
     } else if first_line.starts_with("GET /telemetry/collection/status") {
         collection::handle_collection_status(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/collection/start") {
-        collection::handle_collection_start(&mut stream, &request, &sqlite_pool).await;
+        collection::handle_collection_start(&mut stream, &request, &sqlite_pool, &track_state)
+            .await;
     } else if first_line.starts_with("POST /telemetry/collection/stop") {
         collection::handle_collection_stop(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("POST /telemetry/log-session-bounds") {

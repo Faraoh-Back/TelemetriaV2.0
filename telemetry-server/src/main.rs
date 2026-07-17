@@ -9,8 +9,8 @@
 use models::ProcessedSignal;
 use sqlx::postgres::PgPoolOptions;
 use std::path::Path;
-use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicI64, AtomicU64};
+use std::sync::{Arc, Mutex};
 use tokio::net::TcpListener;
 use tokio::sync::broadcast;
 use tracing::{info, warn};
@@ -121,18 +121,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(n) if n > 0 => info!("✅ Migração concluída: {} registros movidos.", n),
             Ok(_) => info!("✅ Migração: nada para mover."),
             Err(e) => warn!("⚠️ Erro na migração: {:?}", e),
-        }    
+        }
     });
 
     let (ws_tx, _) = broadcast::channel::<Vec<u8>>(10_000);
     let (edge_cmd_tx, _) = broadcast::channel::<Vec<u8>>(32);
     let track_state = Arc::new(Mutex::new(RealtimeTrackState::new()));
     let latency_us = Arc::new(AtomicI64::new(0));
-    let msg_rate   = Arc::new(AtomicU64::new(0));
+    let msg_rate = Arc::new(AtomicU64::new(0));
 
     // Canal SQLite: buffer de 50k vetores de sinais
-    let (sqlite_tx, mut sqlite_rx) =
-        tokio::sync::mpsc::channel::<Vec<ProcessedSignal>>(50_000);
+    let (sqlite_tx, mut sqlite_rx) = tokio::sync::mpsc::channel::<Vec<ProcessedSignal>>(50_000);
 
     // Canal TimescaleDB: buffer de 50k vetores de sinais
     let (timescale_tx, mut timescale_rx) =
@@ -143,9 +142,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let sq = sqlite_pool.clone();
         tokio::spawn(async move {
             let mut pending: Vec<ProcessedSignal> = Vec::with_capacity(500);
-            let mut interval = tokio::time::interval(
-                tokio::time::Duration::from_secs(2)
-            );
+            let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(2));
             loop {
                 tokio::select! {
                     msg = sqlite_rx.recv() => {
@@ -180,9 +177,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pg = pg_pool.clone();
         tokio::spawn(async move {
             let mut pending: Vec<ProcessedSignal> = Vec::with_capacity(500);
-            let mut interval = tokio::time::interval(
-                tokio::time::Duration::from_secs(1)
-            );
+            let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(1));
             loop {
                 tokio::select! {
                     msg = timescale_rx.recv() => {
@@ -219,17 +214,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let pg = pg_pool.clone();
         let sqldb = sqlite_pool.clone();
         let dec_for_api = decoder_map.clone();
+        let track = track_state.clone();
         let lat = latency_us.clone();
         let rate = msg_rate.clone();
         tokio::spawn(async move {
-            api::run_http_ws_server(tx, cmd_tx, pg, sqldb, dec_for_api, lat, rate, HTTP_WS_PORT).await;
+            api::run_http_ws_server(
+                tx,
+                cmd_tx,
+                pg,
+                sqldb,
+                dec_for_api,
+                track,
+                lat,
+                rate,
+                HTTP_WS_PORT,
+            )
+            .await;
         });
     }
 
-        // Spawn servidor NTP :9999
-        tokio::spawn(async move {
-            ntp::run_ntp_server(NTP_PORT).await;
-        });
+    // Spawn servidor NTP :9999
+    tokio::spawn(async move {
+        ntp::run_ntp_server(NTP_PORT).await;
+    });
 
     let tcp_listener = TcpListener::bind(format!("0.0.0.0:{}", TCP_PORT)).await?;
     info!("📡 TCP CAN listener em 0.0.0.0:{}", TCP_PORT);
@@ -248,7 +255,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let lat = latency_us.clone();
         let rate = msg_rate.clone();
         tokio::spawn(async move {
-            ingest::handle_client(socket, addr, pg, dec, tx, track, sqlite_tx, timescale_tx, cmd_tx, lat, rate).await;
+            ingest::handle_client(
+                socket,
+                addr,
+                pg,
+                dec,
+                tx,
+                track,
+                sqlite_tx,
+                timescale_tx,
+                cmd_tx,
+                lat,
+                rate,
+            )
+            .await;
         });
     }
 }

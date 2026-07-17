@@ -6,6 +6,7 @@ use tokio::net::TcpStream;
 use tracing::{error, info};
 
 use crate::models::{CollectionStartRequest, CollectionStopRequest, LogSessionBoundsRequest};
+use crate::track_state::SharedTrackState;
 
 use super::http::{
     api_request_has_permission, parse_json_body, send_json, unix_seconds, START_PERMISSION,
@@ -28,7 +29,7 @@ pub(super) async fn handle_collection_status(
             let id: i64 = row.get("id");
             let started_at_unix: f64 = row.get("started_at_unix");
             let started_at_iso: String = row.get("started_at_iso");
-            
+
             let body = json!({
                 "ok": true,
                 "state": "live",
@@ -56,6 +57,7 @@ pub(super) async fn handle_collection_start(
     stream: &mut TcpStream,
     request: &str,
     sqlite_pool: &SqlitePool,
+    track_state: &SharedTrackState,
 ) {
     if !api_request_has_permission(stream, request, START_PERMISSION).await {
         return;
@@ -113,6 +115,10 @@ pub(super) async fn handle_collection_start(
     {
         Ok(result) => {
             let id = result.last_insert_rowid();
+            match track_state.lock() {
+                Ok(mut state) => state.reset(),
+                Err(e) => error!("Erro ao resetar mapa da pista: {:?}", e),
+            }
             let body = json!({
                 "ok": true,
                 "state": "live",

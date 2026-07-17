@@ -66,6 +66,28 @@ impl RealtimeTrackState {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.t0 = None;
+        self.last_t = None;
+        self.heading_rad = 0.0;
+        self.x_m = 0.0;
+        self.y_m = 0.0;
+        self.velocity_mps = 0.0;
+        self.distance_m = 0.0;
+        self.acc_x_mps2 = None;
+        self.yaw_rate_rps = None;
+        self.direct_speed_mps = None;
+        self.rpm_a0 = None;
+        self.rpm_b0 = None;
+        self.rpm_a13 = None;
+        self.rpm_b13 = None;
+        self.learning_points.clear();
+        self.map_points.clear();
+        self.map_arc_m.clear();
+        self.map_len_m = 0.0;
+        self.map_sent = false;
+    }
+
     pub fn update(&mut self, signals: &[ProcessedSignal]) -> Vec<String> {
         if signals.is_empty() {
             return Vec::new();
@@ -89,6 +111,14 @@ impl RealtimeTrackState {
         };
 
         let dt = timestamp - last_t;
+        if dt < 0.0 {
+            self.reset();
+            self.t0 = Some(timestamp);
+            self.last_t = Some(timestamp);
+            self.learning_points.push(Point2 { x: 0.0, y: 0.0 });
+            return Vec::new();
+        }
+
         self.last_t = Some(timestamp);
         if !(0.0..=1.0).contains(&dt) || dt == 0.0 {
             return Vec::new();
@@ -175,10 +205,18 @@ impl RealtimeTrackState {
                     },
                 );
             }
-            "act_Speed A0" | "RPM 0A" => self.rpm_a0 = Some(signal.value),
-            "act_Speed B0" | "RPM 0B" => self.rpm_b0 = Some(signal.value),
-            "act_Speed A13" | "RPM 13A" => self.rpm_a13 = Some(signal.value),
-            "act_Speed B13" | "RPM 13B" => self.rpm_b13 = Some(signal.value),
+            "act_Speed A0" | "act_Speed_A0" | "RPM 0A" | "RPM_0A" => {
+                self.rpm_a0 = Some(signal.value)
+            }
+            "act_Speed B0" | "act_Speed_B0" | "RPM 0B" | "RPM_0B" => {
+                self.rpm_b0 = Some(signal.value)
+            }
+            "act_Speed A13" | "act_Speed_A13" | "RPM 13A" | "RPM_13A" => {
+                self.rpm_a13 = Some(signal.value)
+            }
+            "act_Speed B13" | "act_Speed_B13" | "RPM 13B" | "RPM_13B" => {
+                self.rpm_b13 = Some(signal.value)
+            }
             _ => {}
         }
     }

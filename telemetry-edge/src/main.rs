@@ -21,7 +21,8 @@
 //   ./telemetry-edge --pasta_csv ./csv_data --ch0 can0              (só SocketCAN)
 //   ./telemetry-edge --pasta_csv ./csv_data --ch1 0 --bitrate1 250000 (só Kvaser)
 
-use std::collections::HashMap;
+use std::collections::{BinaryHeap, HashMap};
+use std::cmp::Reverse;
 use std::fs;
 use std::path::Path;
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
@@ -90,6 +91,13 @@ struct Args {
     /// Número de amostras NTP para calcular offset (padrão: 10)
     #[arg(long, default_value = "10")]
     ntp_samples: u32,
+
+    /// Janela de reordenação (ms) para mesclar can0/can1 por timestamp antes
+    /// de enviar ao servidor. Compensa jitter de scheduling entre as duas
+    /// tasks assíncronas que leem os dois barramentos CAN concorrentemente
+    /// (padrão: 50ms — suficiente pro jitter típico, com latência mínima)
+    #[arg(long, default_value = "50")]
+    reorder_window_ms: u64,
 }
 
 // ─── Estruturas ────────────────────────────────────────────────
@@ -529,6 +537,85 @@ async fn run_socketcan_reader(
     info!("🛑 Leitor SocketCAN '{}' encerrado", iface);
 }
 
+// ─── Buffer de Reordenação (can0 + can1) ────────────────────────
+//
+// can0 e can1 são lidos por duas tasks tokio concorrentes que escrevem no
+// MESMO mpsc::channel. A ordem de CHEGADA nesse canal não é garantida bater
+// com a ordem real de timestamp de captura — um frame do can1 pode "furar
+// a fila" de um frame do can0 ligeiramente mais antigo, mesmo usando o
+// mesmo relógio (SystemTime::now() + clock_offset), simplesmente por causa
+// do scheduling entre as duas tasks.
+//
+// Isso quebra qualquer lógica no servidor que assuma timestamps monotônicos
+// entre frames consecutivos — como o dead-reckoning em track_state.rs, que
+// resetava TODO o aprendizado da pista sempre que via um timestamp "voltar
+// no tempo" (o que, com dois barramentos concorrentes, acontece o tempo
+// todo — daí o cockpit ficar preso pra sempre em "aprendendo 1 volta").
+//
+// SOLUÇÃO: um pequeno buffer de reordenação com watermark. Frames entram
+// numa min-heap por timestamp; a cada novo frame, atualizamos o "watermark"
+// (maior timestamp já visto) e escoamos, em ordem crescente, tudo que já é
+// mais antigo que `watermark - window`. Isso garante saída ordenada por
+// timestamp mesmo com jitter entre can0/can1, ao custo de uma latência fixa
+// de ~`window_ms` (default 50ms — imperceptível pra telemetria, mas cobre
+// folgado o jitter típico de scheduling).
+struct TsFrame(TelemetryFrame);
+
+impl PartialEq for TsFrame {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.timestamp == other.0.timestamp
+    }
+}
+impl Eq for TsFrame {}
+impl PartialOrd for TsFrame {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Ord for TsFrame {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.0
+            .timestamp
+            .partial_cmp(&other.0.timestamp)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    }
+}
+
+async fn run_reorder_buffer(
+    mut raw_rx: mpsc::Receiver<TelemetryFrame>,
+    ordered_tx: mpsc::Sender<TelemetryFrame>,
+    window_ms: u64,
+) {
+    let window_secs = (window_ms.max(1) as f64) / 1000.0;
+    let mut heap: BinaryHeap<Reverse<TsFrame>> = BinaryHeap::new();
+    let mut watermark = f64::NEG_INFINITY;
+
+    while let Some(frame) = raw_rx.recv().await {
+        if frame.timestamp > watermark {
+            watermark = frame.timestamp;
+        }
+        heap.push(Reverse(TsFrame(frame)));
+
+        // Escoa, em ordem, tudo que já "amadureceu" (mais velho que a janela).
+        let cutoff = watermark - window_secs;
+        while matches!(heap.peek(), Some(Reverse(TsFrame(f))) if f.timestamp <= cutoff) {
+            let Some(Reverse(TsFrame(f))) = heap.pop() else { break };
+            if ordered_tx.send(f).await.is_err() {
+                return; // send loop encerrou, nada mais a fazer
+            }
+        }
+    }
+
+    // Canal raw fechado (leitores CAN encerraram) — escoa o resto em ordem.
+    let mut remaining: Vec<TsFrame> = heap.into_iter().map(|Reverse(f)| f).collect();
+    remaining.sort();
+    for TsFrame(f) in remaining {
+        if ordered_tx.send(f).await.is_err() {
+            break;
+        }
+    }
+}
+
 // ─── Main ───────────────────────────────────────────────────────
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -579,9 +666,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    // 3. Canal de comunicação entre leitores CAN e loop de envio
-    // Buffer de 1000 frames — se o servidor estiver lento, eles acumulam aqui
+    // 3. Canais de comunicação: leitores CAN → buffer de reordenação → loop de envio
+    //
+    //    can0 ─┐
+    //          ├─► raw_tx/raw_rx ─► run_reorder_buffer() ─► ordered_tx/rx ─► loop de envio
+    //    can1 ─┘
+    //
+    //    O canal "raw" recebe frames de can0/can1 na ordem de CHEGADA (que pode
+    //    estar levemente fora de ordem por jitter de scheduling entre as duas
+    //    tasks). O buffer de reordenação reordena por timestamp antes de repassar
+    //    pro canal "ordered", que o loop de envio consome exatamente como antes.
+    let (raw_tx, raw_rx) = mpsc::channel::<TelemetryFrame>(50_000);
     let (tx, mut rx) = mpsc::channel::<TelemetryFrame>(50_000);
+
+    {
+        let window_ms = args.reorder_window_ms;
+        info!("🔀 Buffer de reordenação can0/can1 ativo (janela: {}ms)", window_ms);
+        tokio::spawn(async move {
+            run_reorder_buffer(raw_rx, tx, window_ms).await;
+        });
+    }
 
     // Flag de controle para encerrar threads graciosamente
     let running = Arc::new(AtomicBool::new(true));
@@ -596,12 +700,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    // 4. Inicia leitores CAN em tasks separadas
+    // 4. Inicia leitores CAN em tasks separadas (escrevem no canal RAW)
     if let Some(ref iface) = args.ch0 {
         let offset = clock_offset.clone();
         let iface_clone = iface.clone();
         let pmap = priority_map.clone();
-        let tx_clone = tx.clone();
+        let tx_clone = raw_tx.clone();
         let running_clone = running.clone();
         let bitrate = args.bitrate0;
 
@@ -620,7 +724,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let offset = clock_offset.clone();
         let iface_clone = iface.clone();
         let pmap = priority_map.clone();
-        let tx_clone = tx.clone();
+        let tx_clone = raw_tx.clone();
         let running_clone = running.clone();
         let bitrate = args.bitrate1;
 
@@ -635,8 +739,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
     }
 
-    // tx original não é mais necessário — os clones estão nas tasks
-    drop(tx);
+    // raw_tx original não é mais necessário — os clones estão nas tasks.
+    // Isso permite que run_reorder_buffer detecte o fim (raw_rx.recv() == None)
+    // quando ambos os leitores CAN encerrarem.
+    drop(raw_tx);
 
     // 5. Loop principal: recebe frames do canal e envia ao servidor
     let batch_size = args.batch_size;

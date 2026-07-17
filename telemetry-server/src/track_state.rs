@@ -162,10 +162,20 @@ impl RealtimeTrackState {
 
         let dt = timestamp - last_t;
         if dt < 0.0 {
-            self.reset();
-            self.t0 = Some(timestamp);
-            self.last_t = Some(timestamp);
-            self.learning_points.push(Point2 { x: 0.0, y: 0.0 });
+            // Amostra isolada fora de ordem (jitter normal entre can0/can1
+            // sendo lidos por tasks concorrentes no edge). Descartar essa
+            // amostra em vez de resetar todo o aprendizado da pista — não
+            // avançamos `last_t` para não distorcer o próximo dt.
+            //
+            // Só tratamos como descontinuidade real (reconexão, reboot da
+            // Jetson, troca de sessão) quando o salto para trás é grande.
+            const REAL_DISCONTINUITY_SEC: f64 = 2.0;
+            if dt < -REAL_DISCONTINUITY_SEC {
+                self.reset();
+                self.t0 = Some(timestamp);
+                self.last_t = Some(timestamp);
+                self.learning_points.push(Point2 { x: 0.0, y: 0.0 });
+            }
             return Vec::new();
         }
 

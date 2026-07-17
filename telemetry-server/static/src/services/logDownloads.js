@@ -68,10 +68,9 @@ function getFilenameFromDisposition(disposition) {
     return plainMatch?.[1]?.trim() ?? null
 }
 
-function getFallbackFilename(log) {
+function getFallbackFilename(log, ext = 'ld') {
     const baseName = log.name || log.id || 'telemetry-log'
-    const extension = log.format ? `.${log.format}` : ''
-    return `${baseName}${extension}`.replace(/[\\/:*?"<>|]/g, '-')
+    return `${baseName}.${ext}`.replace(/[\\/:*?"<>|]/g, '-')
 }
 
 function triggerBlobDownload(blob, filename) {
@@ -92,22 +91,44 @@ export async function downloadTelemetryLog(log, token) {
     }
 
     const { apiBase } = getServerConfig()
-    const response = await fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download`, {
+
+    // 1. Download .ld
+    const responseLd = await fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ld`, {
         headers: authHeaders(token),
     })
 
-    if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
+    if (!responseLd.ok) {
+        const data = await responseLd.json().catch(() => ({}))
         throw new LogDownloadError(
-            data.message || 'Nao foi possivel baixar o log.',
-            response.status
+            data.message || 'Nao foi possivel baixar o log .ld.',
+            responseLd.status
         )
     }
 
-    const blob = await response.blob()
-    const filename =
-        getFilenameFromDisposition(response.headers.get('Content-Disposition')) ||
-        getFallbackFilename(log)
+    const blobLd = await responseLd.blob()
+    const filenameLd =
+        getFilenameFromDisposition(responseLd.headers.get('Content-Disposition')) ||
+        getFallbackFilename(log, 'ld')
 
-    triggerBlobDownload(blob, filename)
+    triggerBlobDownload(blobLd, filenameLd)
+
+    // 2. Download .ldx
+    const responseLdx = await fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ldx`, {
+        headers: authHeaders(token),
+    })
+
+    if (!responseLdx.ok) {
+        const data = await responseLdx.json().catch(() => ({}))
+        throw new LogDownloadError(
+            data.message || 'Nao foi possivel baixar o log .ldx.',
+            responseLdx.status
+        )
+    }
+
+    const blobLdx = await responseLdx.blob()
+    const filenameLdx =
+        getFilenameFromDisposition(responseLdx.headers.get('Content-Disposition')) ||
+        getFallbackFilename(log, 'ldx')
+
+    triggerBlobDownload(blobLdx, filenameLdx)
 }

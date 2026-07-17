@@ -200,6 +200,7 @@ pub(super) async fn handle_collection_stop(
             collection_stop_sec = ?,
             log_start_sec = CASE WHEN ? IS NOT NULL THEN 0 ELSE log_start_sec END,
             log_stop_sec = COALESCE(?, log_stop_sec),
+            name = COALESCE(?, name),
             state = 'stopped',
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
@@ -213,6 +214,7 @@ pub(super) async fn handle_collection_stop(
     .bind(collection_stop_sec)
     .bind(log_duration_sec)
     .bind(log_duration_sec)
+    .bind(stop_req.log_name.as_deref())
     .bind(id)
     .execute(sqlite_pool)
     .await
@@ -299,6 +301,7 @@ pub(super) async fn handle_log_session_bounds(
             log_stop_unix = ?,
             log_start_sec = 0,
             log_stop_sec = ?,
+            name = COALESCE(?, name),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     "#,
@@ -306,6 +309,7 @@ pub(super) async fn handle_log_session_bounds(
     .bind(bounds_req.log_start_unix)
     .bind(bounds_req.log_stop_unix)
     .bind(log_stop_sec)
+    .bind(bounds_req.log_name.as_deref())
     .bind(id)
     .execute(sqlite_pool)
     .await

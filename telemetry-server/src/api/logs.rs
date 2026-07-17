@@ -49,7 +49,7 @@ pub(super) async fn handle_list_logs(
             SELECT id, state, started_at_iso, ended_at_iso,
                    log_start_unix, log_stop_unix,
                    collection_start_sec, collection_stop_sec,
-                   log_start_sec, log_stop_sec
+                   log_start_sec, log_stop_sec, name
             FROM telemetry_log_sessions
             WHERE state = ?
             ORDER BY id DESC
@@ -66,7 +66,7 @@ pub(super) async fn handle_list_logs(
             SELECT id, state, started_at_iso, ended_at_iso,
                    log_start_unix, log_stop_unix,
                    collection_start_sec, collection_stop_sec,
-                   log_start_sec, log_stop_sec
+                   log_start_sec, log_stop_sec, name
             FROM telemetry_log_sessions
             ORDER BY id DESC
             LIMIT ?
@@ -97,6 +97,8 @@ pub(super) async fn handle_list_logs(
             let collection_stop_sec: Option<f64> =
                 row.try_get("collection_stop_sec").ok().flatten();
             let duration = log_stop_sec.or(collection_stop_sec);
+            let name: Option<String> = row.try_get("name").ok().flatten();
+            let display_name = name.unwrap_or_else(|| format!("Sessao {}", id));
 
             // Status para o frontend
             let status = match state.as_str() {
@@ -107,7 +109,7 @@ pub(super) async fn handle_list_logs(
 
             serde_json::json!({
                 "id": id,
-                "name": format!("Sessao {}", id),
+                "name": display_name,
                 "started_at": started_at,
                 "ended_at": ended_at,
                 "duration_seconds": duration,
@@ -178,7 +180,7 @@ pub(super) async fn handle_download_log(
 
     // Busca a sessão no SQLite (metadados — comum aos dois formatos)
     let session = match sqlx::query(
-        "SELECT id, log_start_unix, log_stop_unix, started_at_iso FROM telemetry_log_sessions WHERE id = ?",
+        "SELECT id, log_start_unix, log_stop_unix, started_at_iso, name FROM telemetry_log_sessions WHERE id = ?",
     )
     .bind(session_id)
     .fetch_optional(sqlite_pool)
@@ -202,12 +204,27 @@ pub(super) async fn handle_download_log(
         .flatten()
         .unwrap_or_default();
 
+    let name: Option<String> = session.try_get("name").ok().flatten();
+    let display_name = name.unwrap_or_else(|| format!("Sessao {}", session_id));
+
+    // Sanitiza o nome do arquivo para evitar caracteres inválidos
+    let safe_name = {
+        let trimmed = display_name.trim();
+        if trimmed.is_empty() {
+            format!("eracing_sessao_{}", session_id)
+        } else {
+            trimmed.chars()
+                .map(|c| if c.is_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+                .collect::<String>()
+        }
+    };
+
     // Mesmo nome base para ambos os arquivos (eracing_sessao_42.ld / .ldx)
-    let filename = format!("eracing_sessao_{}.{}", session_id, ext);
+    let filename = format!("{}.{}", safe_name, ext);
 
     // ── .ldx (índice XML) — apenas metadados, dispensa o TimescaleDB ──────────
     if ext == "ldx" {
-        let xml = generate_ldx_file(session_id, &started_at_iso);
+        let xml = generate_ldx_file(session_id, &display_name, &started_at_iso);
         send_file(stream, &filename, "application/xml", xml.as_bytes()).await;
         info!("✅ .ldx gerado: sessao {} — {} bytes", session_id, xml.len());
         return;
@@ -571,8 +588,8 @@ fn xml_escape(s: &str) -> String {
         .replace('\'', "&apos;")
 }
 
-fn generate_ldx_file(session_id: i64, started_at_iso: &str) -> String {
-    let event = xml_escape(&format!("Sessao {}", session_id));
+fn generate_ldx_file(_session_id: i64, session_name: &str, started_at_iso: &str) -> String {
+    let event = xml_escape(session_name);
     let start = xml_escape(started_at_iso);
 
     format!(
@@ -658,7 +675,7 @@ mod tests {
         let duration = 2.0_f64;
 
         let ld = generate_ld_file(&channels, session_id, started, duration);
-        let ldx = generate_ldx_file(session_id, started);
+        let ldx = generate_ldx_file(session_id, &format!("Sessao {}", session_id), started);
 
         // Sanidade estrutural antes mesmo do ldparser:
         let freq = LD_SAMPLE_RATE_HZ as usize;

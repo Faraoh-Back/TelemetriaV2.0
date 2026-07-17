@@ -160,14 +160,15 @@ pub(super) async fn handle_download_log(
         .parse()
         .unwrap_or(0);
 
-    // Extensão pedida: ?ext=ld (binário, default) ou ?ext=ldx (XML)
-    let mut ext = "ld";
+    // Extensão pedida: ?ext=zip (default), ?ext=ld (binário) ou ?ext=ldx (XML)
+    let mut ext = "zip";
     for pair in query_part.split('&') {
         let mut kv = pair.splitn(2, '=');
         if kv.next() == Some("ext") {
             match kv.next() {
                 Some("ldx") => ext = "ldx",
                 Some("ld") => ext = "ld",
+                Some("zip") => ext = "zip",
                 _ => {}
             }
         }
@@ -219,7 +220,7 @@ pub(super) async fn handle_download_log(
         }
     };
 
-    // Mesmo nome base para ambos os arquivos (eracing_sessao_42.ld / .ldx)
+    // Mesmo nome base para ambos os arquivos (eracing_sessao_42.ld / .ldx / .zip)
     let filename = format!("{}.{}", safe_name, ext);
 
     // ── .ldx (índice XML) — apenas metadados, dispensa o TimescaleDB ──────────
@@ -230,7 +231,7 @@ pub(super) async fn handle_download_log(
         return;
     }
 
-    // ── .ld (binário) — exige bounds definidos e dados do TimescaleDB ─────────
+    // ── .ld (binário) ou .zip — exige bounds definidos e dados do TimescaleDB ──
     let log_start: f64 = session
         .try_get("log_start_unix")
         .ok()
@@ -254,7 +255,7 @@ pub(super) async fn handle_download_log(
 
     // Busca dados do TimescaleDB para o período da sessão
     info!(
-        "📦 Gerando .ld para sessao {} ({:.1}s de dados)",
+        "📦 Gerando dados MoTeC para sessao {} ({:.1}s de dados)",
         session_id,
         log_stop - log_start
     );
@@ -274,7 +275,7 @@ pub(super) async fn handle_download_log(
     {
         Ok(r) => r,
         Err(e) => {
-            error!("Erro ao buscar dados para .ld: {}", e);
+            error!("Erro ao buscar dados para MoTeC: {}", e);
             send_json(stream, 500, r#"{"ok":false,"message":"Erro ao buscar dados"}"#).await;
             return;
         }
@@ -310,14 +311,62 @@ pub(super) async fn handle_download_log(
     // Gera o arquivo .ld (resampleado em taxa fixa + canal mestre "Time")
     let ld_bytes = generate_ld_file(&channels, session_id, &started_at_iso, log_stop - log_start);
 
-    send_file(stream, &filename, "application/octet-stream", &ld_bytes).await;
+    if ext == "ld" {
+        send_file(stream, &filename, "application/octet-stream", &ld_bytes).await;
+        info!(
+            "✅ .ld gerado: sessao {} — {} bytes — {} canais (+Time)",
+            session_id,
+            ld_bytes.len(),
+            channels.len()
+        );
+        return;
+    }
 
-    info!(
-        "✅ .ld gerado: sessao {} — {} bytes — {} canais (+Time)",
-        session_id,
-        ld_bytes.len(),
-        channels.len()
-    );
+    if ext == "zip" {
+        use std::io::Write;
+        let xml = generate_ldx_file(session_id, &display_name, &started_at_iso);
+        let mut zip_buf = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut zip_buf));
+            let options = zip::write::FileOptions::default()
+                .compression_method(zip::CompressionMethod::Deflated);
+
+            if let Err(e) = zip.start_file(format!("{}.ld", safe_name), options) {
+                error!("Erro ao iniciar arquivo .ld no zip: {}", e);
+                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
+                return;
+            }
+            if let Err(e) = zip.write_all(&ld_bytes) {
+                error!("Erro ao escrever .ld no zip: {}", e);
+                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
+                return;
+            }
+
+            if let Err(e) = zip.start_file(format!("{}.ldx", safe_name), options) {
+                error!("Erro ao iniciar arquivo .ldx no zip: {}", e);
+                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
+                return;
+            }
+            if let Err(e) = zip.write_all(xml.as_bytes()) {
+                error!("Erro ao escrever .ldx no zip: {}", e);
+                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
+                return;
+            }
+
+            if let Err(e) = zip.finish() {
+                error!("Erro ao finalizar zip: {}", e);
+                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
+                return;
+            }
+        }
+
+        send_file(stream, &filename, "application/zip", &zip_buf).await;
+        info!(
+            "✅ .zip gerado: sessao {} — {} bytes contendo .ld e .ldx",
+            session_id,
+            zip_buf.len()
+        );
+    }
 }
 
 /// Envia um arquivo binário/texto como anexo HTTP, sem bufferizar duas vezes.

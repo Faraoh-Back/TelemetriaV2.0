@@ -95,41 +95,24 @@ export async function downloadTelemetryLog(log, token) {
 
     const { apiBase } = getServerConfig()
 
-    // Busca os dois artefatos antes de iniciar qualquer download. Assim nunca
-    // entregamos só o .ld quando o sidecar .ldx falhar no backend.
-    const [responseLd, responseLdx] = await Promise.all([
-        fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ld`, {
-            headers: authHeaders(token),
-        }),
-        fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ldx`, {
-            headers: authHeaders(token),
-        }),
-    ])
+    // Busca o arquivo ZIP contendo ambos os arquivos (.ld e .ldx) em uma única requisição.
+    // Isso evita o bloqueio de múltiplos downloads automáticos pelos navegadores.
+    const response = await fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=zip`, {
+        headers: authHeaders(token),
+    })
 
-    if (!responseLd.ok) {
-        const data = await responseLd.json().catch(() => ({}))
+    if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
         throw new LogDownloadError(
-            data.message || 'Nao foi possivel baixar o log .ld.',
-            responseLd.status
+            data.message || 'Nao foi possivel baixar o arquivo de telemetria (.zip).',
+            response.status
         )
     }
 
-    if (!responseLdx.ok) {
-        const data = await responseLdx.json().catch(() => ({}))
-        throw new LogDownloadError(
-            data.message || 'Nao foi possivel baixar o log .ldx.',
-            responseLdx.status
-        )
-    }
+    const blob = await response.blob()
+    const filename =
+        getFilenameFromDisposition(response.headers.get('Content-Disposition')) ||
+        getFallbackFilename(log, 'zip')
 
-    const [blobLd, blobLdx] = await Promise.all([responseLd.blob(), responseLdx.blob()])
-    const filenameLd =
-        getFilenameFromDisposition(responseLd.headers.get('Content-Disposition')) ||
-        getFallbackFilename(log, 'ld')
-    const filenameLdx =
-        getFilenameFromDisposition(responseLdx.headers.get('Content-Disposition')) ||
-        getFallbackFilename(log, 'ldx')
-
-    triggerBlobDownload(blobLd, filenameLd)
-    triggerBlobDownload(blobLdx, filenameLdx)
+    triggerBlobDownload(blob, filename)
 }

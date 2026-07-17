@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createSignal, createMemo } from 'solid-js'
+agyimport { For, Show, createEffect, createSignal, createMemo } from 'solid-js'
 import { lapState } from '../../store.js'
 
 function LapTimePanel() {

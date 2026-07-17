@@ -26,7 +26,7 @@ use std::cmp::Reverse;
 use std::fs;
 use std::path::Path;
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use socketcan::EmbeddedFrame;
 use clap::Parser;
@@ -93,10 +93,15 @@ struct Args {
     ntp_samples: u32,
 
     /// Janela de reordenação (ms) para mesclar can0/can1 por timestamp antes
-    /// de enviar ao servidor. Compensa jitter de scheduling entre as duas
-    /// tasks assíncronas que leem os dois barramentos CAN concorrentemente
-    /// (padrão: 50ms — suficiente pro jitter típico, com latência mínima)
-    #[arg(long, default_value = "50")]
+    /// de enviar ao servidor. Antes da correção do timestamp de kernel
+    /// (SO_TIMESTAMPING), essa janela precisava ser maior (50ms) pra
+    /// absorver o jitter introduzido pelo polling de userspace. Com o
+    /// timestamp de kernel ativo, a ordenação já vem praticamente correta
+    /// na origem — essa janela agora é só uma rede de segurança residual
+    /// para o caso raro de `set_timestamping` falhar em algum canal
+    /// (fallback de timestamp de userspace, ver `run_socketcan_reader`).
+    /// (padrão: 5ms)
+    #[arg(long, default_value = "5")]
     reorder_window_ms: u64,
 }
 
@@ -448,6 +453,68 @@ async fn sync_pending_data(
 }
 
 // ─── Leitor SocketCAN ──────────────────────────────────────────
+// ─── Âncora de Clock Monotônico ──────────────────────────────────
+//
+// PROBLEMA: os timestamps de cada frame CAN eram gerados via
+// `SystemTime::now()` (relógio de parede / CLOCK_REALTIME). Esse relógio
+// pode sofrer "steps" (saltos instantâneos, para frente OU para trás)
+// disparados pelo Chrony — em especial o `chronyc -a makestep` chamado
+// pelo dispatcher de rede (`99-eracing-route.sh`) toda vez que a interface
+// `eth0` sobe (não só no boot: também em quedas/reconexões de link, comuns
+// com EMI/vibração no carro ou handover de rede em pista).
+//
+// Um salto para trás de mais de `REAL_DISCONTINUITY_SEC` (2s) no meio de
+// uma sessão é lido pelo `track_state.rs` do servidor como uma
+// "descontinuidade real" e reseta TODO o estado da pista — mapa aprendido,
+// path, landmarks, contagem de voltas — mesmo que o mapa já estivesse
+// congelado depois da primeira volta. Isso é exatamente o sintoma
+// relatado: delay + mapa "recomeçando"/não plotando direito.
+//
+// SOLUÇÃO: usar `Instant` (CLOCK_MONOTONIC), que o Chrony/NTP NUNCA step
+// — apenas disciplina por slew. Capturamos uma âncora (Instant + epoch
+// real) uma única vez na subida do processo e derivamos o timestamp de
+// cada frame a partir do tempo monotônico decorrido. Isso preserva
+// continuidade de dt mesmo que o relógio de parede sofra um step.
+#[derive(Clone, Copy)]
+struct ClockAnchor {
+    instant: Instant,
+    epoch_at_anchor: f64,
+}
+
+impl ClockAnchor {
+    fn capture() -> Self {
+        Self {
+            instant: Instant::now(),
+            epoch_at_anchor: SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs_f64(),
+        }
+    }
+
+    /// Timestamp "epoch" atual, imune a steps do relógio de parede após a
+    /// captura da âncora — deriva de tempo monotônico decorrido, não de
+    /// uma nova leitura de `SystemTime::now()`.
+    fn now_epoch(&self) -> f64 {
+        self.epoch_at_anchor + self.instant.elapsed().as_secs_f64()
+    }
+
+    /// Igual a `now_epoch()`, mas descontando `age_secs` — a defasagem real
+    /// entre a chegada do frame no kernel e o instante em que a task de
+    /// userspace conseguiu processá-lo (ver `run_socketcan_reader`).
+    ///
+    /// `age_secs` é calculado como `wallclock_agora - kernel_rx_timestamp`,
+    /// uma SUBTRAÇÃO entre duas leituras de relógio de parede tomadas a
+    /// microssegundos de distância uma da outra — por isso é seguro mesmo
+    /// que o relógio de parede sofra um step em outro momento da sessão
+    /// (o step não acontece nesse intervalo minúsculo entre as duas leituras).
+    /// Isso dá o melhor dos dois mundos: ordenação precisa (do kernel) +
+    /// imunidade a steps do Chrony (da âncora monotônica).
+    fn now_epoch_corrected_for_age(&self, age_secs: f64) -> f64 {
+        self.now_epoch() - age_secs.max(0.0)
+    }
+}
+
 #[cfg(target_os = "linux")]
 async fn run_socketcan_reader(
     iface: String,
@@ -456,6 +523,7 @@ async fn run_socketcan_reader(
     tx: mpsc::Sender<TelemetryFrame>,
     running: Arc<AtomicBool>,
     clock_offset: f64,
+    clock_anchor: ClockAnchor,
 ) {
     use socketcan::{CanSocket, Socket};
 
@@ -478,14 +546,81 @@ async fn run_socketcan_reader(
             warn!("⚠️  Não foi possível setar non-blocking em '{}': {}", iface, e);
         }
 
+        // Timestamp de recepção dado pelo KERNEL (SO_TIMESTAMPING), carimbado
+        // no instante real de chegada do frame na pilha de rede — antes de
+        // qualquer scheduling do tokio. Isso elimina o jitter artificial
+        // introduzido pelo loop de polling (sleep de 500µs) que antes fazia
+        // o timestamp refletir "quando conseguimos processar" em vez de
+        // "quando o frame chegou de fato". É a causa raiz do descompasso
+        // entre can0/can1 — corrigindo aqui, o buffer de reordenação em
+        // `run_reorder_buffer` pode ter uma janela bem menor (ou nenhuma).
+        //
+        // Nota: `sw` ainda é relógio de parede — combinamos com a
+        // ClockAnchor via `now_epoch_corrected_for_age()` pra manter a
+        // imunidade a steps do Chrony.
+        use socketcan::SocketOptions as _;
+
+        let mut kernel_timestamps_supported = false;
+        match socket.set_recv_timestamp(true) {
+            Ok(()) => {
+                if let Err(e) = socket.set_timestamping(
+                    socketcan::SOF_TIMESTAMPING_RX_SOFTWARE
+                        | socketcan::SOF_TIMESTAMPING_SOFTWARE
+                        | socketcan::SOF_TIMESTAMPING_OPT_CMSG,
+                ) {
+                    warn!(
+                        "⚠️  Não foi possível configurar SO_TIMESTAMPING em '{}': {}. \
+                         Caindo para timestamp de userspace (menos preciso).",
+                        iface, e
+                    );
+                } else {
+                    kernel_timestamps_supported = true;
+                    info!("🕐 Timestamp de kernel (RX_SOFTWARE) ativo em '{}'", iface);
+                }
+            }
+            Err(e) => {
+                warn!(
+                    "⚠️  Não foi possível habilitar recv_timestamp em '{}': {}. \
+                     Caindo para timestamp de userspace (menos preciso).",
+                    iface, e
+                );
+            }
+        }
+
         // Loop de leitura
         while running.load(Ordering::Relaxed) {
-            match socket.read_frame() {
-                Ok(frame) => {
-                    let timestamp = SystemTime::now()
-                        .duration_since(UNIX_EPOCH)
-                        .unwrap_or_default()
-                        .as_secs_f64() + clock_offset;
+            // Quando o kernel oferece timestamp (`sw`), usamos
+            // `read_frame_with_timestamps()` e calculamos a idade real do
+            // frame (tempo entre chegada no kernel e processamento aqui).
+            // Essa idade é aplicada sobre a ClockAnchor monotônica —
+            // union dos dois mundos: ordenação precisa do kernel +
+            // imunidade a steps do Chrony.
+            //
+            // ATENÇÃO: o tipo exato de `ts.sw` (SystemTime vs Duration)
+            // deve ser conferido com `cargo doc --open -p socketcan` no
+            // ambiente de vocês antes de compilar — não consegui validar
+            // isso aqui por falta de toolchain compatível no sandbox.
+            let read_result: std::io::Result<(socketcan::CanFrame, f64)> = if kernel_timestamps_supported {
+                socket.read_frame_with_timestamps().map(|(frame, ts)| {
+                    let age = ts
+                        .sw
+                        .and_then(|sw| sw.duration_since(UNIX_EPOCH).ok())
+                        .map(|kernel_wall| {
+                            let now_wall = SystemTime::now()
+                                .duration_since(UNIX_EPOCH)
+                                .unwrap_or_default();
+                            (now_wall.as_secs_f64() - kernel_wall.as_secs_f64()).max(0.0)
+                        })
+                        .unwrap_or(0.0);
+                    (frame, age)
+                })
+            } else {
+                socket.read_frame().map(|frame| (frame, 0.0))
+            };
+
+            match read_result {
+                Ok((frame, age)) => {
+                    let timestamp = clock_anchor.now_epoch_corrected_for_age(age) + clock_offset;
 
                     let can_id: u32 = match frame.id() {
                         socketcan::Id::Standard(id) => id.as_raw() as u32,
@@ -655,6 +790,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let clock_offset = Arc::new(clock_offset);
 
+    // Âncora monotônica única para todo o processo — ver comentário na
+    // definição de ClockAnchor. Capturada aqui (após o offset NTP, se
+    // aplicável) para que todos os timestamps dali em diante derivem do
+    // mesmo ponto de referência monotônico, imune a steps do Chrony.
+    let clock_anchor = ClockAnchor::capture();
+
     // 2. Inicializa banco local de backup
     let db_pool = init_database(&args.db_path).await?;
     let (sqlite_tx, sqlite_rx) = mpsc::channel::<TelemetryFrame>(100_000);
@@ -708,10 +849,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let tx_clone = raw_tx.clone();
         let running_clone = running.clone();
         let bitrate = args.bitrate0;
+        let anchor = clock_anchor;
 
         tokio::spawn(async move {
             #[cfg(target_os = "linux")]
-            run_socketcan_reader(iface_clone, bitrate, pmap, tx_clone, running_clone, *offset).await;
+            run_socketcan_reader(iface_clone, bitrate, pmap, tx_clone, running_clone, *offset, anchor).await;
 
             #[cfg(not(target_os = "linux"))]
             {
@@ -727,10 +869,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let tx_clone = raw_tx.clone();
         let running_clone = running.clone();
         let bitrate = args.bitrate1;
+        let anchor = clock_anchor;
 
         tokio::spawn(async move {
             #[cfg(target_os = "linux")]
-            run_socketcan_reader(iface_clone, bitrate, pmap, tx_clone, running_clone, *offset).await;
+            run_socketcan_reader(iface_clone, bitrate, pmap, tx_clone, running_clone, *offset, anchor).await;
 
             #[cfg(not(target_os = "linux"))]
             {

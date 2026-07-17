@@ -5,9 +5,9 @@ function TrackMapPanel({ source, data, isTelemetryLive }) {
     const [frozenOverlay, setFrozenOverlay] = createSignal(null)
 
     const pointsAttr = () => {
-        const points = data?.track?.points ?? []
+        const points = displayOverlay()?.displayPoints ?? []
         return points
-            .map(([x, y]) => `${(x * 100).toFixed(2)},${(100 - y * 100).toFixed(2)}`)
+            .map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`)
             .join(' ')
     }
 

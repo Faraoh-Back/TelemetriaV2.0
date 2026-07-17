@@ -398,7 +398,7 @@ impl RealtimeTrackState {
 
     fn track_map_message(&self, timestamp: f64) -> String {
         let (min_x, max_x, min_y, max_y) = bounds(&self.map_points);
-        let points = normalized_points(&self.map_points, min_x, max_x, min_y, max_y);
+        let points = json_points(&self.map_points);
         json!({
             "type": "track_map",
             "timestamp": timestamp,
@@ -414,7 +414,7 @@ impl RealtimeTrackState {
 
     fn learning_track_message(&self, timestamp: f64) -> String {
         let (min_x, max_x, min_y, max_y) = bounds(&self.learning_points);
-        let points = normalized_points(&self.learning_points, min_x, max_x, min_y, max_y);
+        let points = json_points(&self.learning_points);
         json!({
             "type": "track_map",
             "timestamp": timestamp,
@@ -433,14 +433,12 @@ impl RealtimeTrackState {
 
     fn track_pose_message(&self, timestamp: f64) -> String {
         let p = self.position_on_map();
-        let (min_x, max_x, min_y, max_y) = bounds(&self.map_points);
-        let (nx, ny) = normalize_point(p, min_x, max_x, min_y, max_y);
         json!({
             "type": "track_pose",
             "timestamp": timestamp,
             "vehicle": {
-                "x": nx,
-                "y": ny,
+                "x": p.x,
+                "y": p.y,
                 "x_m": p.x,
                 "y_m": p.y,
                 "heading": self.heading_rad.to_degrees(),
@@ -452,23 +450,12 @@ impl RealtimeTrackState {
     }
 
     fn learning_pose_message(&self, timestamp: f64) -> String {
-        let (min_x, max_x, min_y, max_y) = bounds(&self.learning_points);
-        let (nx, ny) = normalize_point(
-            Point2 {
-                x: self.x_m,
-                y: self.y_m,
-            },
-            min_x,
-            max_x,
-            min_y,
-            max_y,
-        );
         json!({
             "type": "track_pose",
             "timestamp": timestamp,
             "vehicle": {
-                "x": nx,
-                "y": ny,
+                "x": self.x_m,
+                "y": self.y_m,
                 "x_m": self.x_m,
                 "y_m": self.y_m,
                 "heading": self.heading_rad.to_degrees(),
@@ -523,26 +510,8 @@ fn bounds(points: &[Point2]) -> (f64, f64, f64, f64) {
     (min_x, max_x, min_y, max_y)
 }
 
-fn normalize_point(p: Point2, min_x: f64, max_x: f64, min_y: f64, max_y: f64) -> (f64, f64) {
-    let dx = (max_x - min_x).abs().max(1e-9);
-    let dy = (max_y - min_y).abs().max(1e-9);
-    ((p.x - min_x) / dx, (p.y - min_y) / dy)
-}
-
-fn normalized_points(
-    points: &[Point2],
-    min_x: f64,
-    max_x: f64,
-    min_y: f64,
-    max_y: f64,
-) -> Vec<serde_json::Value> {
-    points
-        .iter()
-        .map(|p| {
-            let (x, y) = normalize_point(*p, min_x, max_x, min_y, max_y);
-            json!([x, y])
-        })
-        .collect()
+fn json_points(points: &[Point2]) -> Vec<serde_json::Value> {
+    points.iter().map(|p| json!([p.x, p.y])).collect()
 }
 
 fn is_track_signal(name: &str) -> bool {

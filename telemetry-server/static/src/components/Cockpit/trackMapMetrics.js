@@ -5,12 +5,51 @@ function clamp01(value) {
     return value
 }
 
-function toDisplayPoint(point) {
+function finitePoint(point) {
     if (!point || !Number.isFinite(point[0]) || !Number.isFinite(point[1])) return null
-    return {
-        x: point[0] * 100,
-        y: (1 - point[1]) * 100,
+    return point
+}
+
+function boundsFromPoints(points) {
+    let minX = Number.POSITIVE_INFINITY
+    let maxX = Number.NEGATIVE_INFINITY
+    let minY = Number.POSITIVE_INFINITY
+    let maxY = Number.NEGATIVE_INFINITY
+
+    for (const point of points) {
+        if (!finitePoint(point)) continue
+        minX = Math.min(minX, point[0])
+        maxX = Math.max(maxX, point[0])
+        minY = Math.min(minY, point[1])
+        maxY = Math.max(maxY, point[1])
     }
+
+    if (!Number.isFinite(minX)) return null
+    return { minX, maxX, minY, maxY }
+}
+
+function buildProjector(track, points) {
+    const bounds = track?.bounds ?? boundsFromPoints(points)
+    if (!bounds) return null
+
+    const minX = Number(bounds.minX)
+    const maxX = Number(bounds.maxX)
+    const minY = Number(bounds.minY)
+    const maxY = Number(bounds.maxY)
+    if (![minX, maxX, minY, maxY].every(Number.isFinite)) return null
+
+    const spanX = Math.max(maxX - minX, 1e-6)
+    const spanY = Math.max(maxY - minY, 1e-6)
+    const span = Math.max(spanX, spanY)
+    const pad = span * 0.08
+    const paddedSpan = span + pad * 2
+    const centerX = (minX + maxX) / 2
+    const centerY = (minY + maxY) / 2
+
+    return ([x, y]) => ({
+        x: 50 + ((x - centerX) / paddedSpan) * 100,
+        y: 50 - ((y - centerY) / paddedSpan) * 100,
+    })
 }
 
 function buildTrackSegments(points) {
@@ -84,16 +123,32 @@ function formatHeading(value) {
 
 export function buildTrackOverlay(track, vehicle) {
     const points = track?.points ?? []
-    const start = toDisplayPoint(points[0])
+    const project = buildProjector(track, points)
+    const displayPoints = project
+        ? points
+            .filter(finitePoint)
+            .map(project)
+            .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+        : []
+    const start = displayPoints[0] ?? null
+    const vehicleRawPoint = vehicle
+        ? [
+            Number.isFinite(vehicle.x_m) ? vehicle.x_m : vehicle.x,
+            Number.isFinite(vehicle.y_m) ? vehicle.y_m : vehicle.y,
+        ]
+        : null
     const vehiclePoint = vehicle
-        ? {
-            x: clamp01(vehicle.x) * 100,
-            y: (1 - clamp01(vehicle.y)) * 100,
-        }
+        && project
+        && Number.isFinite(vehicleRawPoint[0])
+        && Number.isFinite(vehicleRawPoint[1])
+        ? project(vehicleRawPoint)
         : null
 
     const trackLengthM = Number(track?.length_m)
-    const progressFromProjection = projectVehicleOnTrack(points, vehicle)
+    const vehicleForProjection = vehicleRawPoint
+        ? { x: vehicleRawPoint[0], y: vehicleRawPoint[1] }
+        : null
+    const progressFromProjection = projectVehicleOnTrack(points, vehicleForProjection)
     const progressFromDistance = Number.isFinite(vehicle?.distance_m) && Number.isFinite(trackLengthM) && trackLengthM > 0
         ? (vehicle.distance_m % trackLengthM) / trackLengthM
         : null
@@ -106,6 +161,7 @@ export function buildTrackOverlay(track, vehicle) {
     return {
         start,
         vehiclePoint,
+        displayPoints,
         stats: [
             { label: 'Pista', value: formatMeters(trackLengthM) },
             { label: 'Falta', value: formatMeters(remainingM) },

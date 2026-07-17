@@ -3,13 +3,13 @@ use crate::decoder;
 use crate::models::ProcessedSignal;
 use crate::track_state::SharedTrackState;
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
+use std::sync::Arc;
 use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::sync::broadcast;
 use tracing::{error, info, warn};
-use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
-use std::sync::Arc;
-use tokio::io::AsyncWriteExt;
 
 struct DecodeDebugConfig {
     enabled: bool,
@@ -51,7 +51,12 @@ impl DecodeDebugConfig {
 
 fn env_bool(var_name: &str, default: bool) -> bool {
     std::env::var(var_name)
-        .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES" | "on" | "ON"))
+        .map(|v| {
+            matches!(
+                v.as_str(),
+                "1" | "true" | "TRUE" | "yes" | "YES" | "on" | "ON"
+            )
+        })
         .unwrap_or(default)
 }
 
@@ -146,7 +151,8 @@ pub async fn handle_client(
                 match edge_cmd_rx.recv().await {
                     Ok(cmd_frame) => {
                         if cmd_frame.len() >= 4 {
-                            let cmd_can_id = u32::from_le_bytes(cmd_frame[0..4].try_into().unwrap());
+                            let cmd_can_id =
+                                u32::from_le_bytes(cmd_frame[0..4].try_into().unwrap());
                             if cmd_can_id == 0x67 {
                                 info!("🛑 EMERGENCY STOP → enviando 0x67 para {}", addr_str);
                                 let mut wh = write_half.lock().await;
@@ -215,7 +221,8 @@ pub async fn handle_client(
             continue;
         }
 
-        let can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
+        let raw_can_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
+        let can_id = normalize_can_id(raw_can_id);
         let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
         let raw_data = &payload[12..20];
         let raw_data_owned: [u8; 8] = raw_data.try_into().unwrap();
@@ -223,9 +230,11 @@ pub async fn handle_client(
 
         if should_log_decode {
             info!(
-                "[CAN_DEBUG] RX | id_dec={} | id_hex=0x{:X} | timestamp={:.6} | raw=[{}] | payload_len={}",
+                "[CAN_DEBUG] RX | id_dec={} | id_hex=0x{:X} | raw_id_dec={} | raw_id_hex=0x{:X} | timestamp={:.6} | raw=[{}] | payload_len={}",
                 can_id,
                 can_id,
+                raw_can_id,
+                raw_can_id,
                 timestamp,
                 format_raw_data(raw_data),
                 payload.len()
@@ -307,12 +316,12 @@ pub async fn handle_client(
             .collect();
 
         frames_decoded += processed.len() as u64;
-        
+
         // Envia para os buffers de banco de dados (não bloqueia — só empurra nos canais)
         let _ = sqlite_tx.try_send(processed.clone());
         let _ = timescale_tx.try_send(processed.clone());
 
-        // Envia o frame CAN original apenas UMA VEZ para o broadcast, 
+        // Envia o frame CAN original apenas UMA VEZ para o broadcast,
         // em vez de repetir para cada sinal decodificado. Isso reduz o tráfego significativamente.
         let mut frame = [0u8; 20];
         frame[0..4].copy_from_slice(&can_id.to_le_bytes());
@@ -358,6 +367,10 @@ pub async fn handle_client(
     }
 
     info!("👋 {} desconectado", device_id);
+}
+
+fn normalize_can_id(can_id: u32) -> u32 {
+    can_id & 0x1FFF_FFFF
 }
 
 // ==================== SERVIDOR HTTP + WEBSOCKET :8081 ====================

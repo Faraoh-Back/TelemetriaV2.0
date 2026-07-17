@@ -21,7 +21,8 @@ pub struct RealtimeTrackState {
     distance_m: f64,
     acc_x_mps2: Option<f64>,
     yaw_rate_rps: Option<f64>,
-    direct_speed_mps: Option<f64>,
+    speed_x_mps: Option<f64>,
+    speed_y_mps: Option<f64>,
     rpm_a0: Option<f64>,
     rpm_b0: Option<f64>,
     rpm_a13: Option<f64>,
@@ -53,7 +54,8 @@ impl RealtimeTrackState {
             distance_m: 0.0,
             acc_x_mps2: None,
             yaw_rate_rps: None,
-            direct_speed_mps: None,
+            speed_x_mps: None,
+            speed_y_mps: None,
             rpm_a0: None,
             rpm_b0: None,
             rpm_a13: None,
@@ -76,7 +78,8 @@ impl RealtimeTrackState {
         self.distance_m = 0.0;
         self.acc_x_mps2 = None;
         self.yaw_rate_rps = None;
-        self.direct_speed_mps = None;
+        self.speed_x_mps = None;
+        self.speed_y_mps = None;
         self.rpm_a0 = None;
         self.rpm_b0 = None;
         self.rpm_a13 = None;
@@ -93,10 +96,20 @@ impl RealtimeTrackState {
             return Vec::new();
         }
 
+        let has_track_signal = signals
+            .iter()
+            .any(|signal| is_track_signal(signal.signal_name.trim()));
+        if !has_track_signal {
+            return Vec::new();
+        }
+
         let timestamp = signals[0].timestamp;
         if self.t0.is_none() {
             self.t0 = Some(timestamp);
             self.last_t = Some(timestamp);
+            for signal in signals {
+                self.apply_signal(signal);
+            }
             self.learning_points.push(Point2 { x: 0.0, y: 0.0 });
             return Vec::new();
         }
@@ -124,22 +137,32 @@ impl RealtimeTrackState {
             return Vec::new();
         }
 
-        let rpm_speed = self.rpm_speed_mps();
-        let acc_x = self.acc_x_mps2.unwrap_or(0.0);
-        let predicted_speed = (self.velocity_mps + acc_x * dt).max(0.0);
-        self.velocity_mps = if let Some(speed) = self.direct_speed_mps {
-            speed.max(0.0)
-        } else if let Some(speed) = rpm_speed {
-            ((1.0 - RPM_CORRECTION_WEIGHT) * predicted_speed + RPM_CORRECTION_WEIGHT * speed)
-                .max(0.0)
+        if let (Some(vx), Some(vy)) = (self.speed_x_mps, self.speed_y_mps) {
+            self.velocity_mps = vx.hypot(vy);
+            if self.velocity_mps > 1e-6 {
+                self.heading_rad = vy.atan2(vx);
+            }
+            self.distance_m += self.velocity_mps * dt;
+            self.x_m += vx * dt;
+            self.y_m += vy * dt;
         } else {
-            predicted_speed
-        };
+            let rpm_speed = self.rpm_speed_mps();
+            let acc_x = self.acc_x_mps2.unwrap_or(0.0);
+            let predicted_speed = (self.velocity_mps + acc_x * dt).max(0.0);
+            self.velocity_mps = if let Some(speed) = self.speed_x_mps {
+                speed.abs()
+            } else if let Some(speed) = rpm_speed {
+                ((1.0 - RPM_CORRECTION_WEIGHT) * predicted_speed + RPM_CORRECTION_WEIGHT * speed)
+                    .max(0.0)
+            } else {
+                predicted_speed
+            };
 
-        self.heading_rad += self.yaw_rate_rps.unwrap_or(0.0) * dt;
-        self.distance_m += self.velocity_mps.abs() * dt;
-        self.x_m += self.velocity_mps * self.heading_rad.cos() * dt;
-        self.y_m += self.velocity_mps * self.heading_rad.sin() * dt;
+            self.heading_rad += self.yaw_rate_rps.unwrap_or(0.0) * dt;
+            self.distance_m += self.velocity_mps.abs() * dt;
+            self.x_m += self.velocity_mps * self.heading_rad.cos() * dt;
+            self.y_m += self.velocity_mps * self.heading_rad.sin() * dt;
+        }
 
         let elapsed = timestamp - self.t0.unwrap_or(timestamp);
         let mut messages = Vec::new();
@@ -201,7 +224,17 @@ impl RealtimeTrackState {
             | "SPEED_LINEAR_X"
             | "ventor_linear_speed_x"
             | "VENTOR_LINEAR_SPEED_X" => {
-                self.direct_speed_mps = Some(if signal.unit.eq_ignore_ascii_case("km/h") {
+                self.speed_x_mps = Some(if signal.unit.eq_ignore_ascii_case("km/h") {
+                    signal.value / 3.6
+                } else {
+                    signal.value
+                });
+            }
+            "Speed_Linear_Y"
+            | "SPEED_LINEAR_Y"
+            | "ventor_linear_speed_y"
+            | "VENTOR_LINEAR_SPEED_Y" => {
+                self.speed_y_mps = Some(if signal.unit.eq_ignore_ascii_case("km/h") {
                     signal.value / 3.6
                 } else {
                     signal.value
@@ -429,4 +462,98 @@ fn normalized_points(
         .collect()
 }
 
+fn is_track_signal(name: &str) -> bool {
+    matches!(
+        name,
+        "Accel_Linear_X"
+            | "ACCEL_LINEAR_X"
+            | "ventor_linear_acc_x"
+            | "VENTOR_LINEAR_ACC_X"
+            | "Velo_Angular_Z"
+            | "VELO_ANGULAR_Z"
+            | "ventor_angular_speed_z"
+            | "VENTOR_ANGULAR_SPEED_Z"
+            | "Speed_Linear_X"
+            | "SPEED_LINEAR_X"
+            | "ventor_linear_speed_x"
+            | "VENTOR_LINEAR_SPEED_X"
+            | "Speed_Linear_Y"
+            | "SPEED_LINEAR_Y"
+            | "ventor_linear_speed_y"
+            | "VENTOR_LINEAR_SPEED_Y"
+            | "act_Speed A0"
+            | "act_Speed_A0"
+            | "RPM 0A"
+            | "RPM_0A"
+            | "act_Speed B0"
+            | "act_Speed_B0"
+            | "RPM 0B"
+            | "RPM_0B"
+            | "act_Speed A13"
+            | "act_Speed_A13"
+            | "RPM 13A"
+            | "RPM_13A"
+            | "act_Speed B13"
+            | "act_Speed_B13"
+            | "RPM 13B"
+            | "RPM_13B"
+    )
+}
+
 pub type SharedTrackState = Arc<Mutex<RealtimeTrackState>>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn signal(timestamp: f64, name: &str, value: f64) -> ProcessedSignal {
+        ProcessedSignal {
+            timestamp,
+            device_id: "test-car".to_string(),
+            can_id: 0,
+            signal_name: name.to_string(),
+            value,
+            unit: String::new(),
+        }
+    }
+
+    #[test]
+    fn integrates_negative_speed_x_as_vector_component() {
+        let mut state = RealtimeTrackState::new();
+
+        state.update(&[
+            signal(0.0, "Speed_Linear_X", 10.0),
+            signal(0.0, "Speed_Linear_Y", 0.0),
+        ]);
+        state.update(&[
+            signal(1.0, "Speed_Linear_X", 10.0),
+            signal(1.0, "Speed_Linear_Y", 0.0),
+        ]);
+        state.update(&[
+            signal(2.0, "Speed_Linear_X", -10.0),
+            signal(2.0, "Speed_Linear_Y", 0.0),
+        ]);
+
+        assert!((state.x_m - 0.0).abs() < 1e-9);
+        assert!((state.distance_m - 20.0).abs() < 1e-9);
+        assert!((state.velocity_mps - 10.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn ignores_non_track_signals_for_integration() {
+        let mut state = RealtimeTrackState::new();
+
+        state.update(&[
+            signal(0.0, "Speed_Linear_X", 10.0),
+            signal(0.0, "Speed_Linear_Y", 0.0),
+        ]);
+        state.update(&[
+            signal(1.0, "Speed_Linear_X", 10.0),
+            signal(1.0, "Speed_Linear_Y", 0.0),
+        ]);
+        state.update(&[signal(2.0, "VoltOverallParam_MinCellVoltage", 3.8)]);
+
+        assert!((state.x_m - 10.0).abs() < 1e-9);
+        assert!((state.distance_m - 10.0).abs() < 1e-9);
+    }
+}

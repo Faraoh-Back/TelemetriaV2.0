@@ -33,6 +33,3 @@ chrono = { version = "0.4", features = ["serde"] }
 # Autenticação JWT + bcrypt
 jsonwebtoken = "9"
 bcrypt = "0.15"
-
-# Zip support for log downloads
-zip = "0.6.6"

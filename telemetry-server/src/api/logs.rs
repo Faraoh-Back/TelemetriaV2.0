@@ -129,6 +129,153 @@ pub(super) async fn handle_list_logs(
     send_json(stream, 200, &body.to_string()).await;
 }
 
+// ==================== SIMPLE ZIP WRITER (Sem dependências externas) ====================
+
+fn crc32(data: &[u8]) -> u32 {
+    let mut crc = 0xffff_ffffu32;
+    for &b in data {
+        crc ^= b as u32;
+        for _ in 0..8 {
+            if crc & 1 != 0 {
+                crc = (crc >> 1) ^ 0xedb8_8320;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    !crc
+}
+
+struct ZipFileMetadata {
+    name: String,
+    offset: u32,
+    size: u32,
+    crc: u32,
+}
+
+struct SimpleZipWriter {
+    buf: Vec<u8>,
+    files: Vec<ZipFileMetadata>,
+}
+
+impl SimpleZipWriter {
+    fn new() -> Self {
+        Self {
+            buf: Vec::new(),
+            files: Vec::new(),
+        }
+    }
+
+    fn add_file(&mut self, name: &str, data: &[u8]) {
+        let offset = self.buf.len() as u32;
+        let crc = crc32(data);
+        let size = data.len() as u32;
+        let name_bytes = name.as_bytes();
+        let name_len = name_bytes.len() as u16;
+
+        // Assinatura do cabeçalho de arquivo local
+        self.buf.extend_from_slice(&0x04034b50u32.to_le_bytes());
+        // Versão mínima necessária para extração (1.0 = 10)
+        self.buf.extend_from_slice(&10u16.to_le_bytes());
+        // Flags gerais de bits (0)
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+        // Método de compressão (0 = Stored / Sem compressão)
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+        // Última hora e data de modificação (0)
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+        // CRC-32
+        self.buf.extend_from_slice(&crc.to_le_bytes());
+        // Tamanho comprimido
+        self.buf.extend_from_slice(&size.to_le_bytes());
+        // Tamanho não comprimido
+        self.buf.extend_from_slice(&size.to_le_bytes());
+        // Tamanho do nome do arquivo
+        self.buf.extend_from_slice(&name_len.to_le_bytes());
+        // Tamanho do campo extra (0)
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+        // Nome do arquivo
+        self.buf.extend_from_slice(name_bytes);
+        // Conteúdo do arquivo
+        self.buf.extend_from_slice(data);
+
+        self.files.push(ZipFileMetadata {
+            name: name.to_string(),
+            offset,
+            size,
+            crc,
+        });
+    }
+
+    fn finish(mut self) -> Vec<u8> {
+        let cd_offset = self.buf.len() as u32;
+
+        // Escreve os registros de diretório central (Central Directory)
+        for file in &self.files {
+            let name_bytes = file.name.as_bytes();
+            let name_len = name_bytes.len() as u16;
+
+            // Assinatura do cabeçalho de diretório central
+            self.buf.extend_from_slice(&0x02014b50u32.to_le_bytes());
+            // Versão criada por (20)
+            self.buf.extend_from_slice(&20u16.to_le_bytes());
+            // Versão mínima necessária para extração (10)
+            self.buf.extend_from_slice(&10u16.to_le_bytes());
+            // Flags gerais (0)
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            // Método de compressão (0 = Stored)
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            // Hora/Data (0)
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            // CRC-32
+            self.buf.extend_from_slice(&file.crc.to_le_bytes());
+            // Tamanho comprimido
+            self.buf.extend_from_slice(&file.size.to_le_bytes());
+            // Tamanho não comprimido
+            self.buf.extend_from_slice(&file.size.to_le_bytes());
+            // Tamanho do nome do arquivo
+            self.buf.extend_from_slice(&name_len.to_le_bytes());
+            // Tamanho do campo extra (0)
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            // Tamanho do comentário do arquivo (0)
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            // Número do disco de início (0)
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            // Atributos internos (0)
+            self.buf.extend_from_slice(&0u16.to_le_bytes());
+            // Atributos externos (0)
+            self.buf.extend_from_slice(&0u32.to_le_bytes());
+            // Offset relativo do cabeçalho local
+            self.buf.extend_from_slice(&file.offset.to_le_bytes());
+            // Nome do arquivo
+            self.buf.extend_from_slice(name_bytes);
+        }
+
+        let cd_size = (self.buf.len() as u32) - cd_offset;
+        let file_count = self.files.len() as u16;
+
+        // Fim do diretório central (End of Central Directory Record)
+        self.buf.extend_from_slice(&0x06054b50u32.to_le_bytes());
+        // Número deste disco (0)
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+        // Disco onde começa o diretório central (0)
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+        // Número de registros de diretório central neste disco
+        self.buf.extend_from_slice(&file_count.to_le_bytes());
+        // Número total de registros de diretório central
+        self.buf.extend_from_slice(&file_count.to_le_bytes());
+        // Tamanho do diretório central
+        self.buf.extend_from_slice(&cd_size.to_le_bytes());
+        // Offset de início do diretório central em relação ao início do arquivo
+        self.buf.extend_from_slice(&cd_offset.to_le_bytes());
+        // Tamanho do comentário do zip (0)
+        self.buf.extend_from_slice(&0u16.to_le_bytes());
+
+        self.buf
+    }
+}
+
 // ==================== DOWNLOAD .ld ====================
 
 pub(super) async fn handle_download_log(
@@ -323,42 +470,11 @@ pub(super) async fn handle_download_log(
     }
 
     if ext == "zip" {
-        use std::io::Write;
         let xml = generate_ldx_file(session_id, &display_name, &started_at_iso);
-        let mut zip_buf = Vec::new();
-        {
-            let mut zip = zip::ZipWriter::new(std::io::Cursor::new(&mut zip_buf));
-            let options = zip::write::FileOptions::default()
-                .compression_method(zip::CompressionMethod::Deflated);
-
-            if let Err(e) = zip.start_file(format!("{}.ld", safe_name), options) {
-                error!("Erro ao iniciar arquivo .ld no zip: {}", e);
-                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
-                return;
-            }
-            if let Err(e) = zip.write_all(&ld_bytes) {
-                error!("Erro ao escrever .ld no zip: {}", e);
-                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
-                return;
-            }
-
-            if let Err(e) = zip.start_file(format!("{}.ldx", safe_name), options) {
-                error!("Erro ao iniciar arquivo .ldx no zip: {}", e);
-                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
-                return;
-            }
-            if let Err(e) = zip.write_all(xml.as_bytes()) {
-                error!("Erro ao escrever .ldx no zip: {}", e);
-                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
-                return;
-            }
-
-            if let Err(e) = zip.finish() {
-                error!("Erro ao finalizar zip: {}", e);
-                send_json(stream, 500, r#"{"ok":false,"message":"Erro ao gerar zip"}"#).await;
-                return;
-            }
-        }
+        let mut zip = SimpleZipWriter::new();
+        zip.add_file(&format!("{}.ld", safe_name), &ld_bytes);
+        zip.add_file(&format!("{}.ldx", safe_name), xml.as_bytes());
+        let zip_buf = zip.finish();
 
         send_file(stream, &filename, "application/zip", &zip_buf).await;
         info!(
@@ -773,5 +889,17 @@ mod tests {
             iso_to_motec_datetime(""),
             ("01/01/1970".to_string(), "00:00:00".to_string())
         );
+    }
+
+    #[test]
+    fn test_simple_zip_writer() {
+        let mut zip = SimpleZipWriter::new();
+        zip.add_file("test1.txt", b"Hello, World!");
+        zip.add_file("test2.txt", b"Another file content");
+        let zip_bytes = zip.finish();
+
+        // A minimal zip signature check
+        assert!(zip_bytes.len() > 100);
+        assert_eq!(&zip_bytes[0..4], &0x04034b50u32.to_le_bytes()); // Local file header signature of first file
     }
 }

@@ -17,7 +17,6 @@ pub const BMS_VOLT_A2_TAIL: u32 = 0x19B5_0801;
 
 pub fn frames(snapshot: &ScenarioSnapshot, wall_ts: f64) -> Vec<TelemetryFrame> {
     let mut out = Vec::with_capacity(13);
-    let t = snapshot.t;
     let cell_a = ((snapshot.cell_v_min * 100.0).round() as u8).max(180);
     let cell_b = ((snapshot.cell_v_max * 100.0).round() as u8).max(180);
     let temp = ((snapshot.cell_temp_max + 40.0).round() as u8).max(1);
@@ -31,7 +30,7 @@ pub fn frames(snapshot: &ScenarioSnapshot, wall_ts: f64) -> Vec<TelemetryFrame> 
     out.push(repeated(BMS_CELL_TEMP, wall_ts, temp));
     out.push(simple_bytes(
         BMS_BAL_RATE,
-        t,
+        wall_ts,
         [0x08, 0x00, 0x08, 0x00, 0x04, 0x00, 0x04, 0x00],
     ));
     out.push(repeated(

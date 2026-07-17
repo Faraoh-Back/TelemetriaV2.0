@@ -2,8 +2,8 @@ use crate::protocol::TelemetryFrame;
 use crate::scenarios::ScenarioSnapshot;
 use crate::util::clamp_i16;
 
-pub const INS_01: u32 = 0x8000_0001;
-pub const INS_02: u32 = 0x8000_0002;
+pub const INS_01: u32 = 0x0000_0001;
+pub const INS_02: u32 = 0x0000_0002;
 
 pub fn frames(snapshot: &ScenarioSnapshot, wall_ts: f64) -> Vec<TelemetryFrame> {
     let mut a = [0u8; 8];
@@ -12,9 +12,9 @@ pub fn frames(snapshot: &ScenarioSnapshot, wall_ts: f64) -> Vec<TelemetryFrame> 
     pack_pair(
         &mut a,
         snapshot.accel_x,
-        snapshot.yaw_rate,
+        0.0,
         snapshot.accel_y,
-        snapshot.speed_x,
+        0.0,
     );
     pack_pair(
         &mut b,

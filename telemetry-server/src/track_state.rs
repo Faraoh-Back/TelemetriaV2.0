@@ -195,15 +195,11 @@ impl RealtimeTrackState {
             | "SPEED_LINEAR_X"
             | "ventor_linear_speed_x"
             | "VENTOR_LINEAR_SPEED_X" => {
-                self.direct_speed_mps = Some(
-                    if name.eq_ignore_ascii_case("Speed_Linear_X")
-                        || signal.unit.eq_ignore_ascii_case("km/h")
-                    {
-                        signal.value / 3.6
-                    } else {
-                        signal.value
-                    },
-                );
+                self.direct_speed_mps = Some(if signal.unit.eq_ignore_ascii_case("km/h") {
+                    signal.value / 3.6
+                } else {
+                    signal.value
+                });
             }
             "act_Speed A0" | "act_Speed_A0" | "RPM 0A" | "RPM_0A" => {
                 self.rpm_a0 = Some(signal.value)

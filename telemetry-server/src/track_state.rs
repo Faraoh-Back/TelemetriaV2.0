@@ -10,7 +10,9 @@ pub struct Point2 {
 }
 
 pub struct RealtimeTrackState {
-    lap_period_sec: f64,
+    configured_close_radius_m: Option<f64>,
+    configured_min_lap_distance_m: Option<f64>,
+    min_lap_time_sec: f64,
     max_map_points: usize,
     t0: Option<f64>,
     last_t: Option<f64>,
@@ -31,19 +33,22 @@ pub struct RealtimeTrackState {
     map_points: Vec<Point2>,
     map_arc_m: Vec<f64>,
     map_len_m: f64,
+    left_start_area: bool,
     map_sent: bool,
 }
 
 impl RealtimeTrackState {
     pub fn new() -> Self {
-        let lap_period_sec = std::env::var("TRACK_LAP_PERIOD_SEC")
-            .ok()
-            .and_then(|v| v.parse::<f64>().ok())
-            .unwrap_or(45.0)
-            .clamp(5.0, 600.0);
+        let configured_close_radius_m =
+            env_opt_f64("TRACK_CLOSE_RADIUS_M").map(|value| value.clamp(1.0, 50.0));
+        let configured_min_lap_distance_m =
+            env_opt_f64("TRACK_MIN_LAP_DISTANCE_M").map(|value| value.clamp(5.0, 5000.0));
+        let min_lap_time_sec = env_f64("TRACK_MIN_LAP_SEC", 5.0).clamp(0.0, 120.0);
 
         Self {
-            lap_period_sec,
+            configured_close_radius_m,
+            configured_min_lap_distance_m,
+            min_lap_time_sec,
             max_map_points: 600,
             t0: None,
             last_t: None,
@@ -64,6 +69,7 @@ impl RealtimeTrackState {
             map_points: Vec::new(),
             map_arc_m: Vec::new(),
             map_len_m: 0.0,
+            left_start_area: false,
             map_sent: false,
         }
     }
@@ -88,6 +94,7 @@ impl RealtimeTrackState {
         self.map_points.clear();
         self.map_arc_m.clear();
         self.map_len_m = 0.0;
+        self.left_start_area = false;
         self.map_sent = false;
     }
 
@@ -172,7 +179,9 @@ impl RealtimeTrackState {
                 x: self.x_m,
                 y: self.y_m,
             });
-            if elapsed >= self.lap_period_sec && self.learning_points.len() >= 20 {
+            self.update_start_area_state();
+
+            if self.should_close_learning_lap(elapsed) {
                 self.freeze_map();
                 if !self.map_points.is_empty() {
                     messages.push(self.track_map_message(timestamp));
@@ -190,7 +199,8 @@ impl RealtimeTrackState {
                             "state": "learning_first_lap",
                             "timestamp": timestamp,
                             "elapsed_sec": elapsed,
-                            "lap_period_sec": self.lap_period_sec,
+                            "close_radius_m": self.close_radius_m(),
+                            "min_lap_distance_m": self.min_lap_distance_m(),
                             "points": self.learning_points.len(),
                         })
                         .to_string(),
@@ -254,6 +264,70 @@ impl RealtimeTrackState {
             }
             _ => {}
         }
+    }
+
+    fn update_start_area_state(&mut self) {
+        let Some(first) = self.learning_points.first().copied() else {
+            return;
+        };
+        let current = Point2 {
+            x: self.x_m,
+            y: self.y_m,
+        };
+        if distance(first, current) > self.close_radius_m() * 2.0 {
+            self.left_start_area = true;
+        }
+    }
+
+    fn should_close_learning_lap(&self, elapsed: f64) -> bool {
+        if self.learning_points.len() < 20 {
+            return false;
+        }
+        if !self.left_start_area {
+            return false;
+        }
+        if elapsed < self.min_lap_time_sec {
+            return false;
+        }
+        if self.distance_m < self.min_lap_distance_m() {
+            return false;
+        }
+
+        let Some(first) = self.learning_points.first().copied() else {
+            return false;
+        };
+        let current = Point2 {
+            x: self.x_m,
+            y: self.y_m,
+        };
+        distance(first, current) <= self.close_radius_m()
+    }
+
+    fn learned_extent_m(&self) -> f64 {
+        let Some(first) = self.learning_points.first().copied() else {
+            return 0.0;
+        };
+        self.learning_points
+            .iter()
+            .map(|point| distance(first, *point))
+            .fold(0.0, f64::max)
+    }
+
+    fn close_radius_m(&self) -> f64 {
+        if let Some(radius) = self.configured_close_radius_m {
+            return radius;
+        }
+        (self.learned_extent_m() * 0.08).clamp(4.0, 20.0)
+    }
+
+    fn min_lap_distance_m(&self) -> f64 {
+        if let Some(distance_m) = self.configured_min_lap_distance_m {
+            return distance_m;
+        }
+        let close_radius_m = self.close_radius_m();
+        (self.learned_extent_m() * 2.0)
+            .max(close_radius_m * 8.0)
+            .clamp(25.0, 5000.0)
     }
 
     fn rpm_speed_mps(&self) -> Option<f64> {
@@ -328,7 +402,7 @@ impl RealtimeTrackState {
         json!({
             "type": "track_map",
             "timestamp": timestamp,
-            "lap_period_sec": self.lap_period_sec,
+            "close_radius_m": self.close_radius_m(),
             "track": {
                 "points": points,
                 "bounds": { "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y },
@@ -346,7 +420,8 @@ impl RealtimeTrackState {
             "timestamp": timestamp,
             "state": "learning_first_lap",
             "elapsed_sec": timestamp - self.t0.unwrap_or(timestamp),
-            "lap_period_sec": self.lap_period_sec,
+            "close_radius_m": self.close_radius_m(),
+            "min_lap_distance_m": self.min_lap_distance_m(),
             "track": {
                 "points": points,
                 "bounds": { "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y },
@@ -408,6 +483,14 @@ impl RealtimeTrackState {
 
 fn distance(a: Point2, b: Point2) -> f64 {
     ((a.x - b.x).powi(2) + (a.y - b.y).powi(2)).sqrt()
+}
+
+fn env_f64(name: &str, default: f64) -> f64 {
+    env_opt_f64(name).unwrap_or(default)
+}
+
+fn env_opt_f64(name: &str) -> Option<f64> {
+    std::env::var(name).ok().and_then(|v| v.parse::<f64>().ok())
 }
 
 fn downsample_points(points: &[Point2], max_points: usize) -> Vec<Point2> {
@@ -555,5 +638,87 @@ mod tests {
 
         assert!((state.x_m - 10.0).abs() < 1e-9);
         assert!((state.distance_m - 10.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn does_not_freeze_map_until_vehicle_returns_to_start() {
+        let mut state = RealtimeTrackState::new();
+        state.configured_close_radius_m = Some(3.0);
+        state.configured_min_lap_distance_m = Some(20.0);
+        state.min_lap_time_sec = 0.0;
+
+        state.update(&[
+            signal(0.0, "Speed_Linear_X", 10.0),
+            signal(0.0, "Speed_Linear_Y", 0.0),
+        ]);
+
+        for t in 1..25 {
+            state.update(&[
+                signal(t as f64, "Speed_Linear_X", 10.0),
+                signal(t as f64, "Speed_Linear_Y", 0.0),
+            ]);
+        }
+
+        assert!(state.map_points.is_empty());
+        assert!(state.left_start_area);
+        assert!(state.distance_m >= state.min_lap_distance_m());
+    }
+
+    #[test]
+    fn freezes_map_when_vehicle_returns_to_start_area() {
+        let mut state = RealtimeTrackState::new();
+        state.configured_close_radius_m = Some(3.0);
+        state.configured_min_lap_distance_m = Some(20.0);
+        state.min_lap_time_sec = 0.0;
+
+        state.update(&[
+            signal(0.0, "Speed_Linear_X", 10.0),
+            signal(0.0, "Speed_Linear_Y", 0.0),
+        ]);
+
+        for t in 1..=20 {
+            let (vx, vy) = match t {
+                1..=5 => (2.0, 0.0),
+                6..=10 => (0.0, 2.0),
+                11..=15 => (-2.0, 0.0),
+                _ => (0.0, -2.0),
+            };
+            state.update(&[
+                signal(t as f64, "Speed_Linear_X", vx),
+                signal(t as f64, "Speed_Linear_Y", vy),
+            ]);
+        }
+
+        assert!(!state.map_points.is_empty());
+        assert!(state.map_len_m > 0.0);
+    }
+
+    #[test]
+    fn adaptive_closure_detects_generic_loop_without_fixed_distance() {
+        let mut state = RealtimeTrackState::new();
+        state.configured_close_radius_m = None;
+        state.configured_min_lap_distance_m = None;
+        state.min_lap_time_sec = 0.0;
+
+        state.update(&[
+            signal(0.0, "Speed_Linear_X", 4.0),
+            signal(0.0, "Speed_Linear_Y", 0.0),
+        ]);
+
+        for t in 1..=40 {
+            let (vx, vy) = match t {
+                1..=10 => (4.0, 0.0),
+                11..=20 => (0.0, 4.0),
+                21..=30 => (-4.0, 0.0),
+                _ => (0.0, -4.0),
+            };
+            state.update(&[
+                signal(t as f64, "Speed_Linear_X", vx),
+                signal(t as f64, "Speed_Linear_Y", vy),
+            ]);
+        }
+
+        assert!(!state.map_points.is_empty());
+        assert!(state.map_len_m > 0.0);
     }
 }

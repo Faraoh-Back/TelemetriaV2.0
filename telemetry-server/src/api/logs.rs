@@ -440,6 +440,10 @@ fn resample_zoh(timestamps: &[f64], values: &[f64], n: usize, dt: f64) -> Vec<f3
 }
 
 /// Converte "2026-06-16T14:30:00Z" -> ("16/06/2026", "14:30:00") para o header.
+///
+/// A MoTeC exige que ambos os campos sejam datas válidas. Uma sessão antiga
+/// pode não ter `started_at_iso`; nesse caso usamos a época Unix em vez de
+/// escrever strings vazias que tornam o arquivo impossível de abrir.
 fn iso_to_motec_datetime(iso: &str) -> (String, String) {
     let (date_part, time_part) = iso.split_once('T').unwrap_or((iso, ""));
     let date = {
@@ -447,10 +451,13 @@ fn iso_to_motec_datetime(iso: &str) -> (String, String) {
         if p.len() == 3 {
             format!("{}/{}/{}", p[2], p[1], p[0])
         } else {
-            date_part.to_string()
+            "01/01/1970".to_string()
         }
     };
-    let time = time_part.get(..8).unwrap_or(time_part).to_string();
+    let time = match time_part.get(..8) {
+        Some(value) if value.len() == 8 => value.to_string(),
+        _ => "00:00:00".to_string(),
+    };
     (date, time)
 }
 
@@ -576,9 +583,10 @@ fn generate_ld_file(
 
 // ==================== GERADOR MoTeC .ldx (índice XML) ====================
 //
-// Sidecar XML que a i2 Pro lê junto do .ld para markers/laps e os campos de
-// <Details> (Event, Venue, Vehicle Id, etc.). Sem esse arquivo a i2 não associa
-// os metadados de sessão ao log binário.
+// Sidecar XML que a i2 Pro lê junto do .ld para os campos de <Details>
+// (Event, Venue, Vehicle Id, etc.). A posição de <Details> dentro de <Layers>
+// segue os .ldx originais da MoTeC em scripts/. Sem essa hierarquia a i2 ignora
+// o sidecar, embora o XML ainda seja bem-formado.
 
 fn xml_escape(s: &str) -> String {
     s.replace('&', "&amp;")
@@ -590,28 +598,38 @@ fn xml_escape(s: &str) -> String {
 
 fn generate_ldx_file(_session_id: i64, session_name: &str, started_at_iso: &str) -> String {
     let event = xml_escape(session_name);
-    let start = xml_escape(started_at_iso);
+    let (date, time) = iso_to_motec_datetime(started_at_iso);
+    let date = xml_escape(&date);
+    let time = xml_escape(&time);
 
     format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
-<LDXFile Locale="C" DefaultLocale="C" Version="1.6">
-    <Layers>
-        <Layer>
-            <MarkerBlock Version="2.0">
-                <MarkerGroup Index="0" Type="Beacon" Count="0"></MarkerGroup>
-            </MarkerBlock>
-        </Layer>
-    </Layers>
+<LDXFile Locale="English_New Zealand.1252" DefaultLocale="C" Version="1.6">
+  <Layers>
     <Details>
-        <String Id="Event" Value="{event}"/>
-        <String Id="Session" Value="{event}"/>
-        <String Id="Venue" Value="UNICAMP"/>
-        <String Id="Vehicle Id" Value="UNICAMP E-RACING"/>
-        <String Id="Driver" Value="UNICAMP E-RACING Team"/>
-        <String Id="Engine Id" Value="E-Racing Powertrain"/>
-        <String Id="Comment" Value="Telemetria V2.2 - exportacao automatica"/>
-        <String Id="Start Time" Value="{start}"/>
+      <String Id="Event" Value="{event}"/>
+      <String Id="Venue" Value="UNICAMP"/>
+      <String Id="Venue Category" Value=""/>
+      <String Id="Driver" Value="UNICAMP E-RACING Team"/>
+      <String Id="Team" Value="UNICAMP E-RACING"/>
+      <String Id="Vehicle Id" Value="UNICAMP E-RACING"/>
+      <String Id="Vehicle Number" Value=""/>
+      <String Id="Vehicle Desc" Value="Formula SAE Electric"/>
+      <String Id="Engine Id" Value="E-Racing Powertrain"/>
+      <String Id="Session" Value="{event}"/>
+      <String Id="Start Lap" Value=""/>
+      <String Id="Short Comment" Value="Telemetria V2.2"/>
+      <String Id="Long Comment" Value="Exportacao automatica Telemetria V2.2"/>
+      <DateTime Id="Log Date" Value="{date}"/>
+      <DateTime Id="Log Time" Value="{time}"/>
+      <String Id="Sky" Value=""/>
+      <String Id="Wind Direction" Value=""/>
+      <String Id="Weather Comment" Value=""/>
+      <String Id="Vehicle Type" Value="Formula SAE"/>
+      <String Id="Vehicle Drive Type" Value="Electric"/>
+      <String Id="Vehicle Comment" Value=""/>
     </Details>
+  </Layers>
 </LDXFile>
 "#
     )
@@ -687,6 +705,10 @@ mod tests {
             + num_channels * n * 4;
         assert_eq!(ld.len(), expected, "tamanho total do .ld divergente");
         assert_eq!(&ld[0..4], &0x40u32.to_le_bytes(), "marker incorreto");
+        assert!(ldx.contains("<Layers>\n    <Details>"));
+        assert!(ldx.contains("<DateTime Id=\"Log Date\" Value=\"16/06/2026\"/>"));
+        assert!(ldx.contains("<DateTime Id=\"Log Time\" Value=\"14:30:00\"/>"));
+        assert!(!ldx.contains("</Layers>\n    <Details>"));
 
         std::fs::write(OUT_LD, &ld).unwrap();
         std::fs::write(OUT_LDX, ldx.as_bytes()).unwrap();
@@ -694,5 +716,13 @@ mod tests {
         println!("LD_BYTES={}", ld.len());
         println!("WROTE_LD={}", OUT_LD);
         println!("WROTE_LDX={}", OUT_LDX);
+    }
+
+    #[test]
+    fn motec_datetime_never_emits_empty_fields() {
+        assert_eq!(
+            iso_to_motec_datetime(""),
+            ("01/01/1970".to_string(), "00:00:00".to_string())
+        );
     }
 }

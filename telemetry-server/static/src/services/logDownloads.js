@@ -81,7 +81,10 @@ function triggerBlobDownload(blob, filename) {
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
-    URL.revokeObjectURL(url)
+
+    // Alguns navegadores ainda leem o Blob depois do click. Revogá-lo no
+    // mesmo tick cancela intermitentemente o segundo download (.ldx).
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }
 
 export async function downloadTelemetryLog(log, token) {
@@ -92,10 +95,16 @@ export async function downloadTelemetryLog(log, token) {
 
     const { apiBase } = getServerConfig()
 
-    // 1. Download .ld
-    const responseLd = await fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ld`, {
-        headers: authHeaders(token),
-    })
+    // Busca os dois artefatos antes de iniciar qualquer download. Assim nunca
+    // entregamos só o .ld quando o sidecar .ldx falhar no backend.
+    const [responseLd, responseLdx] = await Promise.all([
+        fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ld`, {
+            headers: authHeaders(token),
+        }),
+        fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ldx`, {
+            headers: authHeaders(token),
+        }),
+    ])
 
     if (!responseLd.ok) {
         const data = await responseLd.json().catch(() => ({}))
@@ -105,18 +114,6 @@ export async function downloadTelemetryLog(log, token) {
         )
     }
 
-    const blobLd = await responseLd.blob()
-    const filenameLd =
-        getFilenameFromDisposition(responseLd.headers.get('Content-Disposition')) ||
-        getFallbackFilename(log, 'ld')
-
-    triggerBlobDownload(blobLd, filenameLd)
-
-    // 2. Download .ldx
-    const responseLdx = await fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(log.id)}/download?ext=ldx`, {
-        headers: authHeaders(token),
-    })
-
     if (!responseLdx.ok) {
         const data = await responseLdx.json().catch(() => ({}))
         throw new LogDownloadError(
@@ -125,10 +122,14 @@ export async function downloadTelemetryLog(log, token) {
         )
     }
 
-    const blobLdx = await responseLdx.blob()
+    const [blobLd, blobLdx] = await Promise.all([responseLd.blob(), responseLdx.blob()])
+    const filenameLd =
+        getFilenameFromDisposition(responseLd.headers.get('Content-Disposition')) ||
+        getFallbackFilename(log, 'ld')
     const filenameLdx =
         getFilenameFromDisposition(responseLdx.headers.get('Content-Disposition')) ||
         getFallbackFilename(log, 'ldx')
 
+    triggerBlobDownload(blobLd, filenameLd)
     triggerBlobDownload(blobLdx, filenameLdx)
 }

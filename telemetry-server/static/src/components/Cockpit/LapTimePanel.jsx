@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createSignal, createMemo } from 'solid-js'
+import { For, Show, createEffect, createSignal } from 'solid-js'
 import { lapState } from '../../store.js'
 
 function LapTimePanel() {
@@ -12,19 +12,13 @@ function LapTimePanel() {
         return () => clearTimeout(timer)
     })
 
-    const displayLaps = createMemo(() => {
-        const all = lapState.allLaps
-        const best = new Set(lapState.bestLaps.map((l) => l.lap))
-        return all.map((entry) => ({
-            ...entry,
-            isBest: best.has(entry.lap),
-        }))
-    })
+    // bestLaps já vem do store ordenado por tempo (mais rápida primeiro), top 5
+    const bestLaps = () => lapState.bestLaps
 
     return (
         <section class="lap-time" aria-label="Tempos de volta">
             <header class="cockpit-panel__header">
-                <span>Voltas</span>
+                <span>Melhores voltas</span>
                 <strong>{lapState.lapCount > 0 ? `${lapState.lapCount} completadas` : 'aguardando'}</strong>
             </header>
 
@@ -46,15 +40,16 @@ function LapTimePanel() {
                     </div>
                 </Show>
 
-                <Show when={displayLaps().length > 0}>
+                <Show when={bestLaps().length > 0}>
                     <div class="lap-time__list">
-                        <For each={displayLaps()}>
-                            {(entry) => (
+                        <For each={bestLaps()}>
+                            {(entry, i) => (
                                 <span
                                     class="lap-time__entry"
-                                    classList={{ 'lap-time__entry--best': entry.isBest }}
+                                    classList={{ 'lap-time__entry--best': i() === 0 }}
                                 >
-                                    <span class="lap-time__entry-lap">#{entry.lap}</span>
+                                    <span class="lap-time__entry-rank">#{i() + 1}</span>
+                                    <span class="lap-time__entry-lap">volta {entry.lap}</span>
                                     <span class="lap-time__entry-time">{entry.formatted}</span>
                                 </span>
                             )}

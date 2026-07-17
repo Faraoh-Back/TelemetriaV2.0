@@ -228,10 +228,6 @@
     50% { opacity: 1; }
 }
 
-.track-map__position--live {
-    transform: translate(-50%, -50%);
-    z-index: 2;
-}
 
 .track-map__svg {
     position: absolute;
@@ -249,27 +245,6 @@
     stroke-linejoin: round;
     vector-effect: non-scaling-stroke;
     filter: drop-shadow(0 0 8px rgba(242,204,96,0.22));
-}
-
-.track-map__odom-path {
-    fill: none;
-    stroke: rgba(242, 204, 96, 0.4);
-    stroke-width: 0.8;
-    stroke-dasharray: 2 2;
-    vector-effect: non-scaling-stroke;
-}
-
-.track-map__drift-line {
-    stroke: rgba(255, 100, 100, 0.6);
-    stroke-width: 1;
-    stroke-dasharray: 1 1;
-    vector-effect: non-scaling-stroke;
-}
-
-.track-map__raw-vehicle {
-    fill: rgba(221, 102, 63, 0.4);
-    stroke: rgba(255, 255, 255, 0.4);
-    stroke-width: 0.8;
 }
 
 .track-map__vehicle {
@@ -378,14 +353,14 @@
 }
 
 .lap-time__last--flash {
-    background: rgba(31,182,142,0.18);
-    border-color: rgba(31,182,142,0.5);
+    background: rgba(221,102,63,0.18);
+    border-color: rgba(221,102,63,0.5);
     animation: lap-flash 2s ease-out;
 }
 
 @keyframes lap-flash {
-    0% { background: rgba(31,182,142,0.35); border-color: rgba(31,182,142,0.7); }
-    100% { background: rgba(31,182,142,0.18); border-color: rgba(31,182,142,0.5); }
+    0% { background: rgba(221,102,63,0.35); border-color: rgba(221,102,63,0.7); }
+    100% { background: rgba(221,102,63,0.18); border-color: rgba(221,102,63,0.5); }
 }
 
 .lap-time__last-label {
@@ -405,7 +380,7 @@
 }
 
 .lap-time__last--flash .lap-time__last-value {
-    color: #3ddbab;
+    color: var(--brand-orange);
 }
 
 .lap-time__list {
@@ -419,7 +394,7 @@
 .lap-time__entry {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 8px;
     padding: 3px 10px;
     border-radius: 4px;
     font-size: 12px;
@@ -430,18 +405,27 @@
 }
 
 .lap-time__entry--best {
-    background: rgba(31,182,142,0.08);
+    background: rgba(221,102,63,0.1);
     color: var(--text);
     font-weight: 600;
+    border: 1px solid rgba(221,102,63,0.22);
 }
 
-.lap-time__entry--best .lap-time__entry-lap {
-    color: #3ddbab;
+.lap-time__entry-rank {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--brand-orange);
+    min-width: 20px;
+}
+
+.lap-time__entry--best .lap-time__entry-rank {
+    color: var(--brand-orange);
 }
 
 .lap-time__entry-lap {
     font-size: 11px;
     color: var(--text2);
+    flex: 1;
 }
 
 .lap-time__entry-time {
@@ -449,7 +433,7 @@
 }
 
 .lap-time__entry--best .lap-time__entry-time {
-    color: #3ddbab;
+    color: var(--brand-orange);
 }
 
 .torque-dist {
@@ -525,7 +509,7 @@
 }
 
 .torque-dist__bar--pos {
-    background: #1fb68e;
+    background: var(--brand-orange);
 }
 
 .torque-dist__bar--neg {

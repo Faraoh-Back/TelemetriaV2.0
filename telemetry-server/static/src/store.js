@@ -64,6 +64,10 @@ function formatLapTime(seconds) {
     return `${min}:${sec.padStart(6, '0')}`
 }
 
+// Voltas abaixo deste limiar são descartadas como anomalias
+// (e.g. primeira detecção parcial ao ligar o sistema no meio de uma volta)
+const MIN_LAP_SECONDS = 10
+
 function updateLapDetection(vehicle, trackLength, timestamp) {
     if (!vehicle || !trackLength || trackLength <= 0) return
     if (!Number.isFinite(vehicle.distance_m)) return
@@ -75,7 +79,9 @@ function updateLapDetection(vehicle, trackLength, timestamp) {
 
     if (currentLapNumber > prevLapNumber) {
         const elapsed = lapStart != null ? timestamp - lapStart : null
-        if (elapsed != null && elapsed > 0) {
+        const isValid = elapsed != null && elapsed >= MIN_LAP_SECONDS
+
+        if (isValid) {
             const formatted = formatLapTime(elapsed)
             const entry = { lap: currentLapNumber, time: elapsed, formatted }
 
@@ -89,6 +95,12 @@ function updateLapDetection(vehicle, trackLength, timestamp) {
                 lastLapAt: Date.now(),
                 allLaps: updatedAll,
                 bestLaps: updatedBest,
+                lapCount: currentLapNumber,
+                _lapStart: timestamp,
+            })
+        } else {
+            // Volta inválida: avança o contador mas não registra o tempo
+            setLapState({
                 lapCount: currentLapNumber,
                 _lapStart: timestamp,
             })

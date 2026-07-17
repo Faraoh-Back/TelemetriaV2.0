@@ -374,7 +374,14 @@ import { decodeSignal } from '../utils/canDecode.js'
             return;
         }
 
-        if (payload.type === 'track_status' || payload.type === 'track_map' || payload.type === 'track_pose') {
+        if (
+            payload.type === 'track_status'
+            || payload.type === 'track_map'
+            || payload.type === 'track_pose'
+            || payload.type === 'track_path'
+            || payload.type === 'track_quality'
+            || payload.type === 'track_observations'
+        ) {
             self.postMessage({ type: 'track', payload });
             return;
         }

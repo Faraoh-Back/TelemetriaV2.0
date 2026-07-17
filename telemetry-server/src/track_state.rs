@@ -9,11 +9,23 @@ pub struct Point2 {
     pub y: f64,
 }
 
+#[derive(Debug, Clone)]
+pub struct Landmark {
+    pub x: f64,
+    pub y: f64,
+    pub kind: String,
+    pub confidence: f64,
+    pub count: u32,
+}
+
 pub struct RealtimeTrackState {
     configured_close_radius_m: Option<f64>,
     configured_min_lap_distance_m: Option<f64>,
     min_lap_time_sec: f64,
+    speed_frame: SpeedFrame,
     max_map_points: usize,
+    max_odom_points: usize,
+    last_path_sent_len: usize,
     t0: Option<f64>,
     last_t: Option<f64>,
     heading_rad: f64,
@@ -29,12 +41,20 @@ pub struct RealtimeTrackState {
     rpm_b0: Option<f64>,
     rpm_a13: Option<f64>,
     rpm_b13: Option<f64>,
+    odom_points: Vec<Point2>,
     learning_points: Vec<Point2>,
     map_points: Vec<Point2>,
     map_arc_m: Vec<f64>,
     map_len_m: f64,
+    landmarks: Vec<Landmark>,
     left_start_area: bool,
     map_sent: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SpeedFrame {
+    Body,
+    Global,
 }
 
 impl RealtimeTrackState {
@@ -44,12 +64,16 @@ impl RealtimeTrackState {
         let configured_min_lap_distance_m =
             env_opt_f64("TRACK_MIN_LAP_DISTANCE_M").map(|value| value.clamp(5.0, 5000.0));
         let min_lap_time_sec = env_f64("TRACK_MIN_LAP_SEC", 5.0).clamp(0.0, 120.0);
+        let speed_frame = speed_frame_from_env();
 
         Self {
             configured_close_radius_m,
             configured_min_lap_distance_m,
             min_lap_time_sec,
+            speed_frame,
             max_map_points: 600,
+            max_odom_points: 2000,
+            last_path_sent_len: 0,
             t0: None,
             last_t: None,
             heading_rad: 0.0,
@@ -65,10 +89,12 @@ impl RealtimeTrackState {
             rpm_b0: None,
             rpm_a13: None,
             rpm_b13: None,
+            odom_points: Vec::new(),
             learning_points: Vec::new(),
             map_points: Vec::new(),
             map_arc_m: Vec::new(),
             map_len_m: 0.0,
+            landmarks: Vec::new(),
             left_start_area: false,
             map_sent: false,
         }
@@ -90,10 +116,13 @@ impl RealtimeTrackState {
         self.rpm_b0 = None;
         self.rpm_a13 = None;
         self.rpm_b13 = None;
+        self.odom_points.clear();
+        self.last_path_sent_len = 0;
         self.learning_points.clear();
         self.map_points.clear();
         self.map_arc_m.clear();
         self.map_len_m = 0.0;
+        self.landmarks.clear();
         self.left_start_area = false;
         self.map_sent = false;
     }
@@ -117,6 +146,7 @@ impl RealtimeTrackState {
             for signal in signals {
                 self.apply_signal(signal);
             }
+            self.push_odom_point();
             self.learning_points.push(Point2 { x: 0.0, y: 0.0 });
             return Vec::new();
         }
@@ -146,12 +176,24 @@ impl RealtimeTrackState {
 
         if let (Some(vx), Some(vy)) = (self.speed_x_mps, self.speed_y_mps) {
             self.velocity_mps = vx.hypot(vy);
-            if self.velocity_mps > 1e-6 {
-                self.heading_rad = vy.atan2(vx);
-            }
             self.distance_m += self.velocity_mps * dt;
-            self.x_m += vx * dt;
-            self.y_m += vy * dt;
+
+            match self.speed_frame {
+                SpeedFrame::Body => {
+                    self.heading_rad += self.yaw_rate_rps.unwrap_or(0.0) * dt;
+                    let cos_h = self.heading_rad.cos();
+                    let sin_h = self.heading_rad.sin();
+                    self.x_m += (vx * cos_h - vy * sin_h) * dt;
+                    self.y_m += (vx * sin_h + vy * cos_h) * dt;
+                }
+                SpeedFrame::Global => {
+                    if self.velocity_mps > 1e-6 {
+                        self.heading_rad = vy.atan2(vx);
+                    }
+                    self.x_m += vx * dt;
+                    self.y_m += vy * dt;
+                }
+            }
         } else {
             let rpm_speed = self.rpm_speed_mps();
             let acc_x = self.acc_x_mps2.unwrap_or(0.0);
@@ -171,6 +213,8 @@ impl RealtimeTrackState {
             self.y_m += self.velocity_mps * self.heading_rad.sin() * dt;
         }
 
+        self.push_odom_point();
+
         let elapsed = timestamp - self.t0.unwrap_or(timestamp);
         let mut messages = Vec::new();
 
@@ -185,13 +229,12 @@ impl RealtimeTrackState {
                 self.freeze_map();
                 if !self.map_points.is_empty() {
                     messages.push(self.track_map_message(timestamp));
+                    messages.push(self.track_path_message(timestamp));
+                    messages.push(self.track_quality_message(timestamp));
+                    messages.push(self.track_observations_message(timestamp));
                     self.map_sent = true;
                 }
             } else {
-                if self.learning_points.len() >= 2 && (self.learning_points.len() % 5) == 0 {
-                    messages.push(self.learning_track_message(timestamp));
-                    messages.push(self.learning_pose_message(timestamp));
-                }
                 if (self.learning_points.len() % 25) == 0 {
                     messages.push(
                         json!({
@@ -205,6 +248,8 @@ impl RealtimeTrackState {
                         })
                         .to_string(),
                     );
+                    messages.push(self.track_path_message(timestamp));
+                    messages.push(self.track_observations_message(timestamp));
                 }
             }
         }
@@ -212,9 +257,17 @@ impl RealtimeTrackState {
         if !self.map_points.is_empty() {
             if !self.map_sent {
                 messages.push(self.track_map_message(timestamp));
+                messages.push(self.track_path_message(timestamp));
+                messages.push(self.track_quality_message(timestamp));
+                messages.push(self.track_observations_message(timestamp));
                 self.map_sent = true;
             }
+            if self.should_send_path_update() {
+                messages.push(self.track_path_message(timestamp));
+            }
             messages.push(self.track_pose_message(timestamp));
+            messages.push(self.track_quality_message(timestamp));
+            messages.push(self.track_observations_message(timestamp));
         }
 
         messages
@@ -345,6 +398,33 @@ impl RealtimeTrackState {
         )
     }
 
+    fn push_odom_point(&mut self) {
+        let point = Point2 {
+            x: self.x_m,
+            y: self.y_m,
+        };
+        if self
+            .odom_points
+            .last()
+            .is_some_and(|last| distance(*last, point) < 0.05)
+        {
+            return;
+        }
+        self.odom_points.push(point);
+        if self.odom_points.len() > self.max_odom_points {
+            let overflow = self.odom_points.len() - self.max_odom_points;
+            self.odom_points.drain(0..overflow);
+            self.last_path_sent_len = self.last_path_sent_len.saturating_sub(overflow);
+        }
+    }
+
+    fn should_send_path_update(&self) -> bool {
+        self.odom_points
+            .len()
+            .saturating_sub(self.last_path_sent_len)
+            >= 10
+    }
+
     fn freeze_map(&mut self) {
         self.map_points = downsample_points(&self.learning_points, self.max_map_points);
         if let (Some(first), Some(last)) = (
@@ -396,6 +476,34 @@ impl RealtimeTrackState {
         }
     }
 
+    fn drift_estimate_m(&self) -> f64 {
+        distance(
+            Point2 {
+                x: self.x_m,
+                y: self.y_m,
+            },
+            self.position_on_map(),
+        )
+    }
+
+    fn quality_mode(&self) -> &'static str {
+        if self.map_points.is_empty() {
+            return "learning";
+        }
+        if self.drift_estimate_m() > self.close_radius_m().max(5.0) {
+            return "drifting";
+        }
+        "mapped"
+    }
+
+    fn quality_confidence(&self) -> f64 {
+        if self.map_points.is_empty() {
+            return 0.35;
+        }
+        let tolerance = self.close_radius_m().max(1.0);
+        (1.0 - (self.drift_estimate_m() / tolerance)).clamp(0.0, 1.0)
+    }
+
     fn track_map_message(&self, timestamp: f64) -> String {
         let (min_x, max_x, min_y, max_y) = bounds(&self.map_points);
         let points = json_points(&self.map_points);
@@ -412,35 +520,36 @@ impl RealtimeTrackState {
         .to_string()
     }
 
-    fn learning_track_message(&self, timestamp: f64) -> String {
-        let (min_x, max_x, min_y, max_y) = bounds(&self.learning_points);
-        let points = json_points(&self.learning_points);
+    fn track_path_message(&mut self, timestamp: f64) -> String {
+        self.last_path_sent_len = self.odom_points.len();
         json!({
-            "type": "track_map",
+            "type": "track_path",
             "timestamp": timestamp,
-            "state": "learning_first_lap",
-            "elapsed_sec": timestamp - self.t0.unwrap_or(timestamp),
-            "close_radius_m": self.close_radius_m(),
-            "min_lap_distance_m": self.min_lap_distance_m(),
-            "track": {
-                "points": points,
-                "bounds": { "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y },
-                "learning": true,
+            "path": {
+                "frame": match self.speed_frame {
+                    SpeedFrame::Body => "odom",
+                    SpeedFrame::Global => "map",
+                },
+                "points": json_points(&downsample_points(&self.odom_points, self.max_map_points)),
             }
         })
         .to_string()
     }
 
     fn track_pose_message(&self, timestamp: f64) -> String {
-        let p = self.position_on_map();
+        let projected = self.position_on_map();
         json!({
             "type": "track_pose",
             "timestamp": timestamp,
             "vehicle": {
-                "x": p.x,
-                "y": p.y,
-                "x_m": p.x,
-                "y_m": p.y,
+                "x": projected.x,
+                "y": projected.y,
+                "x_m": self.x_m,
+                "y_m": self.y_m,
+                "odom_x_m": self.x_m,
+                "odom_y_m": self.y_m,
+                "map_x_m": projected.x,
+                "map_y_m": projected.y,
                 "heading": self.heading_rad.to_degrees(),
                 "speed": self.velocity_mps,
                 "distance_m": self.distance_m,
@@ -449,22 +558,36 @@ impl RealtimeTrackState {
         .to_string()
     }
 
-    fn learning_pose_message(&self, timestamp: f64) -> String {
+    fn track_quality_message(&self, timestamp: f64) -> String {
         json!({
-            "type": "track_pose",
+            "type": "track_quality",
             "timestamp": timestamp,
-            "vehicle": {
-                "x": self.x_m,
-                "y": self.y_m,
-                "x_m": self.x_m,
-                "y_m": self.y_m,
-                "heading": self.heading_rad.to_degrees(),
-                "speed": self.velocity_mps,
-                "distance_m": self.distance_m,
-                "learning": true,
+            "quality": {
+                "mode": self.quality_mode(),
+                "confidence": self.quality_confidence(),
+                "drift_estimate_m": self.drift_estimate_m(),
+                "close_radius_m": self.close_radius_m(),
             }
         })
         .to_string()
+    }
+
+    fn track_observations_message(&self, timestamp: f64) -> String {
+        let landmarks_json: Vec<serde_json::Value> = self.landmarks.iter().map(|l| {
+            json!({
+                "x": l.x,
+                "y": l.y,
+                "kind": l.kind,
+                "confidence": l.confidence,
+                "count": l.count,
+            })
+        }).collect();
+
+        json!({
+            "type": "track_observations",
+            "timestamp": timestamp,
+            "landmarks": landmarks_json,
+        }).to_string()
     }
 }
 
@@ -478,6 +601,18 @@ fn env_f64(name: &str, default: f64) -> f64 {
 
 fn env_opt_f64(name: &str) -> Option<f64> {
     std::env::var(name).ok().and_then(|v| v.parse::<f64>().ok())
+}
+
+fn speed_frame_from_env() -> SpeedFrame {
+    match std::env::var("TRACK_SPEED_FRAME")
+        .unwrap_or_else(|_| "body".to_string())
+        .trim()
+        .to_ascii_lowercase()
+        .as_str()
+    {
+        "global" | "world" | "inertial" => SpeedFrame::Global,
+        _ => SpeedFrame::Body,
+    }
 }
 
 fn downsample_points(points: &[Point2], max_points: usize) -> Vec<Point2> {
@@ -572,6 +707,7 @@ mod tests {
     #[test]
     fn integrates_negative_speed_x_as_vector_component() {
         let mut state = RealtimeTrackState::new();
+        state.speed_frame = SpeedFrame::Global;
 
         state.update(&[
             signal(0.0, "Speed_Linear_X", 10.0),
@@ -594,6 +730,7 @@ mod tests {
     #[test]
     fn ignores_non_track_signals_for_integration() {
         let mut state = RealtimeTrackState::new();
+        state.speed_frame = SpeedFrame::Global;
 
         state.update(&[
             signal(0.0, "Speed_Linear_X", 10.0),
@@ -612,6 +749,7 @@ mod tests {
     #[test]
     fn does_not_freeze_map_until_vehicle_returns_to_start() {
         let mut state = RealtimeTrackState::new();
+        state.speed_frame = SpeedFrame::Global;
         state.configured_close_radius_m = Some(3.0);
         state.configured_min_lap_distance_m = Some(20.0);
         state.min_lap_time_sec = 0.0;
@@ -636,6 +774,7 @@ mod tests {
     #[test]
     fn freezes_map_when_vehicle_returns_to_start_area() {
         let mut state = RealtimeTrackState::new();
+        state.speed_frame = SpeedFrame::Global;
         state.configured_close_radius_m = Some(3.0);
         state.configured_min_lap_distance_m = Some(20.0);
         state.min_lap_time_sec = 0.0;
@@ -665,6 +804,7 @@ mod tests {
     #[test]
     fn adaptive_closure_detects_generic_loop_without_fixed_distance() {
         let mut state = RealtimeTrackState::new();
+        state.speed_frame = SpeedFrame::Global;
         state.configured_close_radius_m = None;
         state.configured_min_lap_distance_m = None;
         state.min_lap_time_sec = 0.0;
@@ -689,5 +829,40 @@ mod tests {
 
         assert!(!state.map_points.is_empty());
         assert!(state.map_len_m > 0.0);
+    }
+
+    #[test]
+    fn body_frame_speed_uses_yaw_rate_to_close_mock_like_lap() {
+        let mut state = RealtimeTrackState::new();
+        state.speed_frame = SpeedFrame::Body;
+        state.configured_close_radius_m = None;
+        state.configured_min_lap_distance_m = None;
+        state.min_lap_time_sec = 0.0;
+
+        let speed_mps = 10.0;
+        let lap_time_sec = 48.0;
+        let yaw_rate = std::f64::consts::TAU / lap_time_sec;
+        let dt = 0.5;
+
+        state.update(&[
+            signal(0.0, "Speed_Linear_X", speed_mps),
+            signal(0.0, "Speed_Linear_Y", 0.0),
+            signal(0.0, "Velo_Angular_Z", yaw_rate),
+        ]);
+
+        let mut emitted_map = false;
+        for i in 1..=((lap_time_sec / dt) as usize) {
+            let timestamp = i as f64 * dt;
+            let messages = state.update(&[
+                signal(timestamp, "Speed_Linear_X", speed_mps),
+                signal(timestamp, "Speed_Linear_Y", 0.0),
+                signal(timestamp, "Velo_Angular_Z", yaw_rate),
+            ]);
+            emitted_map |= messages.iter().any(|message| message.contains("\"track_map\""));
+        }
+
+        assert!(emitted_map);
+        assert!(!state.map_points.is_empty());
+        assert!(state.map_len_m > 300.0);
     }
 }

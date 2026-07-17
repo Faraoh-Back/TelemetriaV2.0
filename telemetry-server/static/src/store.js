@@ -44,6 +44,9 @@ const [trackState, setTrackState] = createStore({
     status: 'waiting',
     track: null,
     vehicle: null,
+    path: null,
+    quality: null,
+    landmarks: [],
     timestamp: null,
 })
 const [lapState, setLapState] = createStore({
@@ -164,6 +167,21 @@ const [telemetrySession, setTelemetrySession] = createStore({
                     trackState.track?.length_m,
                     Number(data.payload.timestamp),
                 )
+            } else if (data.payload?.type === 'track_path') {
+                setTrackState({
+                    path: data.payload.path ?? null,
+                    timestamp: data.payload.timestamp ?? null,
+                })
+            } else if (data.payload?.type === 'track_quality') {
+                setTrackState({
+                    quality: data.payload.quality ?? null,
+                    timestamp: data.payload.timestamp ?? null,
+                })
+            } else if (data.payload?.type === 'track_observations') {
+                setTrackState({
+                    landmarks: data.payload.landmarks ?? [],
+                    timestamp: data.payload.timestamp ?? null,
+                })
             }
             break
         }
@@ -240,6 +258,9 @@ const [telemetrySession, setTelemetrySession] = createStore({
             status: 'waiting',
             track: null,
             vehicle: null,
+            path: null,
+            quality: null,
+            landmarks: [],
             timestamp: null,
         })
         setTelemetrySession({

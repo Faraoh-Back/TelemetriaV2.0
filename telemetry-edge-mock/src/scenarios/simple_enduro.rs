@@ -71,8 +71,8 @@ pub fn snapshot(t: f64, _seed: u64) -> ScenarioSnapshot {
     s.accel_y = acc_lat;
     s.accel_z = 0.98;
     s.yaw_rate = yaw_rate;
-    s.speed_x = speed * heading.cos();
-    s.speed_y = speed * heading.sin();
+    s.speed_x = speed;
+    s.speed_y = 0.0;
     s.cell_v_min = 3.90 - 0.05 * throttle;
     s.cell_v_max = 3.98 - 0.02 * throttle;
     s.cell_temp_max = 29.0 + 5.0 * throttle + 1.5 * s.brake;
@@ -85,4 +85,20 @@ pub fn snapshot(t: f64, _seed: u64) -> ScenarioSnapshot {
     // Guarda o fechamento do loop no padrão da volta.
     let _ = (x, y);
     s
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn simple_enduro_emits_body_frame_velocity() {
+        for t in [0.0, 6.0, 12.0, 24.0, 36.0, 48.0] {
+            let snapshot = snapshot(t, 12345);
+
+            assert!(snapshot.speed_x > 0.0);
+            assert!(snapshot.speed_x <= 24.0);
+            assert!(snapshot.speed_y.abs() < 1e-9);
+        }
+    }
 }

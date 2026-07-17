@@ -121,7 +121,7 @@ function formatHeading(value) {
     return `${Math.round(value)}°`
 }
 
-export function buildTrackOverlay(track, vehicle) {
+export function buildTrackOverlay(track, vehicle, path, quality, landmarks) {
     const points = track?.points ?? []
     const project = buildProjector(track, points)
     const displayPoints = project
@@ -131,22 +131,46 @@ export function buildTrackOverlay(track, vehicle) {
             .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
         : []
     const start = displayPoints[0] ?? null
-    const vehicleRawPoint = vehicle
+
+    const odomPoint = vehicle
         ? [
-            Number.isFinite(vehicle.x_m) ? vehicle.x_m : vehicle.x,
-            Number.isFinite(vehicle.y_m) ? vehicle.y_m : vehicle.y,
+            Number.isFinite(vehicle.odom_x_m) ? vehicle.odom_x_m : (Number.isFinite(vehicle.x_m) ? vehicle.x_m : vehicle.x),
+            Number.isFinite(vehicle.odom_y_m) ? vehicle.odom_y_m : (Number.isFinite(vehicle.y_m) ? vehicle.y_m : vehicle.y),
         ]
         : null
-    const vehiclePoint = vehicle
-        && project
-        && Number.isFinite(vehicleRawPoint[0])
-        && Number.isFinite(vehicleRawPoint[1])
-        ? project(vehicleRawPoint)
+    const rawVehiclePoint = odomPoint && project && Number.isFinite(odomPoint[0]) && Number.isFinite(odomPoint[1])
+        ? project(odomPoint)
         : null
 
+    const mapPoint = vehicle
+        ? [
+            Number.isFinite(vehicle.map_x_m) ? vehicle.map_x_m : (odomPoint ? odomPoint[0] : null),
+            Number.isFinite(vehicle.map_y_m) ? vehicle.map_y_m : (odomPoint ? odomPoint[1] : null),
+        ]
+        : null
+    const projectedVehiclePoint = mapPoint && project && Number.isFinite(mapPoint[0]) && Number.isFinite(mapPoint[1])
+        ? project(mapPoint)
+        : null
+
+    const vehiclePoint = projectedVehiclePoint ?? rawVehiclePoint
+
+    const odomPathPoints = path?.points && project
+        ? path.points
+            .filter(finitePoint)
+            .map(project)
+            .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+        : []
+
+    const displayLandmarks = landmarks && project
+        ? landmarks.map(l => {
+            const p = project([l.x, l.y]);
+            return p && Number.isFinite(p.x) && Number.isFinite(p.y) ? { ...l, x: p.x, y: p.y } : null;
+        }).filter(Boolean)
+        : []
+
     const trackLengthM = Number(track?.length_m)
-    const vehicleForProjection = vehicleRawPoint
-        ? { x: vehicleRawPoint[0], y: vehicleRawPoint[1] }
+    const vehicleForProjection = odomPoint
+        ? { x: odomPoint[0], y: odomPoint[1] }
         : null
     const progressFromProjection = projectVehicleOnTrack(points, vehicleForProjection)
     const progressFromDistance = Number.isFinite(vehicle?.distance_m) && Number.isFinite(trackLengthM) && trackLengthM > 0
@@ -158,16 +182,33 @@ export function buildTrackOverlay(track, vehicle) {
         ? trackLengthM * (1 - clamp01(lapProgress))
         : null
 
+    const stats = [
+        { label: 'Pista', value: formatMeters(trackLengthM) },
+        { label: 'Falta', value: formatMeters(remainingM) },
+        { label: 'Volta', value: Number.isFinite(progressPct) ? `${progressPct.toFixed(1)}%` : '--' },
+        { label: 'Vel', value: formatKmh(metersPerSecondToKmh(vehicle?.speed)) },
+        { label: 'Rumo', value: formatHeading(vehicle?.heading) },
+    ]
+
+    if (quality?.mode) {
+        stats.push({ label: 'Modo', value: quality.mode })
+    }
+    if (Number.isFinite(quality?.confidence)) {
+        stats.push({ label: 'Conf.', value: `${(quality.confidence * 100).toFixed(0)}%` })
+    }
+    if (Number.isFinite(quality?.drift_estimate_m)) {
+        stats.push({ label: 'Drift', value: formatMeters(quality.drift_estimate_m) })
+    }
+
     return {
         start,
         vehiclePoint,
         displayPoints,
-        stats: [
-            { label: 'Pista', value: formatMeters(trackLengthM) },
-            { label: 'Falta', value: formatMeters(remainingM) },
-            { label: 'Volta', value: Number.isFinite(progressPct) ? `${progressPct.toFixed(1)}%` : '--' },
-            { label: 'Vel', value: formatKmh(metersPerSecondToKmh(vehicle?.speed)) },
-            { label: 'Rumo', value: formatHeading(vehicle?.heading) },
-        ],
+        odomPathPoints,
+        rawVehiclePoint,
+        projectedVehiclePoint,
+        landmarks: displayLandmarks,
+        quality,
+        stats,
     }
 }

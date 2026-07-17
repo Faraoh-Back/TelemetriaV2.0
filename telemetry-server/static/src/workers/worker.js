@@ -135,6 +135,27 @@ import { decodeSignal } from '../utils/canDecode.js'
         return buffers[name];
     }
 
+    const SIGNAL_ALIASES = {
+        APPS_PERC: ['APS_PERC'],
+        VoltOverallParam_MinCellVoltage: ['CELL_VOLTAGE_MIN'],
+        VoltOverallParam_MaxCellVoltage: ['CELL_VOLTAGE_MAX'],
+        CellOverallPar_MinCellTemp: ['CELL_TEMP_MIN'],
+        CellOverallPar_MaxCellTemp: ['CELL_TEMP_MAX'],
+    };
+
+    function emitSignal(name, value, unit, timestamp, canId, component) {
+        getOrCreateBuffer(name).push(timestamp, value);
+        latest[name] = { value, unit, timestamp };
+        self.postMessage({ type: 'signal', name, value, unit, timestamp, canId, component });
+    }
+
+    function emitSignalWithAliases(name, value, unit, timestamp, canId, component) {
+        emitSignal(name, value, unit, timestamp, canId, component);
+        for (const alias of SIGNAL_ALIASES[name] || []) {
+            emitSignal(alias, value, unit, timestamp, canId, component);
+        }
+    }
+
     function parseCanIdList(value) {
         if (!value) return null;
         const ids = new Set();
@@ -329,11 +350,7 @@ import { decodeSignal } from '../utils/canDecode.js'
             );
         }
     
-        getOrCreateBuffer(name).push(timestamp, value);
-        latest[name] = { value, unit: sig.u, timestamp };
-    
-        // Notifica a UI com o valor mais recente (granular — por sinal)
-        self.postMessage({ type: 'signal', name, value, unit: sig.u, timestamp, canId, component: sig.c });
+        emitSignalWithAliases(name, value, sig.u, timestamp, canId, sig.c);
         }
     
         // Taxa de frames (log a cada 5s)

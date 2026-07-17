@@ -35,7 +35,7 @@ function getFiniteSignalValues(signalNames = []) {
 function getConfigValue(config) {
     if (config.signalNames?.length > 0) {
         const values = getFiniteSignalValues(config.signalNames)
-        if (values.length === 0) return null
+        if (values.length === 0) return signals[config.signalName]?.value
         if (config.aggregate === 'min') return Math.min(...values)
         if (config.aggregate === 'max') return Math.max(...values)
         return values[values.length - 1]

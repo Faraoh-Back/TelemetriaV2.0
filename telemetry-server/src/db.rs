@@ -150,6 +150,7 @@ pub async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Er
         r#"
         CREATE TABLE IF NOT EXISTS telemetry_log_sessions (
             id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+            name               TEXT,
             started_at_unix    REAL    NOT NULL,
             started_at_iso     TEXT    NOT NULL,
             start_requested_at TEXT,
@@ -171,6 +172,10 @@ pub async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Er
     .execute(pool)
     .await?;
 
+    sqlx::query("ALTER TABLE telemetry_log_sessions ADD COLUMN name TEXT")
+        .execute(pool)
+        .await
+        .ok();
     sqlx::query("ALTER TABLE telemetry_log_sessions ADD COLUMN collection_start_sec REAL NOT NULL DEFAULT 0")
         .execute(pool)
         .await
@@ -187,6 +192,7 @@ pub async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Er
         .execute(pool)
         .await
         .ok();
+
 
     sqlx::query(
         r#"

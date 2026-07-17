@@ -35,12 +35,15 @@ pub struct CollectionStartRequest {
 #[derive(Deserialize)]
 pub struct CollectionStopRequest {
     pub requested_at: Option<String>,
+    pub log_name: Option<String>,
     pub log_start_unix: Option<f64>,
     pub log_stop_unix: Option<f64>,
 }
 
 #[derive(Deserialize)]
 pub struct LogSessionBoundsRequest {
+    pub log_name: Option<String>,
     pub log_start_unix: f64,
     pub log_stop_unix: f64,
 }
+

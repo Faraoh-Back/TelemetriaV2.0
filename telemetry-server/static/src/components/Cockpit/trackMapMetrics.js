@@ -161,12 +161,12 @@ export function buildTrackOverlay(track, vehicle, landmarks) {
         : []
 
     const trackLengthM = Number(track?.length_m)
-    const vehicleForProjection = rawCoords ? { x: rawCoords[0], y: rawCoords[1] } : null
+    const vehicleForProjection = bestCoords ? { x: bestCoords[0], y: bestCoords[1] } : null
     const progressFromProjection = projectVehicleOnTrack(points, vehicleForProjection)
     const progressFromDistance = Number.isFinite(vehicle?.distance_m) && Number.isFinite(trackLengthM) && trackLengthM > 0
         ? (vehicle.distance_m % trackLengthM) / trackLengthM
         : null
-    const lapProgress = progressFromProjection ?? progressFromDistance
+    const lapProgress = progressFromDistance ?? progressFromProjection
     const progressPct = Number.isFinite(lapProgress) ? clamp01(lapProgress) * 100 : null
     const remainingM = Number.isFinite(trackLengthM) && Number.isFinite(lapProgress)
         ? trackLengthM * (1 - clamp01(lapProgress))

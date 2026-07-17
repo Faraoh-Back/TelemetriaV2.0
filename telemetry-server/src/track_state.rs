@@ -436,7 +436,8 @@ impl RealtimeTrackState {
     }
 
     fn freeze_map(&mut self) {
-        self.map_points = downsample_points(&self.learning_points, self.max_map_points);
+        let first_loop = extract_first_loop(&self.learning_points, self.close_radius_m());
+        self.map_points = downsample_points(&first_loop, self.max_map_points);
         if let (Some(first), Some(last)) = (
             self.map_points.first().copied(),
             self.map_points.last().copied(),
@@ -560,7 +561,7 @@ impl RealtimeTrackState {
                 "odom_y_m": self.y_m,
                 "map_x_m": projected.x,
                 "map_y_m": projected.y,
-                "heading": self.heading_rad.to_degrees(),
+                "heading": self.heading_rad.to_degrees().rem_euclid(360.0),
                 "speed": self.velocity_mps,
                 "distance_m": self.distance_m,
             }
@@ -653,6 +654,56 @@ fn bounds(points: &[Point2]) -> (f64, f64, f64, f64) {
         return (0.0, 1.0, 0.0, 1.0);
     }
     (min_x, max_x, min_y, max_y)
+}
+
+/// Extracts the first physical loop from accumulated learning points.
+///
+/// When odometry drift causes the learning phase to span multiple physical laps
+/// before the closure condition triggers, the learning_points contain a
+/// spirograph-like multi-lap trace.  This function scans through the points to
+/// find where the path first leaves the start area and then returns close to
+/// the starting point, returning only that first loop.
+///
+/// To tolerate drift the function searches with a progressively relaxed radius
+/// (up to 4× the base close radius).
+fn extract_first_loop(points: &[Point2], close_radius_m: f64) -> Vec<Point2> {
+    if points.len() < 20 {
+        return points.to_vec();
+    }
+
+    let start = points[0];
+    let leave_radius = close_radius_m * 2.0;
+
+    // 1. Find the index where the vehicle first leaves the start area.
+    let left_index = match points
+        .iter()
+        .position(|p| distance(start, *p) > leave_radius)
+    {
+        Some(idx) => idx,
+        None => return points.to_vec(),
+    };
+
+    // 2. From that point onward, find the first return to within close_radius.
+    //    Use progressively larger radii to handle drift.
+    for factor in [1.0, 2.0, 3.0, 4.0] {
+        let search_radius = close_radius_m * factor;
+        // Only start searching after the path has covered some distance
+        // past the leave point to avoid premature closure.
+        let min_search_index = left_index + 20;
+        if min_search_index >= points.len() {
+            continue;
+        }
+        if let Some(relative_idx) = points[min_search_index..]
+            .iter()
+            .position(|p| distance(start, *p) <= search_radius)
+        {
+            let close_idx = min_search_index + relative_idx;
+            return points[..=close_idx].to_vec();
+        }
+    }
+
+    // If no loop was detected, return all points (fallback).
+    points.to_vec()
 }
 
 fn json_points(points: &[Point2]) -> Vec<serde_json::Value> {

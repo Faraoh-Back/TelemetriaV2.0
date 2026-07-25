@@ -44,6 +44,7 @@ pub(super) async fn handle_admin_stats(
 pub(super) async fn handle_admin_network(
     stream: &mut TcpStream,
     request: &str,
+    unifi_stats: &crate::unifi::SharedUnifiStats,
 ) {
     if !request_is_admin(request).await {
         send_json(stream, 403, r#"{"ok":false,"message":"Acesso negado"}"#).await;
@@ -84,12 +85,23 @@ pub(super) async fn handle_admin_network(
         )
     }).collect();
 
+    let unifi_json = if let Ok(lock) = unifi_stats.read() {
+        if let Some(ref stats) = *lock {
+            serde_json::to_string(stats).unwrap_or_else(|_| "null".to_string())
+        } else {
+            "null".to_string()
+        }
+    } else {
+        "null".to_string()
+    };
+
     let json = format!(
-        r#"{{"ok":true,"iface":"{}","rx_bytes":{},"tx_bytes":{},"htb_classes":[{}],"rssi":null}}"#,
+        r#"{{"ok":true,"iface":"{}","rx_bytes":{},"tx_bytes":{},"htb_classes":[{}],"unifi":{}}}"#,
         iface,
         iface_stats.rx_bytes,
         iface_stats.tx_bytes,
-        classes_json.join(",")
+        classes_json.join(","),
+        unifi_json
     );
     send_json(stream, 200, &json).await;
 }

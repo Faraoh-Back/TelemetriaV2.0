@@ -25,6 +25,21 @@ function latencyLabel(us) {
     return `${(us / 1000).toFixed(1)} ms`
 }
 
+function rssiBadge(rssi) {
+    if (rssi === null || rssi === undefined) return 'off';
+    if (rssi >= -70) return 'ok';
+    if (rssi >= -82) return 'warn';
+    return 'error';
+}
+
+function rssiLabel(rssi) {
+    if (rssi === null || rssi === undefined) return 'OFFLINE';
+    if (rssi >= -70) return 'OK';
+    if (rssi >= -82) return 'ATENÇÃO';
+    return 'RUIM';
+}
+
+
 function AdminPage(props) {
     const [stats, setStats]     = createSignal(null)
     const [network, setNetwork] = createSignal(null)
@@ -175,15 +190,65 @@ function AdminPage(props) {
                 <div class="admin-card">
                     <div class="admin-card__header">
                         <h3 class="admin-card__title">RSSI — Sinal Wi-Fi</h3>
-                        <span class="admin-card__badge admin-card__badge--off">PENDENTE</span>
-                    </div>
-                    <div class="admin-placeholder">
-                        <span class="admin-placeholder__icon">📶</span>
-                        <span>Disponível quando a Jetson (AC_carro_laranja) estiver conectada</span>
-                        <span style="font-size:11px; margin-top:4px;">
-                            AP box: 143.106.207.101 · AP carro: 143.106.207.49
+                        <span class={`admin-card__badge admin-card__badge--${network()?.unifi ? rssiBadge(network().unifi.rssi) : 'off'}`}>
+                            {network()?.unifi ? rssiLabel(network().unifi.rssi) : 'OFFLINE'}
                         </span>
                     </div>
+                    {network()?.unifi ? (
+                        <>
+                            <div class="admin-stat-row">
+                                <div class="admin-stat">
+                                    <span class="admin-stat__label">Força do sinal</span>
+                                    <span class="admin-stat__value">
+                                        {network().unifi.rssi ?? '—'}
+                                        {network().unifi.rssi !== null && <span class="admin-stat__unit">dBm</span>}
+                                    </span>
+                                </div>
+                            </div>
+                            <table class="admin-htb-table" style="margin-top: 8px;">
+                                <tbody>
+                                    <tr>
+                                        <td>Taxa Tx/Rx</td>
+                                        <td style="text-align: right; font-weight: 500;">
+                                            {network().unifi.tx_rate ? `${(network().unifi.tx_rate / 1000).toFixed(0)} Mbps` : '—'} / {network().unifi.rx_rate ? `${(network().unifi.rx_rate / 1000).toFixed(0)} Mbps` : '—'}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Largura de Canal</td>
+                                        <td style="text-align: right; font-weight: 500;">
+                                            {network().unifi.channel_width ? `${network().unifi.channel_width} MHz` : '—'}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Uso de Canal (CU)</td>
+                                        <td style="text-align: right; font-weight: 500;">
+                                            {network().unifi.cu_total !== null && network().unifi.cu_total !== undefined ? `${network().unifi.cu_total}%` : '—'}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Retransmissões</td>
+                                        <td style="text-align: right; font-weight: 500;">
+                                            {network().unifi.tx_retries !== null && network().unifi.tx_retries !== undefined ? network().unifi.tx_retries.toLocaleString('pt-BR') : '—'}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ruído de Fundo</td>
+                                        <td style="text-align: right; font-weight: 500;">
+                                            {network().unifi.noise_floor ? `${network().unifi.noise_floor} dBm` : '—'}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </>
+                    ) : (
+                        <div class="admin-placeholder">
+                            <span class="admin-placeholder__icon">📶</span>
+                            <span>Disponível quando a Jetson (AC_carro_laranja) estiver conectada</span>
+                            <span style="font-size:11px; margin-top:4px;">
+                                AP box: 143.106.207.101 · AP carro: 143.106.207.49
+                            </span>
+                        </div>
+                    )}
                 </div>
 
             </div>

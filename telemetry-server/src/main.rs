@@ -25,6 +25,8 @@ mod models;
 mod ntp;
 mod track_state;
 mod ws;
+mod unifi;
+
 
 use config::*;
 use track_state::RealtimeTrackState;
@@ -130,6 +132,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let latency_us = Arc::new(AtomicI64::new(0));
     let msg_rate = Arc::new(AtomicU64::new(0));
 
+    let unifi_stats = Arc::new(std::sync::RwLock::new(None));
+    unifi::start_unifi_poller(unifi_stats.clone());
+
     // Canal SQLite: buffer de 50k vetores de sinais
     let (sqlite_tx, mut sqlite_rx) = tokio::sync::mpsc::channel::<Vec<ProcessedSignal>>(50_000);
 
@@ -217,6 +222,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let track = track_state.clone();
         let lat = latency_us.clone();
         let rate = msg_rate.clone();
+        let unifi = unifi_stats.clone();
         tokio::spawn(async move {
             api::run_http_ws_server(
                 tx,
@@ -227,6 +233,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 track,
                 lat,
                 rate,
+                unifi,
                 HTTP_WS_PORT,
             )
             .await;

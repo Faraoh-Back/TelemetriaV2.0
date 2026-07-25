@@ -26,6 +26,7 @@ pub async fn run_http_ws_server(
     track_state: SharedTrackState,
     latency_us: Arc<std::sync::atomic::AtomicI64>,
     msg_rate: Arc<std::sync::atomic::AtomicU64>,
+    unifi_stats: crate::unifi::SharedUnifiStats,
     port: u16,
 ) {
     let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
@@ -50,6 +51,7 @@ pub async fn run_http_ws_server(
                 let track = track_state.clone();
                 let lat = latency_us.clone();
                 let rate = msg_rate.clone();
+                let unifi = unifi_stats.clone();
                 tokio::spawn(async move {
                     handle_http_connection(
                         stream,
@@ -62,6 +64,7 @@ pub async fn run_http_ws_server(
                         track,
                         lat,
                         rate,
+                        unifi,
                     )
                     .await;
                 });
@@ -82,6 +85,7 @@ async fn handle_http_connection(
     track_state: SharedTrackState,
     latency_us: Arc<std::sync::atomic::AtomicI64>,
     msg_rate: Arc<std::sync::atomic::AtomicU64>,
+    unifi_stats: crate::unifi::SharedUnifiStats,
 ) {
     let mut buf = vec![0u8; 4096];
     let n = match stream.read(&mut buf).await {
@@ -132,7 +136,7 @@ async fn handle_http_connection(
     } else if first_line.starts_with("GET /api/admin/stats") {
         admin::handle_admin_stats(&mut stream, &request, latency_us, msg_rate).await;
     } else if first_line.starts_with("GET /api/admin/network") {
-        admin::handle_admin_network(&mut stream, &request).await;
+        admin::handle_admin_network(&mut stream, &request, &unifi_stats).await;
     } else {
         let response = "HTTP/1.1 404 Not Found\r\nContent-Length: 9\r\n\r\nNot Found";
         let _ = stream.write_all(response.as_bytes()).await;

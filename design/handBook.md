@@ -768,3 +768,5 @@ Instalação dos sensores de percurso nos quatro corners está planejada para a 
 > * Seção 4.5: gráficos MoTeC com sensores de suspensão instalados
 > * Seção 4.7: integração do RSSI via Unifi Controller API no painel admin
 > * Seção 2.3: valores exatos do datasheet UAP-AC-M
+
+link para os slides: https://canva.link/pc6rch8o5xh6cgj

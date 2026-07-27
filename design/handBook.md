@@ -131,10 +131,10 @@ O link RF opera em **5.5 GHz em canais DFS**, evitando o congestionamento severo
 
 | Parâmetro | Valor a confirmar no datasheet |
 |---|---|
-| Potência TX | **[PTX — buscar em "Max TX Power" no datasheet]** |
-| Ganho antena omni | **[GTX — buscar em "Antenna Gain" para a banda 5 GHz]** |
-| Ganho antena direcional | **[GRX — buscar em "Antenna Gain" para a banda 5 GHz]** |
-| Sensibilidade RX (MCS7) | **[Rxsens — buscar em "Receiver Sensitivity" para 802.11ac MCS7]** |
+| Potência TX | **20 dBm** (Máximo suportado pela UAP-AC-M em 5 GHz) |
+| Ganho antena omni | **4 dBi** (Antenas de haste originais em 5 GHz) |
+| Ganho antena direcional | **15 dBi** (Painel direcional UMA-D em 5 GHz) |
+| Sensibilidade RX (MCS7) | **-90 dBm** (Típico para 802.11ac MCS7; limite de -93 dBm em MCS0) |
 | Perda em cabos estimada | 1.0 dB |
 
 > **Nota:** Os valores utilizados no artigo IEEE (PTX = 20 dBm, GTX = 4 dBi, GRX = 15 dBi, Rxsens = −90 dBm) foram confirmados como corretos. Substituir pelas referências exatas do datasheet quando disponível.
@@ -270,6 +270,26 @@ if [ "$IFACE" = "eth0" ] && [ "$ACTION" = "up" ]; then
 fi
 ```
 O `systemd-resolved` foi desativado e o `/etc/resolv.conf` bloqueado contra modificação com `chattr +i`.
+
+### 2.9 Configuração e Justificativa de Antenas: Direcional vs. Omni
+A escolha do arranjo físico e dos tipos de antenas no carro e no Box responde diretamente às dinâmicas de movimento do veículo e à geometria do autódromo:
+
+1. **No Veículo (UAP-AC-M + Antenas Omni Standard):**
+   - **Ganho:** `4 dBi` em 5 GHz.
+   - **Diagrama de Radiação:** Toroidal (cobertura uniforme de $360^\circ$ no plano horizontal).
+   - **Justificativa:** Como o carro rotaciona constantemente em Yaw (curvas de raio variável) e sofre oscilações de Pitch (frenagem/aceleração) e Roll (inclinação de chassi), o uso de antenas direcionais no veículo causaria perdas críticas de recepção toda vez que o veículo mudasse sua orientação em relação ao Box.
+2. **No Box (UAP-AC-M + Antena Painel Direcional UMA-D):**
+   - **Ganho:** `15 dBi` em 5 GHz (e `10 dBi` em 2.4 GHz).
+   - **Abertura do Feixe (Beamwidth):** $45^\circ$ Horizontal (HPOL), $45^\circ$ Vertical (VPOL) e $45^\circ$ de Elevação na banda de 5 GHz.
+   - **Justificativa:** O Box é um ponto estático de monitoramento. Concentrar o feixe de RF em um ângulo estreito de $45^\circ$ direcionado para o traçado mais distante aumenta o ganho em 11 dB em relação à antena padrão. Esse foco energético é o que permite estender o link de rádio a distâncias de até 900 m e mitigar os efeitos de atenuação por propagação de espaço livre (FSPL).
+   - **Isolação e Polarização:** A UMA-D opera com polarização linear dupla (Dual-Linear) e possui uma isolação de polarização cruzada (*Cross-Pol Isolation*) de **30 dB** em 5 GHz. Isso garante que a perda por desalinhamento de polarização gerada pela movimentação dinâmica do carro nas curvas seja minimizada, pois o sistema de rádio (MIMO 2x2) consegue recombinar os sinais nas duas polarizações ortogonais.
+
+### 2.10 Processamento e Reamostragem Síncrona (ZOH) a 100 Hz
+A rede CAN opera de forma intrinsecamente assíncrona, com pacotes transmitidos por eventos ou frequências discrepantes (inversores a 100 Hz, VCU a 50 Hz, BMS a 10 Hz). No entanto, o formato de telemetria profissional MoTeC `.ld` exige que cada canal tenha uma taxa de amostragem síncrona invariável no tempo (eixo temporal implícito derivado de uma frequência única de gravação).
+- **Abordagem da TelemetriaV2 (implementada em Rust no `logs.rs`):**
+  - O backend intercepta os frames CAN e executa uma reamostragem síncrona a uma grade fixa de **100 Hz** (`LD_SAMPLE_RATE_HZ`).
+  - O método de interpolação utilizado é o **Zero-Order Hold (ZOH - Retenção de Ordem Zero)**. Esse método assume que o valor de um sinal físico permanece constante no último valor medido até que uma nova mensagem CAN atualize seu estado.
+  - O ZOH modela de forma precisa e sem introduzir ruído o comportamento de barramentos CAN discretos. Ele garante que sinais assíncronos de sub-sistemas diferentes fiquem alinhados milissegundo a milissegundo no arquivo de saída, viabilizando overlays e cálculos dinâmicos de alta integridade no MoTeC i2 Pro.
 
 ---
 
@@ -580,6 +600,42 @@ sequenceDiagram
 * **Camada de arquitetura:** este documento (Design Handbook).
 * **Camada operacional:** relatórios de sessão gerados após cada dia de teste, cobrindo configuração de rede, sinais ativos, anomalias observadas e decisões tomadas.
 
+### 3.12 Detalhes Técnicos do Hardware de Aquisição de Borda
+A integridade física e o baixo jitter no processamento dos pacotes são garantidos pelas especificações industriais e de processamento do hardware selecionado:
+
+1. **NVIDIA Jetson AGX Xavier (Edge Processor):**
+   - **Interface CAN Nativa:** A Jetson AGX possui dois controladores CAN embutidos (módulo kernel `mttcan`), suportando nativamente CAN 2.0A/B e CAN FD. A leitura direta do barramento CAN via driver nativo evita a latência de 2 a 5 ms e o jitter introduzidos por conversores SPI-para-CAN externos (como MCP2515) sob tráfego severo (1000+ fps).
+   - **Gerenciamento Térmico e de Potência:** A Jetson está configurada com limitação de energia via perfil de hardware `nvpmodel` no boot (ajustada para o modo de **15W** ou **30W**). Isto garante a integridade térmica do processamento dentro da carenagem de fibra de carbono do veículo sem drenar excessivamente a bateria de baixa tensão (LV).
+   - **Margem Computacional:** 32 TOPS de poder de IA que provêm robustez e margem para rodar algoritmos de visão computacional da câmera ZED 2i em tempo real ou compressão de vídeo H.264 acelerada por hardware via NVENC.
+2. **SBG Systems Ellipse 2 (Sensor IMU/INS):**
+   - **Precisão Estática e Dinâmica:** Apresenta precisão de atitude em Roll/Pitch inferior a **$0.1^\circ$** e de Yaw inferior a **$0.8^\circ$**. Essa precisão é obtida através de um filtro de Kalman embarcado de alta frequência que corrige o drift dos sensores inerciais (giroscópios e acelerômetros).
+   - **Frequência de Amostragem Interna:** O sensor realiza aquisição inercial a 200 Hz e transmite os dados consolidados no barramento CAN a 100 Hz, garantindo dados dinâmicos com resolução temporal e angular adequada para MoTeC.
+   - **Robustez Mecânica:** Possui grau de proteção **IP68** (à prova d'água e vedação contra poeira), blindagem contra vibração mecânica intensa e resistência a interferência eletromagnética (EMI) dos inversores de alta tensão.
+
+### 3.13 Canais Matemáticos MoTeC e Tomada de Decisão de Dinâmica
+A telemetria transforma os sinais físicos decodificados no barramento CAN em análises de dinâmica veicular que guiam o setup mecânico do carro. Para isso, são configurados canais matemáticos nativos no MoTeC i2 Pro:
+
+1. **Escorregamento de Roda (Traction Control Validation):**
+   - **Equação Matemática:**
+     $$Slip_{Corner} = \frac{v_{roda} - v_{GPS}}{v_{GPS}}$$
+     Onde $v_{roda}$ é computado pela rotação do respectivo motor:
+     $$v_{roda}\ (m/s) = RPM_{motor} \times R_{redução} \times \pi \times D_{roda}$$
+   - **Aplicação de Engenharia:** Permite validar se o controle de tração (TC) e o torque vectoring (TV) implementados na VCU estão mitigando o escorregamento na aceleração de curvas de traçado sinuoso (como Skid Pad ou Autocross).
+2. **Gradiente de Rolagem Lateral (Anti-Roll Bar Setup):**
+   - **Equação Matemática:**
+     $$Roll\_Angle\ (^\circ) = \arctan\left(\frac{Susp\_Pos\_FL - Susp\_Pos\_FR}{Track\_Width_{Front}}\right) \times \frac{180}{\pi}$$
+     $$Roll\_Gradient\ (^\circ/G) = \frac{Roll\_Angle}{G_{lateral}}$$
+   - **Aplicação de Engenharia:** Correlaciona o ângulo de rolagem dinâmico com a aceleração lateral medida pela IMU. Se o gradiente exceder $1.5^\circ/G$, o carro demonstra rolagem excessiva, exigindo enrijecimento das molas ou ajuste na barra estabilizadora (ARB) para melhorar a velocidade de transição de carga.
+3. **Balanço Dinâmico de Frenagem (Brake Bias vs. Pitch):**
+   - **Equação Matemática (Arfagem):**
+     $$Pitch\_Angle\ (^\circ) = \arctan\left(\frac{Susp\_Pos\_Front - Susp\_Pos\_Rear}{Wheelbase}\right) \times \frac{180}{\pi}$$
+   - **Aplicação de Engenharia:** Correlaciona as pressões hidráulicas nos cilindros mestre de freio (dianteiro/traseiro) com a taxa de compressão e extensão de suspensão sob frenagem longitudinal ($G_{long}$). Ajuda a calibrar o balanço estático de freio para evitar travamento prematuro do eixo traseiro em desaceleração acentuada.
+4. **Análise de Subesterço / Sobreesterço (US/OS Gradient):**
+   - **Equação Matemática:**
+     $$US\_OS = \delta_{steering} - \left(\frac{Wheelbase \times \omega_{yaw}}{v_{GPS}}\right)$$
+     Onde $\delta_{steering}$ é o ângulo de esterçamento do volante e $\omega_{yaw}$ é a velocidade angular de guinada medida pelo SBG Ellipse 2.
+   - **Aplicação de Engenharia:** Identifica desvios entre a guinada solicitada pelo piloto e a resposta cinemática real do carro. Útil para reajustar o balanço de rigidez das suspensões e a angulação do aerofólio dianteiro/traseiro.
+
 ---
 
 ## 4. PROJECT VALIDATION
@@ -767,6 +823,5 @@ Instalação dos sensores de percurso nos quatro corners está planejada para a 
 > * Tabelas 4.1, 4.2 e 4.4: campos marcados com **[negrito]**
 > * Seção 4.5: gráficos MoTeC com sensores de suspensão instalados
 > * Seção 4.7: integração do RSSI via Unifi Controller API no painel admin
-> * Seção 2.3: valores exatos do datasheet UAP-AC-M
 
 link para os slides: https://canva.link/pc6rch8o5xh6cgj

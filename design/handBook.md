@@ -82,10 +82,10 @@ Os requisitos foram definidos a partir de três fontes: regras FSAE, dores opera
 
 | Dispositivo | IP Fixo | Função |
 |---|---|---|
-| Servidor Ubuntu | 143.106.207.21 | Ingestão, banco de dados, dashboard |
-| Jetson AGX Xavier | 143.106.207.93 | Edge node, aquisição CAN |
-| AP Box (direcional) | 143.106.207.101 | Ponto de acesso pit lane |
-| AP Carro (omni) | 143.106.207.49 | Ponto de acesso veículo |
+| Servidor Ubuntu | 192.168.10.1 | Ingestão, banco de dados, DHCP/DNS, dashboard |
+| Jetson AGX Xavier | 192.168.10.93 | Edge node, aquisição CAN |
+| AP Box (direcional) | 192.168.10.101 | Ponto de acesso pit lane |
+| AP Carro (omni) | 192.168.10.49 | Ponto de acesso veículo |
 
 A rede segue arquitetura OT (Operational Technology) isolada — sem conexão à internet durante operação. O servidor Ubuntu assume todas as funções lógicas de rede: DHCP via dnsmasq, DNS interno, roteamento de requisições. O roteador físico opera em modo bridge, responsável apenas pela criação do meio físico.
 
@@ -99,16 +99,16 @@ Esta camada descreve o que sobe nos hosts e não o comportamento do pipeline em 
 ```mermaid
 graph LR
     subgraph CARRO["Veículo"]
-        JETSON["Jetson AGX Xavier\n143.106.207.93"]
-        AP_CAR["UAP-AC-M\n143.106.207.49\nOmni 4 dBi"]
+        JETSON["Jetson AGX Xavier\n192.168.10.93"]
+        AP_CAR["UAP-AC-M\n192.168.10.49\nOmni 4 dBi"]
         JETSON --> AP_CAR
     end
     subgraph RF["Link RF 5.5 GHz DFS"]
         AP_CAR -."TCP :8080 · UDP vídeo".-> AP_BOX
     end
     subgraph BOX["Base Station"]
-        AP_BOX["UAP-AC-M\n143.106.207.101\nDirecional 15 dBi"]
-        SRV["Servidor Ubuntu\n143.106.207.21"]
+        AP_BOX["UAP-AC-M\n192.168.10.101\nDirecional 15 dBi"]
+        SRV["Servidor Ubuntu\n192.168.10.1"]
         AP_BOX --> SRV
     end
     subgraph CLIENTES["Clientes na rede OT"]
@@ -239,14 +239,14 @@ Esse erro crescente era exatamente o padrão observado.
 **Solução definitiva — Chrony como gestor de tempo do SO:**
 O Chrony é um daemon NTP de alta precisão que ajusta o relógio do SO continuamente, compensando o drift do cristal em tempo real. A arquitetura final:
 ```
-Servidor (143.106.207.21)
+Servidor (192.168.10.1)
   chrony configurado como Mestre de Tempo local
-  → allow 143.106.207.0/24   (aceita clientes da rede OT)
+  → allow 192.168.10.0/24   (aceita clientes da rede OT)
   → local stratum 10          (funciona sem internet)
 
-Jetson (143.106.207.93)
+Jetson (192.168.10.93)
   chrony configurado como cliente
-  → server 143.106.207.21 iburst trust
+  → server 192.168.10.1 iburst trust
   → ajuste contínuo do relógio do kernel
 ```
 
@@ -264,8 +264,8 @@ Um script legado do NetworkManager (`99-eracing-route.sh`) sobrescrevia configur
 # Script de rota corrigido para infraestrutura atual:
 if [ "$IFACE" = "eth0" ] && [ "$ACTION" = "up" ]; then
     ip route del default 2>/dev/null
-    ip route add default via 143.106.207.21 dev eth0 metric 50
-    echo -e "nameserver 143.106.207.21\nnameserver 8.8.8.8" > /etc/resolv.conf
+    ip route add default via 192.168.10.1 dev eth0 metric 50
+    echo -e "nameserver 192.168.10.1\nnameserver 8.8.8.8" > /etc/resolv.conf
     (sleep 2; /usr/bin/chronyc -a makestep) &  # força sincronização imediata
 fi
 ```
@@ -291,6 +291,31 @@ A rede CAN opera de forma intrinsecamente assíncrona, com pacotes transmitidos 
   - O método de interpolação utilizado é o **Zero-Order Hold (ZOH - Retenção de Ordem Zero)**. Esse método assume que o valor de um sinal físico permanece constante no último valor medido até que uma nova mensagem CAN atualize seu estado.
   - O ZOH modela de forma precisa e sem introduzir ruído o comportamento de barramentos CAN discretos. Ele garante que sinais assíncronos de sub-sistemas diferentes fiquem alinhados milissegundo a milissegundo no arquivo de saída, viabilizando overlays e cálculos dinâmicos de alta integridade no MoTeC i2 Pro.
 
+### 2.11 Core de Rede do Servidor Linux: DHCP, DNS e IP Estático
+A robustez lógica da rede isolada da telemetria é sustentada diretamente pelos serviços do sistema operacional no servidor de base (Ubuntu Server 22.04):
+
+1. **Fixação Definitiva de IP Estático via Netplan:**
+   - **Interface:** Placa física `enp4s0f1` no Box.
+   - **O Problema:** Durante testes, a interface perdia o IP atribuído, gerando o erro crítico `DHCP packet received on enp4s0f1 which has no address`. Sem um IP estático local, o daemon DHCP ficava impossibilitado de responder.
+   - **Solução:** Configuração rígida do Netplan em `/etc/netplan/00-installer-config.yaml`:
+     ```yaml
+     network:
+       version: 2
+       ethernets:
+         enp4s0f1:
+           dhcp4: false
+           addresses:
+             - 192.168.10.1/24
+     ```
+     Essa configuração fixa o servidor como o endereço imutável `192.168.10.1`, servindo de Gateway e mestre NTP/DHCP para os rádios e a Jetson.
+
+2. **Atribuição DHCP e DNS Interno via `dnsmasq`:**
+   - **Configuração:** O `dnsmasq` gerencia o lease de IPs da faixa `192.168.10.10` a `192.168.10.100` e atua como cache DNS interno para a rede de campo.
+   - **Troubleshooting Crítico de Sintaxe no `/etc/hosts`:**
+     - **Sintoma:** Falha na inicialização do `dnsmasq` acusando `bad address at /etc/hosts line 20`.
+     - **Causa:** Linhas malformadas herdadas no arquivo `/etc/hosts`, contendo apenas domínios externos (ex: `deb.nodesource.com`) sem um endereço IP correspondente que os precedesse.
+     - **Resolução:** Comentar ou limpar as entradas incorretas. O `dnsmasq` exige estritamente a sintaxe `<IP> <HOSTNAME>` no `/etc/hosts` para construir sua tabela de mapeamento estático.
+
 ---
 
 ## 3. PROJECT MANUFACTURING
@@ -310,12 +335,12 @@ flowchart TD
         ZED --> JETSON
     end
     subgraph RF["📡 Link RF 5.5 GHz DFS"]
-        AP_CAR["UAP-AC-M 143.106.207.49\nOmni 4 dBi"]
-        AP_BOX["UAP-AC-M 143.106.207.101\nDirecional 15 dBi"]
+        AP_CAR["UAP-AC-M 192.168.10.49\nOmni 4 dBi"]
+        AP_BOX["UAP-AC-M 192.168.10.101\nDirecional 15 dBi"]
         AP_CAR -."TCP :8080 — frames CAN 20B\n1112 fps pico medido".-> AP_BOX
         AP_CAR -."UDP — H.264 video".-> AP_BOX
     end
-    subgraph SERVER["🖥️ Servidor 143.106.207.21"]
+    subgraph SERVER["🖥️ Servidor 192.168.10.1"]
         SRV["telemetry-server Rust/Tokio\nDBC decoder 6 DBCs · HTB QoS · JWT auth"]
         TS["TimescaleDB PostgreSQL 14\nretencao 7 dias"]
         SQ["SQLite historico.db\nhistorico permanente"]
@@ -404,7 +429,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     A["Inicializacao"] --> B["Carrega config /etc/eracing/config.env"]
-    B --> C["Chrony já sincronizou o relógio do SO\nvia servidor 143.106.207.21\nprecisão < 1ms garantida pelo daemon"]
+    B --> C["Chrony já sincronizou o relógio do SO\nvia servidor 192.168.10.1\nprecisão < 1ms garantida pelo daemon"]
     C --> D["Abre can0 e can1 via SocketCAN\nrestart-ms 100 — Bus-Off recovery automático"]
     D --> E["Conecta TCP :8080 ao servidor"]
     E --> F["Split TcpStream → read_half + write_half\nwrite_half protegido por Arc Mutex"]
@@ -823,5 +848,40 @@ Instalação dos sensores de percurso nos quatro corners está planejada para a 
 > * Tabelas 4.1, 4.2 e 4.4: campos marcados com **[negrito]**
 > * Seção 4.5: gráficos MoTeC com sensores de suspensão instalados
 > * Seção 4.7: integração do RSSI via Unifi Controller API no painel admin
+
+---
+
+## 6. PROCEDIMENTOS OPERACIONAIS E CONTINGÊNCIA DE CAMPO
+Em ambiente de pista e pitlane (competições ou sessões de teste), a equipe de dados deve utilizar as seguintes manobras operacionais para contornar falhas de infraestrutura e garantir conectividade:
+
+### 6.1 Bypass de DHCP via Wi-Fi/Ethernet (IP Fixo de Resgate)
+Caso o servidor DHCP local sofra falha ou entre em manutenção, os notebooks clientes de engenharia desconectam automaticamente após 45 segundos por timeout de IP. Para forçar a conexão de emergência e acessar o servidor via SSH:
+- **Comando de configuração (Linux via `nmcli`):**
+  ```bash
+  nmcli connection modify "Telemetria_E-Racing-UNICAMP" ipv4.method manual ipv4.addresses "192.168.10.40/24" ipv4.gateway "192.168.10.1" ipv4.dns "192.168.10.1" && nmcli connection up "Telemetria_E-Racing-UNICAMP"
+  ```
+- **Justificativa:** Forçar o IP estático (`manual`) obriga a placa de rede a manter o enlace físico ativo, permitindo que a equipe acesse a base via `ssh -p 2222 eracing@192.168.10.1` para reiniciar o serviço `dnsmasq`.
+
+### 6.2 Ponte Reversa de Internet para o Servidor Offline (Reverse SOCKS Proxy)
+O servidor e a Jetson operam em uma rede OT estritamente isolada e offline. Se houver necessidade emergencial de atualizar código (como `git pull`) ou verificar dependências online sem alterar a fiação do chassi:
+1. **Comando executado no notebook do engenheiro** (conectado à internet via 4G/USB tethering e à rede do carro via Wi-Fi/Ethernet):
+   ```bash
+   ssh -p 2222 -R 1080 eracing@192.168.10.1
+   ```
+2. **Variáveis de ambiente injetadas na sessão SSH do servidor offline:**
+   ```bash
+   export ALL_PROXY="socks5h://127.0.0.1:1080"
+   export http_proxy="socks5h://127.0.0.1:1080"
+   export https_proxy="socks5h://127.0.0.1:1080"
+   ```
+- **Justificativa de Engenharia:** O túnel SSH abre uma porta local socks5 no servidor. O uso do protocolo `socks5h://` (com o sufixo **h**) é mandatório para forçar a resolução de DNS a ocorrer na máquina do engenheiro, visto que o servidor offline não consegue acessar nenhum nameserver externo.
+
+### 6.3 Isolamento de Rota de Internet (Problema de Dual-Network)
+Ao plugar um cabo Ethernet conectado à rede local offline do Box e manter o Wi-Fi/4G ativo para acessar a internet, o Linux prioriza automaticamente o cabo cabeado para todo o tráfego global, cortando a internet do notebook do engenheiro.
+- **Comando aplicado na conexão cabeada local:**
+  ```bash
+  nmcli connection modify "Conexão cabeada 1" ipv4.never-default yes
+  ```
+- **Justificativa de Engenharia:** O parâmetro `ipv4.never-default yes` altera a métrica das rotas de rede, proibindo a interface cabeada de assumir o gateway padrão global. O tráfego da rede da telemetria (`192.168.10.x`) continua fluindo pelo cabo, enquanto o tráfego externo da internet é roteado corretamente pelo Wi-Fi/4G.
 
 link para os slides: https://canva.link/pc6rch8o5xh6cgj

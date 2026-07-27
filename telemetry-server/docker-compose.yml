@@ -11,3 +11,35 @@ services:
       - POSTGRES_DB=telemetria
     volumes:
       - ./pg_data:/var/lib/postgresql/data
+
+  unifi-db:
+    image: mongo:4.4
+    container_name: unifi-db
+    volumes:
+      - ./unifi_db:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    restart: unless-stopped
+
+  unifi-network-application:
+    image: lscr.io/linuxserver/unifi-network-application:latest
+    container_name: unifi-network-application
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+      - MONGO_USER=unifi
+      - MONGO_PASS=unifi
+      - MONGO_DB=unifi
+      - MONGO_AUTHSOURCE=admin
+      - MONGO_HOST=unifi-db
+      - MONGO_PORT=27017
+    volumes:
+      - ./unifi_config:/config
+    ports:
+      - "8443:8443"
+      - "3478:3478/udp"
+      - "10001:10001/udp"
+      - "8082:8080" # Map host 8082 to container 8080 (inform port)
+    restart: unless-stopped
+    depends_on:
+      - unifi-db

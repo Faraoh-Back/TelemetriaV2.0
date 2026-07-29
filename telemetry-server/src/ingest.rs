@@ -192,6 +192,8 @@ pub async fn handle_client(
     let mut unmapped_counts: HashMap<u32, u64> = HashMap::new();
     let mut last_log = std::time::Instant::now();
 
+    let mut last_ws_sent_map: HashMap<u32, std::time::Instant> = HashMap::new();
+
     loop {
         let mut len_buf = [0u8; 4];
         match read_half.read_exact(&mut len_buf).await {
@@ -350,13 +352,27 @@ pub async fn handle_client(
         let _ = sqlite_tx.try_send(processed.clone());
         let _ = timescale_tx.try_send(processed.clone());
 
-        // Envia o frame CAN original apenas UMA VEZ para o broadcast,
-        // em vez de repetir para cada sinal decodificado. Isso reduz o tráfego significativamente.
-        let mut frame = [0u8; 20];
-        frame[0..4].copy_from_slice(&can_id.to_le_bytes());
-        frame[4..12].copy_from_slice(&timestamp.to_le_bytes());
-        frame[12..20].copy_from_slice(&raw_data_owned);
-        let _ = ws_tx.send(frame.to_vec());
+        // Downsample/throttle WebSocket updates to 20Hz per CAN ID to prevent frontend lag,
+        // while preserving 100% of the inserts to SQLite and TimescaleDB databases.
+        let should_send_ws = {
+            let last_sent = last_ws_sent_map.entry(can_id).or_insert_with(|| {
+                std::time::Instant::now() - std::time::Duration::from_secs(1)
+            });
+            if last_sent.elapsed() >= std::time::Duration::from_millis(50) {
+                *last_sent = std::time::Instant::now();
+                true
+            } else {
+                false
+            }
+        };
+
+        if should_send_ws {
+            let mut frame = [0u8; 20];
+            frame[0..4].copy_from_slice(&can_id.to_le_bytes());
+            frame[4..12].copy_from_slice(&timestamp.to_le_bytes());
+            frame[12..20].copy_from_slice(&raw_data_owned);
+            let _ = ws_tx.send(frame.to_vec());
+        }
 
         let track_messages = match track_state.lock() {
             Ok(mut state) => state.update(&processed),

@@ -1192,6 +1192,14 @@ fn get_tcp_info(fd: i32) -> (u8, u8) {
         let retrans = std::cmp::min(255, tcp_info.tcpi_total_retrans) as u8;
         (rtt, retrans)
     } else {
+        let err = std::io::Error::last_os_error();
+        static LAST_LOG: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
+        let last = LAST_LOG.load(std::sync::atomic::Ordering::Relaxed);
+        if now - last >= 10 {
+            LAST_LOG.store(now, std::sync::atomic::Ordering::Relaxed);
+            tracing::warn!("⚠️ getsockopt(TCP_INFO, fd={}) falhou: {}", fd, err);
+        }
         (0, 0)
     }
 }

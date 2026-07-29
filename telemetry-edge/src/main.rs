@@ -1118,7 +1118,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("📊 Resumo final — Enviados: {} | Backup local: {}", total_sent, total_backed_up);
     info!("👋 Telemetria Edge encerrada.");
-    Ok(())
+    std::process::exit(0);
 }
 
 #[cfg(target_os = "linux")]

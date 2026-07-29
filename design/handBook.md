@@ -25,7 +25,7 @@ A temporada 2026 da E-Racing é marcada por três diretrizes estratégicas: **re
 | Diretriz da equipe | Resposta da telemetria |
 |---|---|
 | **Retorno conservador** | Sistema priorizou confiabilidade e simplicidade operacional sobre features experimentais. Stack 100% open-source, sem dependência de fornecedores externos. |
-| **Redução de custos** | Toda a stack (Rust, TimescaleDB, SQLite, SolidJS, MediaMTX) é open-source e sem licença por assento. Elimina necessidade de sistema DAQ comercial. |
+| **Redução de custos** | Toda a stack (Rust, TimescaleDB, SQLite, SolidJS) é open-source e sem licença por assento. Elimina necessidade de sistema DAQ comercial. |
 | **Foco em segurança** | Monitoramento em tempo real de BMS, inversores e VCU com latência de 1–2 ms. Comando de parada de emergência via dashboard sem acesso físico ao carro. |
 
 Além disso, a padronização da comunicação CAN — com documentação completa em arquivos DBC para todos os subsistemas — melhora o debug em pista e cria um legado técnico para os próximos carros.
@@ -92,8 +92,8 @@ A rede segue arquitetura OT (Operational Technology) isolada — sem conexão à
 #### Infra de deploy
 Esta camada descreve o que sobe nos hosts e não o comportamento do pipeline em si.
 
-- `Services/servicosJetson/`: unit files da borda, incluindo `can-interfaces.service`, `can-replay.service`, `telemetry-edge.service`, `eracing-qos.service`, `zed-stream.service` e `serveo-tunnel.service`.
-- `Services/servicosServidor/`: unit files do servidor, incluindo `telemetry.service`, `mediamtx.service`, `postgresql@14-main.service`, `rtsp-relay.service`, `udp-to-rtsp.service`, `video-backup.service` e `serveo-tunnel.service`.
+- `Services/servicosJetson/`: unit files da borda, incluindo `can-interfaces.service`, `can-replay.service`, `telemetry-edge.service`, `eracing-qos.service` e `serveo-tunnel.service`.
+- `Services/servicosServidor/`: unit files do servidor, incluindo `telemetry.service`, `postgresql@14-main.service` e `serveo-tunnel.service`.
 - Esta organização é deploy/operacao; a arquitetura lógica continua descrita pelo fluxo CAN -> servidor -> banco -> dashboard/MoTeC.
 
 ```mermaid
@@ -171,8 +171,7 @@ $$C = BW \cdot \log_2(1 + SNR) = 20 \times 10^6 \cdot \log_2(1 + 4168) \approx 2
 
 Carga real do sistema:
 * Telemetria CAN (TCP): ~240 kbps
-* Vídeo H.264 (UDP, previsto): ~4 Mbps
-* **Total: ~4.24 Mbps — menos de 2% da capacidade disponível**
+* **Total: ~240 kbps — menos de 0.1% da capacidade disponível**
 
 ### 2.6 Comparação de protocolos de transporte
 **CAN → Servidor (TCP vs UDP):**
@@ -182,7 +181,6 @@ Carga real do sistema:
 | Integridade dos dados | Garantida — nenhum frame perdido | Sem garantia — frames podem ser descartados |
 | Latência nominal | 1–2 ms | < 1 ms |
 | Adequação para telemetria | Obrigatório — perda de frame invalida derivadas (jerk, pitch) no MoTeC | Inaceitável para dados de dinâmica veicular |
-| Adequação para vídeo | Desnecessário | Ideal — perda de macrobloco é imperceptível |
 
 **Dashboard (WebSocket vs HTTP Polling):**
 
@@ -329,38 +327,30 @@ flowchart TD
         CAN0["can0\nBus geral\nBMS · VCU · IMU · ACD · Painel"]
         CAN1["can1\nBus inversores\nLenze/Bucher DCU 30/30"]
         JETSON["Jetson AGX Xavier 32GB\ntelemetry-edge Rust\nSocketCAN · Chrony sync · Frame binário 20B"]
-        ZED["ZED 2i Camera\nGStreamer x264enc\nV4L2 YUY2 2560x720"]
         CAN0 --> JETSON
         CAN1 --> JETSON
-        ZED --> JETSON
     end
     subgraph RF["📡 Link RF 5.5 GHz DFS"]
         AP_CAR["UAP-AC-M 192.168.10.49\nOmni 4 dBi"]
         AP_BOX["UAP-AC-M 192.168.10.101\nDirecional 15 dBi"]
         AP_CAR -."TCP :8080 — frames CAN 20B\n1112 fps pico medido".-> AP_BOX
-        AP_CAR -."UDP — H.264 video".-> AP_BOX
     end
     subgraph SERVER["🖥️ Servidor 192.168.10.1"]
         SRV["telemetry-server Rust/Tokio\nDBC decoder 6 DBCs · HTB QoS · JWT auth"]
         TS["TimescaleDB PostgreSQL 14\nretencao 7 dias"]
         SQ["SQLite historico.db\nhistorico permanente"]
-        MEDIA["MediaMTX v1.12\nRTSP · WebRTC :8555"]
         CHRONY_SRV["Chrony\nMestre de Tempo local\nstratum 10"]
         SRV --> TS
         SRV --> SQ
         AP_BOX --> SRV
-        AP_BOX --> MEDIA
     end
     subgraph DASH["💻 Dashboard SolidJS"]
         WS["WebSocket :8081\nframes binarios 20B"]
         WORKER["Web Worker\nDBC decode · CircularBuffer Float64Array\nLTTB downsampling"]
         UI["SolidJS UI\nStatusBar · Cockpit · Charts · Downloads · Admin"]
-        VIDEO["WebRTC video\nH.264 stream"]
         SRV --> WS
         WS --> WORKER
         WORKER --> UI
-        MEDIA --> VIDEO
-        VIDEO --> UI
     end
     JETSON --> AP_CAR
     CHRONY_SRV -."NTP sync\n< 1ms precisao".-> JETSON
@@ -506,7 +496,7 @@ Ao receber uma conexão TCP da Jetson:
 Interface de rede
 ├── Classe 1:10 — ALTA prioridade  → Frames CAN TCP :8080
 ├── Classe 1:20 — MÉDIA prioridade → WebSocket dashboard :8081
-└── Classe 1:30 — BAIXA prioridade → Vídeo UDP, SSH, outros
+└── Classe 1:30 — BAIXA prioridade → SSH, outros
 ```
 
 **Otimizações de banco de dados implementadas:**
@@ -583,7 +573,6 @@ sequenceDiagram
 | **Sincronização de clock** | Offset fixo calculado na inicialização | Chrony contínuo — sem drift acumulativo |
 | **Throughput máximo** | Não mensurável de forma contínua | **1.112 fps medidos em pista** |
 | **Dois barramentos CAN** | Não suportado | can0 + can1 simultâneos |
-| **Vídeo** | Não suportado | H.264 via GStreamer + MediaMTX + WebRTC |
 | **Persistência histórica** | CSVs por sessão | TimescaleDB + SQLite com retenção |
 | **Autenticação** | Sem autenticação | JWT com roles (admin / member) |
 | **Comando bidirecional** | Não suportado | Emergency stop/resume via TCP bidirecional |
@@ -631,7 +620,7 @@ A integridade física e o baixo jitter no processamento dos pacotes são garanti
 1. **NVIDIA Jetson AGX Xavier (Edge Processor):**
    - **Interface CAN Nativa:** A Jetson AGX possui dois controladores CAN embutidos (módulo kernel `mttcan`), suportando nativamente CAN 2.0A/B e CAN FD. A leitura direta do barramento CAN via driver nativo evita a latência de 2 a 5 ms e o jitter introduzidos por conversores SPI-para-CAN externos (como MCP2515) sob tráfego severo (1000+ fps).
    - **Gerenciamento Térmico e de Potência:** A Jetson está configurada com limitação de energia via perfil de hardware `nvpmodel` no boot (ajustada para o modo de **15W** ou **30W**). Isto garante a integridade térmica do processamento dentro da carenagem de fibra de carbono do veículo sem drenar excessivamente a bateria de baixa tensão (LV).
-   - **Margem Computacional:** 32 TOPS de poder de IA que provêm robustez e margem para rodar algoritmos de visão computacional da câmera ZED 2i em tempo real ou compressão de vídeo H.264 acelerada por hardware via NVENC.
+   - **Margem Computacional:** 32 TOPS de poder de IA que provêm robustez e margem para rodar algoritmos locais de detecção e controle.
 2. **SBG Systems Ellipse 2 (Sensor IMU/INS):**
    - **Precisão Estática e Dinâmica:** Apresenta precisão de atitude em Roll/Pitch inferior a **$0.1^\circ$** e de Yaw inferior a **$0.8^\circ$**. Essa precisão é obtida através de um filtro de Kalman embarcado de alta frequência que corrige o drift dos sensores inerciais (giroscópios e acelerômetros).
    - **Frequência de Amostragem Interna:** O sensor realiza aquisição inercial a 200 Hz e transmite os dados consolidados no barramento CAN a 100 Hz, garantindo dados dinâmicos com resolução temporal e angular adequada para MoTeC.
@@ -709,7 +698,6 @@ A telemetria transforma os sinais físicos decodificados no barramento CAN em an
 | Throughput máximo sustentado | Não mensurável | 1.112 fps |
 | Perda de frames por degradação | Sim | Não observada |
 | Clock drift acumulativo | Presente (offset fixo) | Eliminado (Chrony contínuo) |
-| Suporte a vídeo | Não | Sim |
 | Comando de emergência | Não | Kill/Resume validado em pista |
 | Persistência histórica | CSVs por sessão | TimescaleDB + SQLite |
 
@@ -795,10 +783,7 @@ A viabilidade algorítmica dessa abordagem foi demonstrada por Minango Negrete e
 ### 5.3 Integração de RSSI como sinal CAN sintético
 Uma extensão planejada do edge agent adicionará leitura de RSSI via `iw dev wlan0 link` a 1 Hz, injetando o valor como sinal sintético no pipeline CAN. Isso permitirá no MoTeC i2 Pro a sobreposição de qualidade de link RF com dados de posição e tempo de volta.
 
-### 5.4 QoS e vídeo simultâneo
-O vídeo H.264 via GStreamer e MediaMTX está implementado mas ainda não foi testado simultaneamente com telemetria CAN. A próxima sessão caracterizará o scheduler HTB sob carga combinada (~4.24 Mbps), medindo impacto de latência nos frames CAN e jitter de vídeo.
-
-### 5.5 Virtual Pit Engineer — V3.0
+### 5.4 Virtual Pit Engineer — V3.0
 O Virtual Pit Engineer é a próxima camada de maturidade da telemetria: transformar logs em aprendizado de pista, simulação e controle. A ideia não é ter uma IA que "faz comentários" sobre gráficos, mas um copiloto técnico que encontra onde o carro perdeu tempo, cruza sinais, testa explicações concorrentes e transforma eventos reais em cenários reproduzíveis no DIL.
 
 O resultado esperado é que, poucos minutos depois de encerrar uma sessão, a equipe receba algo assim:

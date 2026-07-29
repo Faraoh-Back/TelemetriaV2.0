@@ -923,3 +923,33 @@ Durante a troca e comissionamento do computador de borda (Jetson), foram superad
   sudo ip link add dev can0 type vcan
   sudo ip link set up can0
   ```
+
+### 7.5 Comparação de Arquiteturas: Telemetria V1 vs V2 vs React
+
+Com base no histórico da transição da Telemetria V1 para a V2, estruturamos abaixo uma tabela comparativa. O foco principal é demonstrar os ganhos de performance e latência ao adotar **WebSockets Binários + Solid.js** em comparação com a arquitetura antiga (Python + HTTP Polling) e uma possível alternativa moderna utilizando **React.js**.
+
+Como os dados de telemetria geralmente envolvem alta frequência de atualização (muitos pacotes por segundo), a escolha do framework de UI tem um impacto direto no gargalo de renderização.
+
+#### Tabela Comparativa de Performance (Valores Estimados/Mockados)
+
+| Métrica / Característica | V1 (Antiga) | V2 (Atual - Solid.js) | Alternativa (React.js) |
+| :--- | :--- | :--- | :--- |
+| **Tecnologia de Frontend** | Framework Python UI | Solid.js | React.js |
+| **Protocolo de Comunicação** | HTTP Polling | WebSockets (Binário) | WebSockets (JSON/Binário) |
+| **Mecanismo de Atualização UI** | Re-renderização no Servidor | Reatividade Fina (Sem VDOM) | Virtual DOM (VDOM) |
+| **Latência de Rede (Ida e Volta)** | ~100ms - 300ms | ~5ms - 15ms | ~5ms - 15ms |
+| **Latência de Renderização (UI)** | > 50ms (Gargalo de I/O) | **~1ms - 3ms** | ~10ms - 25ms |
+| **Latência Total Percebida** | **~150ms - 350ms+** | **~6ms - 18ms** | **~15ms - 40ms** |
+| **Overhead de Rede (Cliente)** | Muito Alto (Headers HTTP, etc.) | Muito Baixo (Payload puro) | Baixo a Médio |
+| **Uso de CPU no Cliente** | Alto | Muito Baixo | Médio a Alto (Reconciliação) |
+| **Capacidade de Taxa de Atualização** | ~2 a 5 Hz | **60+ Hz (Fluido)** | ~15 a 30 Hz (Risco de drop frames) |
+
+> **Por que Solid.js vence o React.js neste cenário?**
+> O React utiliza um Virtual DOM (VDOM). Quando um dado de telemetria chega via WebSocket (ex: 60 vezes por segundo), o React precisa recriar a árvore virtual, compará-la com a anterior (reconciliação) e então aplicar as mudanças no DOM real. Esse processo cria um overhead considerável em altas frequências. O **Solid.js**, por outro lado, compila seus componentes diretamente para atualizações finas no DOM real (Reatividade de Grão Fino). Quando o dado muda, apenas o texto ou atributo específico é atualizado instantaneamente, sem o ciclo de reconciliação, tornando-o ideal para dashboards de alta performance.
+
+> **Ganhos da Mudança de Protocolo**
+> Conforme o seu documento, a mudança de HTTP Polling (onde o cliente pergunta repetidamente "tem dado novo?") para WebSockets (onde o servidor empurra o dado assim que ele existe) reduziu a latência e o overhead em **mais de 25 vezes**. O uso de payload binário em vez de JSON stringificado reduz ainda mais o tempo de parsing (serialização/desserialização).
+
+#### Conclusão da Análise
+
+A escolha de **WebSockets Binários + Solid.js** representa o estado da arte para dashboards de telemetria de alta frequência. Usar React.js com WebSockets resolveria o problema de latência de rede (se livrando do Polling), mas introduziria um novo gargalo na latência de renderização no navegador devido ao peso do Virtual DOM lidando com atualizações constantes.

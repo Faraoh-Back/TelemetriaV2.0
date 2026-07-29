@@ -25,7 +25,7 @@ use std::collections::{BinaryHeap, HashMap};
 use std::cmp::Reverse;
 use std::fs;
 use std::path::Path;
-use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
+use std::sync::{Arc, atomic::{AtomicBool, Ordering, AtomicI32}};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use socketcan::EmbeddedFrame;
@@ -831,6 +831,74 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Flag de controle para encerrar threads graciosamente
     let running = Arc::new(AtomicBool::new(true));
 
+    let active_fd = Arc::new(AtomicI32::new(-1));
+
+    // 3.5. Task geradora de frames virtuais de rede (ID 0x700 / 1792)
+    {
+        let tx_clone = raw_tx.clone();
+        let running_clone = running.clone();
+        let anchor = clock_anchor;
+        let pool = db_pool.clone();
+        let fd_clone = active_fd.clone();
+        
+        tokio::spawn(async move {
+            let mut seq_num: u16 = 0;
+            let mut interval = tokio::time::interval(Duration::from_secs(1));
+            
+            while running_clone.load(Ordering::Relaxed) {
+                interval.tick().await;
+                
+                // 1. RSSI e Qualidade Física
+                let (rssi, qual, noise) = get_wifi_rssi_qual_noise();
+                
+                // 2. TCP RTT e Retransmissions (somente Linux)
+                #[cfg(target_os = "linux")]
+                let (rtt, retrans) = {
+                    let fd = fd_clone.load(Ordering::Relaxed);
+                    if fd >= 0 {
+                        get_tcp_info(fd)
+                    } else {
+                        (0, 0)
+                    }
+                };
+                #[cfg(not(target_os = "linux"))]
+                let (rtt, retrans) = (0u8, 0u8);
+                
+                // 3. Backlog de frames no banco SQLite
+                let backlog = match sqlx::query("SELECT COUNT(*) FROM raw_can_logs WHERE synced = 0")
+                    .fetch_one(&pool)
+                    .await
+                {
+                    Ok(row) => row.get::<i64, _>(0),
+                    Err(_) => 0,
+                };
+                // Divide por 100 e clamps no u8 (0..25500 frames backlog)
+                let backlog_k = std::cmp::min(255, (backlog / 100) as u32) as u8;
+                
+                // Monta o payload (8 bytes)
+                let mut data = [0u8; 8];
+                data[0..2].copy_from_slice(&seq_num.to_le_bytes()); // 2 bytes seq
+                data[2] = rssi as u8;                               // 1 byte RSSI (signed i8)
+                data[3] = noise as u8;                              // 1 byte Noise (signed i8)
+                data[4] = qual;                                     // 1 byte Quality (0..100)
+                data[5] = rtt;                                      // 1 byte TCP RTT (ms)
+                data[6] = retrans;                                  // 1 byte TCP Retrans (total)
+                data[7] = backlog_k;                                // 1 byte Backlog (x100)
+                
+                let frame = TelemetryFrame {
+                    timestamp: anchor.now_epoch(),
+                    can_id: 0x700,
+                    data,
+                    priority: 1, // Alta prioridade
+                    channel: "virtual".to_string(),
+                };
+                
+                let _ = tx_clone.send(frame).await;
+                seq_num = seq_num.wrapping_add(1);
+            }
+        });
+    }
+
     // Ctrl+C handler
     {
         let running_clone = running.clone();
@@ -908,6 +976,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match TcpStream::connect(&server_addr).await {
                 Ok(s) => {
                     info!("✅ Conectado ao servidor!");
+                    #[cfg(target_os = "linux")]
+                    {
+                        use std::os::unix::io::AsRawFd;
+                        active_fd.store(s.as_raw_fd(), Ordering::Relaxed);
+                    }
                     break s.into_split();
                 }
                 Err(e) => {
@@ -1022,6 +1095,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Err(e) => {
                     warn!("❌ Erro ao enviar: {}. Desviando {} frames para backup local...", e, frame_buffer.len());
+                    #[cfg(target_os = "linux")]
+                    active_fd.store(-1, Ordering::Relaxed);
                     for frame in &frame_buffer {
                         if sqlite_tx.try_send(frame.clone()).is_err() {
                             error!("❌ Buffer SQLite cheio — frame descartado");
@@ -1069,4 +1144,54 @@ fn send_emergency_can(payload: [u8; 8]) {
 #[cfg(not(target_os = "linux"))]
 fn send_emergency_can(_payload: [u8; 8]) {
     tracing::warn!("⚠️  Emergency CAN não disponível fora de Linux");
+}
+
+fn get_wifi_rssi_qual_noise() -> (i8, u8, i8) {
+    #[cfg(target_os = "linux")]
+    {
+        if let Ok(content) = std::fs::read_to_string("/proc/net/wireless") {
+            for line in content.lines() {
+                if line.contains(":") {
+                    let parts: Vec<&str> = line.split_whitespace().collect();
+                    if parts.len() >= 5 {
+                        let qual_str = parts[2].trim_end_matches('.');
+                        let rssi_str = parts[3].trim_end_matches('.');
+                        let noise_str = parts[4].trim_end_matches('.');
+                        
+                        let qual = qual_str.parse::<f32>().unwrap_or(0.0) as u8;
+                        let rssi = rssi_str.parse::<f32>().unwrap_or(0.0) as i8;
+                        let noise = noise_str.parse::<f32>().unwrap_or(0.0) as i8;
+                        return (rssi, qual, noise);
+                    }
+                }
+            }
+        }
+    }
+    (0, 0, 0)
+}
+
+#[cfg(target_os = "linux")]
+fn get_tcp_info(fd: i32) -> (u8, u8) {
+    use std::mem;
+    let mut tcp_info: libc::tcp_info = unsafe { mem::zeroed() };
+    let mut len = mem::size_of::<libc::tcp_info>() as libc::socklen_t;
+    
+    let res = unsafe {
+        libc::getsockopt(
+            fd,
+            libc::IPPROTO_TCP,
+            libc::TCP_INFO,
+            &mut tcp_info as *mut _ as *mut libc::c_void,
+            &mut len,
+        )
+    };
+    
+    if res == 0 {
+        let rtt_ms = tcp_info.tcpi_rtt / 1000;
+        let rtt = std::cmp::min(255, rtt_ms) as u8;
+        let retrans = std::cmp::min(255, tcp_info.tcpi_total_retrans) as u8;
+        (rtt, retrans)
+    } else {
+        (0, 0)
+    }
 }

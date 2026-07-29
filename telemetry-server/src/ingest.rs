@@ -134,6 +134,7 @@ pub async fn handle_client(
     edge_cmd_tx_source: broadcast::Sender<Vec<u8>>,
     latency_us: Arc<AtomicI64>,
     msg_rate: Arc<AtomicU64>,
+    unifi_stats: crate::unifi::SharedUnifiStats,
 ) {
     info!("🚗 Carro conectado: {}", addr);
 
@@ -226,6 +227,34 @@ pub async fn handle_client(
         let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
         let raw_data = &payload[12..20];
         let raw_data_owned: [u8; 8] = raw_data.try_into().unwrap();
+
+        // Intercepta frame virtual de telemetria de rede 0x700 (1792)
+        if can_id == 0x700 {
+            let seq_num = u16::from_le_bytes(raw_data_owned[0..2].try_into().unwrap());
+            let rssi = raw_data_owned[2] as i8;
+            let noise = raw_data_owned[3] as i8;
+            let qual = raw_data_owned[4];
+            let rtt = raw_data_owned[5];
+            let retrans = raw_data_owned[6];
+            let backlog_k = raw_data_owned[7];
+
+            let stats = crate::unifi::UnifiStats {
+                rssi: Some(rssi as i32),
+                tx_rate: Some(rtt as u64),
+                rx_rate: Some(retrans as u64),
+                tx_retries: Some(seq_num as u64),
+                cu_total: Some(qual as u32),
+                noise_floor: Some(noise as i32),
+                channel_width: Some(format!("{} frames", backlog_k as u32 * 100)),
+                uptime: None,
+                last_seen: Some(timestamp as u64),
+            };
+
+            if let Ok(mut lock) = unifi_stats.write() {
+                *lock = Some(stats);
+            }
+        }
+
         let should_log_decode = decode_debug.should_log_frame(can_id);
 
         if should_log_decode {

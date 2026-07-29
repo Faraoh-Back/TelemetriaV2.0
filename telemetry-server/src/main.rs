@@ -133,7 +133,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let msg_rate = Arc::new(AtomicU64::new(0));
 
     let unifi_stats = Arc::new(std::sync::RwLock::new(None));
-    unifi::start_unifi_poller(unifi_stats.clone());
+    // unifi::start_unifi_poller(unifi_stats.clone());
 
     // Canal SQLite: buffer de 50k vetores de sinais
     let (sqlite_tx, mut sqlite_rx) = tokio::sync::mpsc::channel::<Vec<ProcessedSignal>>(50_000);
@@ -261,6 +261,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let timescale_tx = timescale_tx.clone();
         let lat = latency_us.clone();
         let rate = msg_rate.clone();
+        let wifi = unifi_stats.clone();
         tokio::spawn(async move {
             ingest::handle_client(
                 socket,
@@ -274,6 +275,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 cmd_tx,
                 lat,
                 rate,
+                wifi,
             )
             .await;
         });

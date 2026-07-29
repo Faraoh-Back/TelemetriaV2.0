@@ -50,6 +50,15 @@ BO_ 1025 sensores2: 8 Vector__XXX
 
 
 
+BO_ 1792 TelemetriaRF: 8 Vector__XXX
+ SG_ rf_seq_num : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ rf_rssi : 16|8@1- (1,0) [-128|127] "dBm" Vector__XXX
+ SG_ rf_noise : 24|8@1- (1,0) [-128|127] "dBm" Vector__XXX
+ SG_ rf_quality : 32|8@1+ (1,0) [0|100] "%" Vector__XXX
+ SG_ tcp_rtt : 40|8@1+ (1,0) [0|255] "ms" Vector__XXX
+ SG_ tcp_retrans : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ backlog_k : 56|8@1+ (100,0) [0|25500] "" Vector__XXX
+
 BA_DEF_  "BusType" STRING ;
 BA_DEF_DEF_  "BusType" "CAN";
 

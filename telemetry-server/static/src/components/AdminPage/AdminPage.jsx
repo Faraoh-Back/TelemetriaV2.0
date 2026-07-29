@@ -208,27 +208,33 @@ function AdminPage(props) {
                             <table class="admin-htb-table" style="margin-top: 8px;">
                                 <tbody>
                                     <tr>
-                                        <td>Taxa Tx/Rx</td>
+                                        <td>TCP RTT (Ping)</td>
                                         <td style="text-align: right; font-weight: 500;">
-                                            {network().unifi.tx_rate ? `${(network().unifi.tx_rate / 1000).toFixed(0)} Mbps` : '—'} / {network().unifi.rx_rate ? `${(network().unifi.rx_rate / 1000).toFixed(0)} Mbps` : '—'}
+                                            {network().unifi.tx_rate !== null && network().unifi.tx_rate !== undefined ? `${network().unifi.tx_rate} ms` : '—'}
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Largura de Canal</td>
+                                        <td>Retransmissões TCP</td>
                                         <td style="text-align: right; font-weight: 500;">
-                                            {network().unifi.channel_width ? `${network().unifi.channel_width} MHz` : '—'}
+                                            {network().unifi.rx_rate !== null && network().unifi.rx_rate !== undefined ? network().unifi.rx_rate : '—'}
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Uso de Canal (CU)</td>
+                                        <td>Fila Backup (Carro)</td>
+                                        <td style="text-align: right; font-weight: 500;">
+                                            {network().unifi.channel_width ?? '—'}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Qualidade do Link</td>
                                         <td style="text-align: right; font-weight: 500;">
                                             {network().unifi.cu_total !== null && network().unifi.cu_total !== undefined ? `${network().unifi.cu_total}%` : '—'}
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>Retransmissões</td>
+                                        <td>Seq. Pacotes</td>
                                         <td style="text-align: right; font-weight: 500;">
-                                            {network().unifi.tx_retries !== null && network().unifi.tx_retries !== undefined ? network().unifi.tx_retries.toLocaleString('pt-BR') : '—'}
+                                            {network().unifi.tx_retries !== null && network().unifi.tx_retries !== undefined ? network().unifi.tx_retries : '—'}
                                         </td>
                                     </tr>
                                     <tr>

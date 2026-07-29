@@ -71,11 +71,17 @@ pub fn start_unifi_poller(shared_stats: SharedUnifiStats) {
             }
         };
 
-        let url = format!("https://{}/proxy/network/api/s/default/stat/device", unifi_ip);
+        let mut use_direct_path = false;
         let mut interval = tokio::time::interval(Duration::from_secs(3));
 
         loop {
             interval.tick().await;
+
+            let url = if use_direct_path {
+                format!("https://{}/api/s/default/stat/device", unifi_ip)
+            } else {
+                format!("https://{}/proxy/network/api/s/default/stat/device", unifi_ip)
+            };
 
             let req = client.get(&url)
                 .header("Accept", "application/json")
@@ -84,7 +90,8 @@ pub fn start_unifi_poller(shared_stats: SharedUnifiStats) {
 
             match req.send().await {
                 Ok(resp) => {
-                    if resp.status().is_success() {
+                    let status = resp.status();
+                    if status.is_success() {
                         match resp.json::<UnifiResponse>().await {
                             Ok(payload) => {
                                 if let Some(devices) = payload.data {
@@ -144,10 +151,18 @@ pub fn start_unifi_poller(shared_stats: SharedUnifiStats) {
                             }
                         }
                     } else {
-                        warn!("⚠️ Resposta HTTP com erro da API do UniFi: {}", resp.status());
-                        // Se receber 401 ou 403, pode indicar falha de chave expirada
-                        if resp.status() == reqwest::StatusCode::UNAUTHORIZED || resp.status() == reqwest::StatusCode::FORBIDDEN {
-                            warn!("🔑 Possível chave de API do UniFi expirada ou inválida.");
+                        if status == reqwest::StatusCode::NOT_FOUND && !use_direct_path {
+                            warn!("⚠️ 404 no endpoint do UniFi OS. Alternando para o endpoint direto da controladora local.");
+                            use_direct_path = true;
+                        } else {
+                            warn!("⚠️ Resposta HTTP com erro da API do UniFi: {}", status);
+                            // Se receber 401 ou 403, pode indicar falha de chave expirada
+                            if status == reqwest::StatusCode::UNAUTHORIZED || status == reqwest::StatusCode::FORBIDDEN {
+                                warn!("🔑 Possível chave de API do UniFi expirada ou inválida.");
+                            }
+                            if let Ok(mut lock) = shared_stats.write() {
+                                *lock = None;
+                            }
                         }
                     }
                 }

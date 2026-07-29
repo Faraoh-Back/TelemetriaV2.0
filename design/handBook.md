@@ -870,3 +870,56 @@ Ao plugar um cabo Ethernet conectado à rede local offline do Box e manter o Wi-
 - **Justificativa de Engenharia:** O parâmetro `ipv4.never-default yes` altera a métrica das rotas de rede, proibindo a interface cabeada de assumir o gateway padrão global. O tráfego da rede da telemetria (`192.168.10.x`) continua fluindo pelo cabo, enquanto o tráfego externo da internet é roteado corretamente pelo Wi-Fi/4G.
 
 link para os slides: https://canva.link/pc6rch8o5xh6cgj
+
+## 7. ATUALIZAÇÕES E MELHORIAS DE IMPLEMENTAÇÃO (JULHO/2026)
+
+### 7.1 Monitoramento de Rede Descentralizado via CAN Virtual (ID 0x700)
+Para eliminar a dependência de APIs proprietárias (como Ubiquiti UniFi Controller API) e viabilizar o diagnóstico de rede em tempo real mesmo em redes isoladas sem acesso à gerência do AP, foi implementada a emissão de métricas diretamente da Jetson (`telemetry-edge`) para o Servidor (`telemetry-server`) via um **frame CAN virtual de rede** na ID **`0x700` (1792 em decimal)**, transmitido periodicamente a cada 1 segundo.
+
+#### Estrutura do Payload de 8 Bytes do Frame 0x700:
+* **Byte 0-1:** `rf_seq_num` (Contador de sequência incremental, uint16, little-endian) - Usado para rastrear a ordem e continuidade das transmissões.
+* **Byte 2:** `rf_rssi` (Força do sinal Wi-Fi, int8) - Sinal recebido em dBm (ex: `-65`).
+* **Byte 3:** `rf_noise` (Ruído de fundo Wi-Fi, int8) - Nível de estática do ambiente em dBm (ex: `-96`).
+* **Byte 4:** `rf_quality` (Qualidade física do link Wi-Fi, uint8) - Qualidade de 0 a 100% calculada pelo driver da placa de rede.
+* **Byte 5:** `tcp_rtt` (TCP RTT / Ping real do Socket, uint8) - Latência de tráfego de rede medida em ms diretamente pelo kernel do Linux.
+* **Byte 6:** `tcp_retrans` (Contador de Retransmissões TCP, uint8) - Quantidade total de reenvios no socket devido a colisões ou perdas físicas de sinal de rádio.
+* **Byte 7:** `backlog_k` (Backlog do Buffer de Contingência, uint8) - Quantidade de frames CAN acumulados no banco de dados SQLite local na Jetson aguardando retransmissão, dividido por 100 (ex: `15` representa 1500 frames no buffer).
+
+#### Origem dos Dados na Borda (Jetson):
+1. **Camada Física (Métricas de Rádio):** Obtidas através do parsing em tempo real do arquivo do kernel `/proc/net/wireless` na Jetson. Caso o veículo esteja conectado via cabo Ethernet (`eth0`), estes campos reportam `0` (desconectado).
+2. **Camada de Transporte (Métricas de Socket):** Obtidas consultando a estrutura `tcp_info` do kernel Linux via chamada de sistema `getsockopt` (opção `TCP_INFO`) diretamente sobre o file descriptor do socket TCP de transmissão da telemetria.
+3. **Camada de Fila (Backlog):** Obtida executando uma consulta rápida de contagem (`SELECT COUNT(*) FROM raw_can_logs WHERE synced = 0`) no banco de dados local SQLite.
+
+#### Processamento no Servidor:
+O servidor intercepta o frame `0x700` durante o loop de ingestão do TCP, extrai os campos e atualiza o estado compartilhado na memória cache (`unifi_stats`). Isso elimina a dependência de autenticação JWT/API-Keys na controladora UniFi externa (evitando erros HTTP 401 e 404). As variáveis também são armazenadas nos bancos PostgreSQL (TimescaleDB) e SQLite para fins de correlação e plotagem de gráficos de cobertura no MoTeC i2 Pro.
+
+---
+
+### 7.2 Otimização de Vazão de Rede (WebSocket Throttling a 20 Hz)
+Em simulações e logs de pista reais com tráfego denso (ultrapassando 1.000 frames/s), a transmissão de todos os pacotes CAN individuais sobrecarregava a thread única de renderização de interface do navegador, gerando atraso visual severo e travamentos.
+
+* **Filtro de Descarte Visual:** Empregou-se um limitador de taxa (*downsampling/throttle*) síncrono no loop de ingestão do servidor (`telemetry-server/src/ingest.rs`).
+* **Taxa de Amostragem:** O servidor restringe o envio de atualizações via WebSocket a no máximo **20 Hz (50 ms de intervalo)** para cada ID CAN individual.
+* **Integridade Histórica Preservada:** Esta otimização afeta unicamente o tráfego visual em tempo real direcionado ao Dashboard do navegador. A persistência histórica no banco SQLite e no TimescaleDB continua salvando **100%** das mensagens na frequência máxima nativa (até 100Hz/1000Hz), garantindo que os arquivos exportados para o MoTeC i2 Pro permaneçam completos e sem perda de fidelidade física.
+
+---
+
+### 7.3 Geração e Injeção Física de Simulações de Provas Dinâmicas
+Para fins de teste estático da telemetria e calibração fina do sistema de controle de tração sem a necessidade de ligar os motores em pista, foi desenvolvido um gerador de telemetria física (`generate_candumps.py`) que modela o comportamento dinâmico do carro nas 4 provas principais do FSAE. Os logs resultantes foram salvos no diretório `./dados/`:
+
+1. **`autocross_completo.log` (120 s):** Simulação de volta completa baseada no perfil de corrida real, injetando dados simulados da Placa Traseira (PT) a cada 20 ms (velocidades das rodas planetárias esquerda/direita sincronizadas ao RPM com ruído estocástico, percurso de suspensão variando com a aceleração lateral G e pressão de freio traseira sincronizada com a VCU).
+2. **`aceleracao.log` (15 s):** Parado por 3s, seguido de arrancada linear a 100% de aceleração (APPS), subindo a 5500 RPM e velocidade de 100 km/h, finalizando com frenagem máxima até parar.
+3. **`skidpad.log` (45 s):** Velocidade mantida a 35 km/h, simulando a trajetória em "forma de 8". A rotação do volante é travada em $-105^\circ$ por duas voltas completas à esquerda (comprimindo a suspensão traseira para 180), e em $+105^\circ$ por duas voltas à direita (comprimindo a suspensão traseira para 80).
+4. **`enduro.log` (180 s):** Stint dinâmico com desgaste acumulado (decaimento linear da carga da bateria SoC e aumento gradual da temperatura do motor e inversor de 40 °C a 76 °C).
+
+---
+
+### 7.4 Configuração de Rede da Nova Jetson
+Durante a troca e comissionamento do computador de borda (Jetson), foram superadas as seguintes restrições de infraestrutura local:
+* **Instalação do Rust via Túnel SSH Reverso Encadeado:** Como a Jetson não possuía acesso direto à internet ou DNS configurados, foi implementado um redirecionamento de porta reverso socks5 do notebook do engenheiro para o servidor de base (`ssh -R 1080:localhost:1080 eracing@192.168.10.1`), e em seguida repassado do servidor para a Jetson (`ssh -R 1080:localhost:1080 ubuntu@192.168.10.117`). Exportando as variáveis `ALL_PROXY`, `http_proxy` e `https_proxy` apontando para `socks5h://127.0.0.1:1080` com o parâmetro `sudo -E apt`, foi possível instalar as dependências de compilação (`build-essential`, `libssl-dev` e `device-tree-compiler`) e o ecossistema `rustup/cargo` diretamente na Jetson.
+* **Ativação da CAN Virtual (`can0`):** Para rodar replays com `canplayer` e escutar barramentos locais, a interface virtual deve ser iniciada no kernel com:
+  ```bash
+  sudo modprobe vcan
+  sudo ip link add dev can0 type vcan
+  sudo ip link set up can0
+  ```

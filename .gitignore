@@ -26,3 +26,5 @@ venv/
 
 .DS_Store
 .agyignore
+
+telemetria_backup.db*

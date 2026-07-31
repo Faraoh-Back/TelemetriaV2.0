@@ -69,7 +69,7 @@ function inferDomainType(signalName) {
 
 const FIXED_DOMAINS = {
     rpm:          [0,      10000],
-    acceleration: [0,      30],
+    acceleration: [0,      15],
     temperature:  [0,      120],
     voltage:      [0,      500],
     power:        [-100,   100],

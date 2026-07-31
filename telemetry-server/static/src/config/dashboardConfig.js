@@ -66,7 +66,7 @@ export const PINNED_SIGNALS = METRIC_SIGNAL_CARDS
 export const GAUGE_CONFIG = [
     { signalName: 'RPM_0A',   label: 'RPM 0A',     min: 0, max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
     { signalName: 'RPM_13A',  label: 'RPM 13A',    min: 0, max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
-    { signalName: 'Accel_Linear_X', label: 'Acelerador', min: -15, max: 15,   unit: 'm/s²' },
+    { signalName: 'Accel_Linear_X', label: 'Acelerador', min: 0, max: 30,   unit: 'm/s²' },
 ]
 
 export const DEFAULT_CHART_LAYOUT = [

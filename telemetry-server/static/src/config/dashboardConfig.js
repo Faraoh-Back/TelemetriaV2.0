@@ -10,7 +10,7 @@ export const METRIC_SIGNAL_CARDS = [
     { signalName: 'TORQUE_0B', label: 'Torque 0B',     dataClass: 'torque'      },
     { signalName: 'TORQUE_13A',label: 'Torque 13A',    dataClass: 'torque'      },
     { signalName: 'TORQUE_13B',label: 'Torque 13B',    dataClass: 'torque'      },
-    { signalName: 'APS_PERC',  label: 'Acelerador',    dataClass: 'power'       },
+    { signalName: 'Accel_Linear_X',  label: 'Aceleração X',    dataClass: 'acceleration', unit: 'm/s²' },
     {
         signalName: 'CELL_TEMP_MIN',
         signalNames: CELL_TEMPERATURE_SIGNALS,

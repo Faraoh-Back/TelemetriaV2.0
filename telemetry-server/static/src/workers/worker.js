@@ -141,6 +141,7 @@ import { decodeSignal } from '../utils/canDecode.js'
         VoltOverallParam_MaxCellVoltage: ['CELL_VOLTAGE_MAX'],
         CellOverallPar_MinCellTemp: ['CELL_TEMP_MIN'],
         CellOverallPar_MaxCellTemp: ['CELL_TEMP_MAX'],
+        SAFETY_OK: ['SAFETY_NOT_OK'],
     };
 
     function emitSignal(name, value, unit, timestamp, canId, component) {
@@ -154,7 +155,51 @@ import { decodeSignal } from '../utils/canDecode.js'
         for (const alias of SIGNAL_ALIASES[name] || []) {
             emitSignal(alias, value, unit, timestamp, canId, component);
         }
+
+        // Inverter Speed & Torque dynamic aliases to map to Dashboard config names
+        if (name === 'act_Speed_A1') {
+            emitSignal('RPM_0A', value, 'rpm', timestamp, canId, component);
+        } else if (name === 'act_Speed_B1') {
+            emitSignal('RPM_0B', value, 'rpm', timestamp, canId, component);
+        } else if (name === 'act_Speed_A14') {
+            emitSignal('RPM_13A', value, 'rpm', timestamp, canId, component);
+        } else if (name === 'act_Speed_B14') {
+            emitSignal('RPM_13B', value, 'rpm', timestamp, canId, component);
+        } else if (name === 'act_Torque_A1') {
+            emitSignal('TORQUE_0A', value, 'Nm', timestamp, canId, component);
+        } else if (name === 'act_Torque_B1') {
+            emitSignal('TORQUE_0B', value, 'Nm', timestamp, canId, component);
+        } else if (name === 'act_Torque_A14') {
+            emitSignal('TORQUE_13A', value, 'Nm', timestamp, canId, component);
+        } else if (name === 'act_Torque_B14') {
+            emitSignal('TORQUE_13B', value, 'Nm', timestamp, canId, component);
+        }
+
+        // BMS Cell Voltages demultiplexing (0x19B50100 to 0x19B5010B -> vcell_0 to vcell_95)
+        if (canId >= 0x19B50100 && canId <= 0x19B5010B) {
+            if (name.startsWith('IndividualCellVoltage_Data_')) {
+                const signalIdx = parseInt(name.split('_').pop(), 10);
+                if (!isNaN(signalIdx)) {
+                    const msgIdx = canId - 0x19B50100;
+                    const cellIdx = msgIdx * 8 + signalIdx;
+                    emitSignal(`vcell_${cellIdx}`, value, 'V', timestamp, canId, component);
+                }
+            }
+        }
+
+        // BMS Cell Temperatures demultiplexing (0x19B50800 to 0x19B5080B -> tcell_0 to tcell_95)
+        if (canId >= 0x19B50800 && canId <= 0x19B5080B) {
+            if (name.startsWith('IndividualCellTemp_Data_')) {
+                const signalIdx = parseInt(name.split('_').pop(), 10);
+                if (!isNaN(signalIdx)) {
+                    const msgIdx = canId - 0x19B50800;
+                    const cellIdx = msgIdx * 8 + signalIdx;
+                    emitSignal(`tcell_${cellIdx}`, value, '°C', timestamp, canId, component);
+                }
+            }
+        }
     }
+
 
     function parseCanIdList(value) {
         if (!value) return null;

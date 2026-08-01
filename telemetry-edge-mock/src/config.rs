@@ -21,7 +21,7 @@ pub struct MockConfig {
     #[arg(long, default_value_t = 12345)]
     pub seed: u64,
 
-    #[arg(long, default_value_t = 100.0)]
+    #[arg(long, default_value_t = 10.0)]
     pub bms_hz: f64,
 
     #[arg(long, default_value_t = 100.0)]
@@ -30,7 +30,7 @@ pub struct MockConfig {
     #[arg(long, default_value_t = 50.0)]
     pub vcu_hz: f64,
 
-    #[arg(long, default_value_t = 50.0)]
+    #[arg(long, default_value_t = 100.0)]
     pub inverter_hz: f64,
 
     #[arg(long)]

@@ -9,21 +9,28 @@ pub fn snapshot(t: f64, _seed: u64) -> ScenarioSnapshot {
     s.vcu_state = 3;
     s.torque_a = 12.0 + 115.0 * throttle + 8.0 * ripple;
     s.torque_b = 10.0 + 108.0 * throttle + 6.0 * ripple;
-    s.rpm_a = 1400.0 + 2100.0 * throttle + 160.0 * ripple;
-    s.rpm_b = 1350.0 + 2080.0 * throttle + 120.0 * ripple;
-    s.accel_x = 0.45 + 0.55 * throttle;
-    s.accel_y = 0.06 * ripple;
-    s.accel_z = 0.98;
+
+    // Gear ratio FSE: RPM = speed × 432.3
+    let speed = 8.0 + 24.0 * throttle;
+    let gear_rpm = speed * 432.3;
+    s.rpm_a = gear_rpm + 100.0 * ripple;
+    s.rpm_b = gear_rpm - 30.0 + 80.0 * ripple;
+
+    s.accel_x = (0.45 + 0.75 * throttle).clamp(-1.6, 1.2);
+    s.accel_y = 0.08 * ripple;
+    s.accel_z = 9.81;
     s.yaw_rate = 0.05 * ripple;
-    s.speed_x = 8.0 + 24.0 * throttle;
+    s.speed_x = speed;
     s.speed_y = 0.4 * ripple;
-    s.cell_v_min = 3.90 - 0.04 * throttle;
-    s.cell_v_max = 3.97 - 0.02 * throttle;
-    s.cell_temp_max = 29.0 + 4.0 * throttle;
-    s.motor_temp_a = 31.0 + 5.0 * throttle;
-    s.motor_temp_b = 31.5 + 5.5 * throttle;
-    s.coolant_temp = 27.0 + 2.5 * throttle;
-    s.coolant_pressure = 1.4 + 0.2 * throttle;
-    s.coolant_flow = 9.0 + 0.6 * throttle;
+
+    // Voltagens com sag sob carga
+    s.cell_v_min = 4.08 - 0.15 * throttle;
+    s.cell_v_max = 4.12 - 0.08 * throttle;
+    s.cell_temp_max = 30.0 + 8.0 * throttle;
+    s.motor_temp_a = 32.0 + 15.0 * throttle;
+    s.motor_temp_b = 32.5 + 14.0 * throttle;
+    s.coolant_temp = 28.0 + 6.0 * throttle;
+    s.coolant_pressure = 1.4 + 0.25 * throttle;
+    s.coolant_flow = 9.0 + 1.2 * throttle;
     s
 }

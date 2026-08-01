@@ -358,13 +358,14 @@ import { decodeSignal } from '../utils/canDecode.js'
             );
         }
 
-        if (sessionStartTimestamp == null) {
-        sessionStartTimestamp = timestamp;
-        sessionStopTimestamp = null;
-        postSessionState();
+        if (canId !== 0x700) {
+            if (sessionStartTimestamp == null) {
+                sessionStartTimestamp = timestamp;
+                sessionStopTimestamp = null;
+                postSessionState();
+            }
+            latestFrameTimestamp = timestamp;
         }
-
-        latestFrameTimestamp = timestamp;
     
         const signals = CAN_MAP[canId];
         if (!signals) {

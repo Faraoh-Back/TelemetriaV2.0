@@ -248,6 +248,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let tcp_listener = TcpListener::bind(format!("0.0.0.0:{}", TCP_PORT)).await?;
     info!("📡 TCP CAN listener em 0.0.0.0:{}", TCP_PORT);
     info!("🌐 HTTP+WS server em 0.0.0.0:{}", HTTP_WS_PORT);
+    if track_state::track_map_enabled() {
+        info!("🗺️  Mapeamento de pista ATIVO");
+    } else {
+        warn!("🗺️  Mapeamento de pista DESATIVADO (TRACK_MAP_ENABLED=false) — sem mensagens track_*");
+    }
     info!("✅ Servidor pronto!\n");
 
     loop {

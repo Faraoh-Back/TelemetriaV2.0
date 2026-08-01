@@ -1,7 +1,7 @@
 use crate::db::save_timescale;
 use crate::decoder;
 use crate::models::ProcessedSignal;
-use crate::track_state::SharedTrackState;
+use crate::track_state::{track_map_enabled, SharedTrackState};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::Arc;
@@ -374,15 +374,20 @@ pub async fn handle_client(
             let _ = ws_tx.send(frame.to_vec());
         }
 
-        let track_messages = match track_state.lock() {
-            Ok(mut state) => state.update(&processed),
-            Err(e) => {
-                error!("❌ track state lock error: {:?}", e);
-                Vec::new()
+        // Com TRACK_MAP_ENABLED=false nem chegamos a pegar o mutex compartilhado:
+        // o mapeamento sai por completo do hot path de ingestão (uma trava global
+        // por frame, disputada por todas as conexões) e nada é publicado no WS.
+        if track_map_enabled() {
+            let track_messages = match track_state.lock() {
+                Ok(mut state) => state.update(&processed),
+                Err(e) => {
+                    error!("❌ track state lock error: {:?}", e);
+                    Vec::new()
+                }
+            };
+            for json in track_messages {
+                let _ = ws_tx.send(json.into_bytes());
             }
-        };
-        for json in track_messages {
-            let _ = ws_tx.send(json.into_bytes());
         }
 
         if last_log.elapsed().as_secs() >= 10 {

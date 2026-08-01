@@ -1,7 +1,27 @@
 use crate::config::{RPM_CORRECTION_WEIGHT, RPM_MOTOR_TO_MPS};
 use crate::models::ProcessedSignal;
 use serde_json::json;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
+
+/// Kill switch do mapeamento de pista (odometria + fechamento de volta).
+///
+/// Definir `TRACK_MAP_ENABLED=false` no `.env` desliga o serviço por inteiro:
+/// nenhuma amostra é integrada e nenhuma mensagem `track_*` chega ao WebSocket.
+/// Serve para isolar o custo do mapa ao investigar gargalo de ingestão sem
+/// remover o código. Lido uma única vez no primeiro acesso.
+pub fn track_map_enabled() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| {
+        !matches!(
+            std::env::var("TRACK_MAP_ENABLED")
+                .unwrap_or_else(|_| "true".to_string())
+                .trim()
+                .to_ascii_lowercase()
+                .as_str(),
+            "0" | "false" | "off" | "no"
+        )
+    })
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Point2 {
@@ -128,6 +148,9 @@ impl RealtimeTrackState {
     }
 
     pub fn update(&mut self, signals: &[ProcessedSignal]) -> Vec<String> {
+        if !track_map_enabled() {
+            return Vec::new();
+        }
         if signals.is_empty() {
             return Vec::new();
         }

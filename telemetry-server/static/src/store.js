@@ -2,10 +2,10 @@
 //
 // FLUXO:
 //
-//   worker.onmessage recebe { type: 'signal', name, value, unit, timestamp }
-//       │
+//   worker.onmessage recebe { type: 'signals', items: [{ name, value, unit, timestamp }] }
+//       │  (lote de ~20 Hz — o worker coalesce as amostras, ver workers/worker.js)
 //       ▼
-//   setSignals(name, { value, unit, timestamp })
+//   batch(() => setSignals(name, { value, unit, timestamp }) por item)
 //       │
 //       ▼
 //   Componentes que leem signals[name] atualizam automaticamente
@@ -23,8 +23,9 @@
 //       ▼
 //   bufferCallbacks.get(reqId)(data) → resolve() da Promise
 
+import { batch } from 'solid-js'
 import { createStore, reconcile } from 'solid-js/store'
-import { LAP_TIMING_ENABLED } from './config/featureFlags.js'
+import { LAP_TIMING_ENABLED, TRACK_MAP_ENABLED } from './config/featureFlags.js'
 
 // ─── WORKER ──────────────────────────────────────────────────────────────────
 // O Worker fica em src/workers para poder importar os utils do projeto.
@@ -119,12 +120,20 @@ const [telemetrySession, setTelemetrySession] = createStore({
 // ─── MENSAGENS DO WORKER ──────────────────────────────────────────────────────
     worker.onmessage = ({ data }) => {
         switch (data.type) {
-            case 'signal':
-            setSignals(data.name, {
-                value:     data.value,
-                unit:      data.unit,
-                timestamp: data.timestamp,
-                component: data.component,
+            // O worker agrega os sinais de uma janela e manda um lote só.
+            // `batch()` garante uma única passada de efeitos por lote em vez de
+            // uma por sinal — sem isso a StatusBar reexecutava suas agregações
+            // (96 células) a cada amostra individual.
+            case 'signals':
+            batch(() => {
+                for (const item of data.items) {
+                    setSignals(item.name, {
+                        value:     item.value,
+                        unit:      item.unit,
+                        timestamp: item.timestamp,
+                        component: item.component,
+                    })
+                }
             })
             break
 
@@ -158,6 +167,10 @@ const [telemetrySession, setTelemetrySession] = createStore({
             break
 
             case 'track':
+            // Defesa em profundidade: o worker já descarta `track_*` com o
+            // kill switch ligado, mas um servidor com TRACK_MAP_ENABLED=true
+            // não deve ressuscitar as escritas em trackState no cliente.
+            if (!TRACK_MAP_ENABLED) break
             if (data.payload?.type === 'track_status') {
                 setTrackState({
                     status: data.payload.state || 'learning_first_lap',

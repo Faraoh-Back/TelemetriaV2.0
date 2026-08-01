@@ -15,11 +15,14 @@ import { METRIC_SIGNAL_CARDS, STATUS_INDICATORS } from '../../config/dashboardCo
 import { getSignalColor } from '../../utils/telemetryUtils.js'
 import SignalCard from './SignalCard'
 import StatusIndicator from './StatusIndicator'
-import { useSignalStats } from './useSignalStats'
+import { createSignalSources, useSignalStats } from './useSignalStats'
 import './StatusBar.css'
 
 function StatusBar() {
-    const stats = useSignalStats(METRIC_SIGNAL_CARDS)
+    // Uma fonte por card, compartilhada entre estatísticas e render — ver o
+    // cabeçalho de useSignalStats.js para o porquê.
+    const sources = createSignalSources(METRIC_SIGNAL_CARDS)
+    const stats = useSignalStats(METRIC_SIGNAL_CARDS, sources)
 
     return (
         <div class="status-bar">
@@ -29,12 +32,11 @@ function StatusBar() {
                     {(config, index) => (
                         <SignalCard
                             signalName={config.signalName}
-                            signalNames={config.signalNames}
                             label={config.label}
                             dataClass={config.dataClass}
-                            aggregate={config.aggregate}
                             unit={config.unit}
                             stats={stats}
+                            source={sources.get(config.signalName)}
                             signalColor={getSignalColor(index())}
                         />
                     )}

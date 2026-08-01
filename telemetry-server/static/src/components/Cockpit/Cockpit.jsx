@@ -12,13 +12,13 @@
  * como mapa de pista em tempo real.
  */
 
-import { For } from 'solid-js'
+import { For, Show } from 'solid-js'
 import CockpitGauge from './CockpitGauge.jsx'
 import RaceVideoPanel from './RaceVideoPanel.jsx'
 import TrackMapPanel from './TrackMapPanel.jsx'
 import LapTimePanel from './LapTimePanel.jsx'
 import TorqueDistribution from './TorqueDistribution.jsx'
-import { LAP_TIMING_ENABLED } from '../../config/featureFlags.js'
+import { LAP_TIMING_ENABLED, TRACK_MAP_ENABLED } from '../../config/featureFlags.js'
 import './Cockpit.css'
 
 function Cockpit(props) {
@@ -42,10 +42,16 @@ function Cockpit(props) {
             <section class="cockpit__center">
                 <RaceVideoPanel source={videoSource()} />
 
-                <div class="cockpit__lower-grid">
-                    <TrackMapPanel source={trackMapSource()} data={trackMap()} isTelemetryLive={isTelemetryLive()} />
-                    {LAP_TIMING_ENABLED && <LapTimePanel />}
-                </div>
+                {/* Com TRACK_MAP_ENABLED=false o painel nem entra na árvore: sem
+                    memos de overlay, sem polyline no DOM e sem leitura de trackState. */}
+                <Show when={TRACK_MAP_ENABLED || LAP_TIMING_ENABLED}>
+                    <div class="cockpit__lower-grid">
+                        {TRACK_MAP_ENABLED && (
+                            <TrackMapPanel source={trackMapSource()} data={trackMap()} isTelemetryLive={isTelemetryLive()} />
+                        )}
+                        {LAP_TIMING_ENABLED && <LapTimePanel />}
+                    </div>
+                </Show>
             </section>
 
             <section class="cockpit__rail cockpit__rail--right" aria-label="Gauges auxiliares">

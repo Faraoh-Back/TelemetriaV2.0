@@ -27,7 +27,12 @@ impl DecodeDebugConfig {
             enabled,
             can_ids: parse_can_id_filter("CAN_DECODE_DEBUG_IDS"),
             signal_names: parse_string_filter("CAN_DECODE_DEBUG_SIGNALS"),
-            latency_enabled: env_bool("CAN_LATENCY_LOG", true),
+            // Default `false`: este log emite UMA linha formatada por frame CAN.
+            // Com ~350 IDs no barramento isso são milhares de writes por segundo
+            // em stdout, cada um pegando a trava do subscriber dentro da task
+            // async de ingestão — o próprio medidor de latência virava a maior
+            // fonte de latência. Ligar com CAN_LATENCY_LOG=1 só para depurar.
+            latency_enabled: env_bool("CAN_LATENCY_LOG", false),
             unmapped_immediate: env_bool("CAN_DEBUG_UNMAPPED", false),
         }
     }
@@ -350,7 +355,6 @@ pub async fn handle_client(
 
         // Envia para os buffers de banco de dados (não bloqueia — só empurra nos canais)
         let _ = sqlite_tx.try_send(processed.clone());
-        let _ = timescale_tx.try_send(processed.clone());
 
         // Downsample/throttle WebSocket updates to 20Hz per CAN ID to prevent frontend lag,
         // while preserving 100% of the inserts to SQLite and TimescaleDB databases.
@@ -377,7 +381,14 @@ pub async fn handle_client(
         // Com TRACK_MAP_ENABLED=false nem chegamos a pegar o mutex compartilhado:
         // o mapeamento sai por completo do hot path de ingestão (uma trava global
         // por frame, disputada por todas as conexões) e nada é publicado no WS.
+        //
+        // Sem o mapa `processed` também não tem mais leitor depois daqui, então
+        // vai por move para o TimescaleDB. Cada ProcessedSignal carrega três
+        // Strings (device_id, signal_name, unit): o segundo clone custava ~3
+        // alocações por sinal por frame, sem ninguém para consumir o original.
         if track_map_enabled() {
+            let _ = timescale_tx.try_send(processed.clone());
+
             let track_messages = match track_state.lock() {
                 Ok(mut state) => state.update(&processed),
                 Err(e) => {
@@ -388,6 +399,8 @@ pub async fn handle_client(
             for json in track_messages {
                 let _ = ws_tx.send(json.into_bytes());
             }
+        } else {
+            let _ = timescale_tx.try_send(processed);
         }
 
         if last_log.elapsed().as_secs() >= 10 {

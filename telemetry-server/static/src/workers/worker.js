@@ -1,6 +1,7 @@
 import { CircularBuffer, DEFAULT_BUFFER_SIZE } from '../utils/circularBuffer.js'
 import { lttb } from '../utils/lttb.js'
 import { decodeSignal } from '../utils/canDecode.js'
+import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
 
 // =============================================================================
 // worker.js — Web Worker de telemetria (thread isolada)
@@ -47,10 +48,24 @@ import { decodeSignal } from '../utils/canDecode.js'
 //   { cmd: 'getLatest',  names }                  — snapshot para hidratação inicial
 //
 // MENSAGENS EMITIDAS (Worker → store.js):
-//   { type: 'signal',  name, value, unit, timestamp, canId } — por frame decodificado
+//   { type: 'signals', items: [{ name, value, unit, timestamp, canId, component }] }
+//                                                            — lote de ~20 Hz (ver COALESCÊNCIA)
 //   { type: 'buffer',  reqId, name, ts, val }                — resposta ao getBuffer
 //   { type: 'latest',  snapshot }                            — resposta ao getLatest
 //   { type: 'status',  state, frameRate }                    — estado da conexão WS
+//
+// COALESCÊNCIA DE SINAIS (por que não um postMessage por sinal):
+//   O mapa CAN tem ~350 IDs e ~5k sinais. O servidor já limita o WS a 20 Hz por
+//   CAN ID, mas cada frame decodifica vários sinais — na prática passava de 5k
+//   postMessage/s. Cada um é uma structured clone, uma task na main thread e uma
+//   escrita no store do Solid, que dispara os efeitos da UI. Era esse o caminho
+//   que saturava a thread principal e aparecia como latência no dashboard.
+//
+//   Agora as amostras são acumuladas em `pendingSignals` (Map name → última
+//   amostra) e despachadas em um único postMessage a cada UI_FLUSH_INTERVAL_MS.
+//   O CircularBuffer continua recebendo 100% das amostras a cada frame, então os
+//   gráficos não perdem resolução — só a UI de valor instantâneo é coalescida,
+//   e ela não consegue exibir mais que ~20 Hz de qualquer forma.
 //
 // =============================================================================
 
@@ -135,6 +150,27 @@ import { decodeSignal } from '../utils/canDecode.js'
         return buffers[name];
     }
 
+    // ─── COALESCÊNCIA DE SINAIS PARA A UI ────────────────────────────────────
+    // 50 ms = 20 Hz, a mesma taxa do throttle por CAN ID no servidor
+    // (ingest.rs). Despachar mais rápido que isso só geraria lotes vazios.
+    const UI_FLUSH_INTERVAL_MS = 50;
+    const pendingSignals = new Map();  // signal_name → objeto de `latest` (reusado)
+    let uiFlushTimer = null;
+
+    function flushSignals() {
+        uiFlushTimer = null;
+        if (pendingSignals.size === 0) return;
+
+        const items = Array.from(pendingSignals.values());
+        pendingSignals.clear();
+        self.postMessage({ type: 'signals', items });
+    }
+
+    function scheduleSignalFlush() {
+        if (uiFlushTimer !== null) return;
+        uiFlushTimer = setTimeout(flushSignals, UI_FLUSH_INTERVAL_MS);
+    }
+
     const SIGNAL_ALIASES = {
         APPS_PERC: ['APS_PERC'],
         VoltOverallParam_MinCellVoltage: ['CELL_VOLTAGE_MIN'],
@@ -146,8 +182,25 @@ import { decodeSignal } from '../utils/canDecode.js'
 
     function emitSignal(name, value, unit, timestamp, canId, component) {
         getOrCreateBuffer(name).push(timestamp, value);
-        latest[name] = { value, unit, timestamp };
-        self.postMessage({ type: 'signal', name, value, unit, timestamp, canId, component });
+
+        // Um único objeto por signal_name, mutado no lugar: o Map já deduplica
+        // por nome, então alocar um descritor novo por amostra só geraria lixo
+        // no caminho quente. O postMessage faz structured clone na hora do
+        // flush, portanto não há aliasing entre as threads.
+        let entry = latest[name];
+        if (entry === undefined) {
+            entry = { name, value, unit, timestamp, canId, component };
+            latest[name] = entry;
+        } else {
+            entry.value = value;
+            entry.unit = unit;
+            entry.timestamp = timestamp;
+            entry.canId = canId;
+            entry.component = component;
+        }
+
+        pendingSignals.set(name, entry);
+        scheduleSignalFlush();
     }
 
     function emitSignalWithAliases(name, value, unit, timestamp, canId, component) {
@@ -322,6 +375,8 @@ import { decodeSignal } from '../utils/canDecode.js'
     function resetTelemetryData() {
         for (const name of Object.keys(buffers)) delete buffers[name];
         for (const name of Object.keys(latest)) delete latest[name];
+        pendingSignals.clear();
+        if (uiFlushTimer !== null) { clearTimeout(uiFlushTimer); uiFlushTimer = null; }
         frameCount = 0;
         lastRateTs = performance.now();
         sessionStartTimestamp = null;
@@ -412,7 +467,21 @@ import { decodeSignal } from '../utils/canDecode.js'
         maybeLogStats();
     }
 
+    const TRACK_MESSAGE_TYPES = new Set([
+        'track_status',
+        'track_map',
+        'track_pose',
+        'track_path',
+        'track_quality',
+        'track_observations',
+    ]);
+
     function handleTextMessage(text) {
+        // Kill switch do mapa: descarta antes do JSON.parse. O payload de
+        // `track_map` carrega centenas de pontos — parseá-lo só para jogar fora
+        // é exatamente o custo que o kill switch existe para evitar.
+        if (!TRACK_MAP_ENABLED && text.includes('"track_')) return;
+
         let payload;
         try {
             payload = JSON.parse(text);
@@ -420,70 +489,43 @@ import { decodeSignal } from '../utils/canDecode.js'
             return;
         }
 
-        if (
-            payload.type === 'track_status'
-            || payload.type === 'track_map'
-            || payload.type === 'track_pose'
-            || payload.type === 'track_path'
-            || payload.type === 'track_quality'
-            || payload.type === 'track_observations'
-        ) {
+        if (TRACK_MESSAGE_TYPES.has(payload.type)) {
             self.postMessage({ type: 'track', payload });
             return;
         }
 
         if (!telemetryCollectionEnabled || !payload.signal_name) return;
 
-        const name = payload.signal_name;
         const value = Number(payload.value);
         const timestamp = Number(payload.timestamp);
         if (!Number.isFinite(value) || !Number.isFinite(timestamp)) return;
 
-        getOrCreateBuffer(name).push(timestamp, value);
-        latest[name] = { value, unit: payload.unit || '', timestamp };
-        self.postMessage({
-            type: 'signal',
-            name,
+        emitSignal(
+            payload.signal_name,
             value,
-            unit: payload.unit || '',
+            payload.unit || '',
             timestamp,
-            canId: payload.can_id,
-        });
+            payload.can_id,
+            undefined,
+        );
     }
 
     // ─── JANELA TEMPORAL ─────────────────────────────────────────────────────────
-    // Recorta os arrays para os últimos N segundos antes do LTTB.
+    // O recorte dos últimos N segundos é feito dentro do próprio CircularBuffer,
+    // que copia só a cauda da janela em vez de materializar as 3900 amostras
+    // para o worker fatiar depois.
     //
     // Fluxo:
-    //   CircularBuffer.toArrays()
-    //      -> filterByTimeWindow()
+    //   CircularBuffer.toArrays(since)
     //      -> lttb()
     //      -> postMessage('buffer')
-    
-    function filterByTimeWindow(ts, val, windowSeconds) {
-        if (!windowSeconds || ts.length === 0) return { ts, val };
 
-        const latestTimestamp = ts[ts.length - 1];
-        const startTimestamp = latestTimestamp - windowSeconds;
-        let startIdx = 0;
-
-        while (
-        startIdx < ts.length - 1 &&
-        ts[startIdx] < startTimestamp
-        ) {
-        startIdx++;
-        }
-
-        if (startIdx === 0) return { ts, val };
-
-        return {
-        ts: ts.slice(startIdx),
-        val: val.slice(startIdx),
-        };
-    }
-    
     // ─── WEBSOCKET ────────────────────────────────────────────────────────────────
-    
+
+    // Instância única: alocar um TextDecoder por mensagem é desperdício no
+    // caminho quente e o decoder é stateless entre chamadas de decode().
+    const textDecoder = new TextDecoder();
+
     function connect(url) {
         if (ws) {
         ws.onclose = null; // evita reconexão dupla
@@ -508,8 +550,7 @@ import { decodeSignal } from '../utils/canDecode.js'
                 handleFrame(event.data);
             } else {
                 // Backend também manda mensagens JSON (track_map, track_pose) encapsuladas em frames binários
-                const text = new TextDecoder().decode(event.data);
-                handleTextMessage(text);
+                handleTextMessage(textDecoder.decode(event.data));
             }
         } else if (typeof event.data === 'string') {
             handleTextMessage(event.data);
@@ -558,6 +599,9 @@ import { decodeSignal } from '../utils/canDecode.js'
             }
             if (!telemetryCollectionEnabled) {
             frameCount = 0;
+            // Entrega o lote pendente antes de parar: sem isso as últimas
+            // amostras da sessão morreriam na janela de coalescência.
+            flushSignals();
             sessionStopTimestamp = latestFrameTimestamp;
             postSessionState();
             self.postMessage({
@@ -577,6 +621,7 @@ import { decodeSignal } from '../utils/canDecode.js'
             if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
             if (ws) { ws.onclose = null; ws.close(); ws = null; }
             telemetryCollectionEnabled = false;
+            flushSignals();
             sessionStopTimestamp = latestFrameTimestamp;
             postSessionState();
             self.postMessage({ type: 'status', state: 'disconnected', frameRate: 0 });
@@ -590,10 +635,10 @@ import { decodeSignal } from '../utils/canDecode.js'
             self.postMessage({ type: 'buffer', reqId: data.reqId, name: data.name, ts: null, val: null });
             break;
             }
-            const { ts, val } = buf.toArrays();
+            const since       = data.windowSeconds ? buf.lastTimestamp - data.windowSeconds : null;
+            const { ts, val } = buf.toArrays(since);
             const threshold   = data.threshold || 500;
-            const windowed    = filterByTimeWindow(ts, val, data.windowSeconds);
-            const reduced     = lttb(windowed.ts, windowed.val, threshold);
+            const reduced     = lttb(ts, val, threshold);
     
             // Transfere os ArrayBuffers (zero-copy)
             self.postMessage(

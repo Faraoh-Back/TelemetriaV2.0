@@ -53,6 +53,10 @@ pub fn snapshot(t: f64, _seed: u64) -> ScenarioSnapshot {
     let acc_long = ax * cos_h + ay * sin_h;
     let acc_lat = -ax * sin_h + ay * cos_h;
 
+    // --- Gear ratio FSE: G=11.5, wheel R=0.254m ---
+    // RPM = speed × G / (2π × R) × 60 ≈ speed × 432.3
+    let gear_rpm = speed * 432.3;
+
     s.aps_perc = 18.0 + 52.0 * (0.5 + 0.5 * (theta * 2.5).sin()).clamp(0.0, 1.0);
     s.brake = if (theta > 1.9 && theta < 2.15) || (theta > 5.0 && theta < 5.25) {
         1.0
@@ -65,22 +69,24 @@ pub fn snapshot(t: f64, _seed: u64) -> ScenarioSnapshot {
     let throttle = s.aps_perc / 100.0;
     s.torque_a = 18.0 + 85.0 * throttle + 10.0 * acc_long.max(0.0);
     s.torque_b = 17.0 + 82.0 * throttle + 8.0 * acc_long.max(0.0);
-    s.rpm_a = 1300.0 + 2300.0 * speed / 24.0 + 140.0 * throttle;
-    s.rpm_b = 1280.0 + 2280.0 * speed / 24.0 + 120.0 * throttle;
-    s.accel_x = acc_long;
-    s.accel_y = acc_lat;
-    s.accel_z = 0.98;
+    s.rpm_a = gear_rpm + 80.0 * throttle;
+    s.rpm_b = gear_rpm - 20.0 + 60.0 * throttle;
+    s.accel_x = (acc_long).clamp(-1.6, 1.2);
+    s.accel_y = (acc_lat).clamp(-1.8, 1.8);
+    s.accel_z = 9.81;
     s.yaw_rate = yaw_rate;
     s.speed_x = speed;
     s.speed_y = 0.0;
-    s.cell_v_min = 3.90 - 0.05 * throttle;
-    s.cell_v_max = 3.98 - 0.02 * throttle;
-    s.cell_temp_max = 29.0 + 5.0 * throttle + 1.5 * s.brake;
-    s.motor_temp_a = 31.0 + 6.0 * throttle + 2.0 * s.brake;
-    s.motor_temp_b = 31.5 + 6.5 * throttle + 2.0 * s.brake;
-    s.coolant_temp = 27.0 + 3.5 * throttle + 0.5 * s.brake;
-    s.coolant_pressure = 1.40 + 0.20 * throttle;
-    s.coolant_flow = 9.0 + 0.5 * throttle - 0.2 * s.brake;
+    // Descarga: 4.12V full → voltage sag proporcional ao throttle
+    let discharge_frac = (t / (lap_time * 22.0)).clamp(0.0, 1.0); // ~22 voltas para depletar
+    s.cell_v_min = 4.10 - 0.80 * discharge_frac - 0.12 * throttle;
+    s.cell_v_max = 4.12 - 0.72 * discharge_frac - 0.06 * throttle;
+    s.cell_temp_max = 30.0 + 18.0 * discharge_frac + 5.0 * throttle + 2.0 * s.brake;
+    s.motor_temp_a = 32.0 + 30.0 * discharge_frac + 8.0 * throttle + 3.0 * s.brake;
+    s.motor_temp_b = 32.5 + 29.0 * discharge_frac + 8.5 * throttle + 3.0 * s.brake;
+    s.coolant_temp = 28.0 + 14.0 * discharge_frac + 4.0 * throttle + 1.0 * s.brake;
+    s.coolant_pressure = 1.40 + 0.25 * throttle;
+    s.coolant_flow = 9.0 + 1.5 * throttle - 0.3 * s.brake;
 
     // Guarda o fechamento do loop no padrão da volta.
     let _ = (x, y);

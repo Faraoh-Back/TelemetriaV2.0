@@ -24,6 +24,7 @@
 //   bufferCallbacks.get(reqId)(data) → resolve() da Promise
 
 import { createStore, reconcile } from 'solid-js/store'
+import { LAP_TIMING_ENABLED } from './config/featureFlags.js'
 
 // ─── WORKER ──────────────────────────────────────────────────────────────────
 // O Worker fica em src/workers para poder importar os utils do projeto.
@@ -174,11 +175,13 @@ const [telemetrySession, setTelemetrySession] = createStore({
                     vehicle: data.payload.vehicle ?? null,
                     timestamp: data.payload.timestamp ?? null,
                 })
-                updateLapDetection(
-                    data.payload.vehicle,
-                    trackState.track?.length_m,
-                    Number(data.payload.timestamp),
-                )
+                if (LAP_TIMING_ENABLED) {
+                    updateLapDetection(
+                        data.payload.vehicle,
+                        trackState.track?.length_m,
+                        Number(data.payload.timestamp),
+                    )
+                }
             } else if (data.payload?.type === 'track_path') {
                 setTrackState({
                     path: data.payload.path ?? null,

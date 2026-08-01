@@ -1,3 +1,5 @@
+import { LAP_TIMING_ENABLED } from '../../config/featureFlags.js'
+
 function clamp01(value) {
     if (!Number.isFinite(value)) return 0
     if (value < 0) return 0
@@ -175,7 +177,10 @@ export function buildTrackOverlay(track, vehicle, landmarks) {
     const stats = [
         { label: 'Pista', value: formatMeters(trackLengthM) },
         { label: 'Falta', value: formatMeters(remainingM) },
-        { label: 'Volta', value: Number.isFinite(progressPct) ? `${progressPct.toFixed(1)}%` : '--' },
+        // Progresso de volta segue o mesmo kill switch da cronometragem.
+        ...(LAP_TIMING_ENABLED
+            ? [{ label: 'Volta', value: Number.isFinite(progressPct) ? `${progressPct.toFixed(1)}%` : '--' }]
+            : []),
         { label: 'Vel', value: formatKmh(metersPerSecondToKmh(vehicle?.speed)) },
         { label: 'Rumo', value: formatHeading(vehicle?.heading) },
     ]

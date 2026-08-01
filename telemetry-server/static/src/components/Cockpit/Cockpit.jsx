@@ -18,6 +18,7 @@ import RaceVideoPanel from './RaceVideoPanel.jsx'
 import TrackMapPanel from './TrackMapPanel.jsx'
 import LapTimePanel from './LapTimePanel.jsx'
 import TorqueDistribution from './TorqueDistribution.jsx'
+import { LAP_TIMING_ENABLED } from '../../config/featureFlags.js'
 import './Cockpit.css'
 
 function Cockpit(props) {
@@ -43,7 +44,7 @@ function Cockpit(props) {
 
                 <div class="cockpit__lower-grid">
                     <TrackMapPanel source={trackMapSource()} data={trackMap()} isTelemetryLive={isTelemetryLive()} />
-                    <LapTimePanel />
+                    {LAP_TIMING_ENABLED && <LapTimePanel />}
                 </div>
             </section>
 

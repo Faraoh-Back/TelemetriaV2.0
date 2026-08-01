@@ -268,6 +268,18 @@ pub(super) async fn handle_log_session_bounds(
         return;
     }
 
+    let duration = bounds_req.log_stop_unix - bounds_req.log_start_unix;
+    if duration > 7200.0 {
+        send_json(
+            stream,
+            400,
+            r#"{"ok":false,"message":"Duracao da coleta excede o limite de 2 horas (possivel conflito de relogios)."}"#,
+        )
+        .await;
+        return;
+    }
+
+
     let session = match sqlx::query(
         "SELECT id FROM telemetry_log_sessions WHERE state = 'stopped' ORDER BY ended_at_unix DESC, id DESC LIMIT 1"
     )

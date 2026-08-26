@@ -1,6 +1,6 @@
 # Plano de Calibração – INS SBG Ellipse 2-D (FSAE)
 
-**Status:** Acelerômetro ✓ concluído · GNSS e magnetômetro pendentes
+**Status:** Acelerômetro ✓ concluído · Lever arms ✓ medidos (X, Y, Z) · GNSS (manobras de campo) e magnetômetro pendentes
 
 ---
 
@@ -27,10 +27,24 @@
 - Manter baseline (distância entre antenas) de no mínimo ~0,5 m — quanto maior, melhor a precisão de heading
 - Respeitar os limites mínimos e máximos especificados no Hardware Manual do Ellipse 2
 
+#### Medições registradas
+
+Antenas alinhadas em paralelo no veículo (mesmo eixo longitudinal, sem deslocamento lateral) e na mesma altura do INS — portanto Y = 0 e Z = 0 para ambas.
+
+| Antena | Posição relativa ao INS | X (longitudinal) | Y (lateral) | Z (vertical) |
+|---|---|---|---|---|
+| **Primária** | Frente (bico) | 1352,40 mm | 0 mm | 0 mm |
+| **Secundária** | Traseira | 883,56 mm | 0 mm | 0 mm |
+
+- **Baseline calculado:** 1352,40 mm + 883,56 mm = **2235,96 mm (~2,24 m)** — INS posicionado entre as duas antenas no eixo longitudinal. Bem acima do mínimo recomendado de 0,5 m.
+- Lever arms 3D completos — nenhuma medição pendente.
+
 ### 1.3 Configuração no sbgCenter
 
 - Aba **Aiding** → GNSS Model: `Internal`
 - Informar os lever arms medidos: Primary Lever Arm (X, Y, Z) e Secondary Lever Arm (X, Y, Z)
+  - Primary (frente/bico): X = 1352,40 mm ; Y = 0 mm ; Z = 0 mm
+  - Secondary (traseira): X = 883,56 mm ; Y = 0 mm ; Z = 0 mm
 - Marcar a opção "The primary antenna lever arm has been measured precisely"
 - Dual Antenna Mode: `Precise lever arm`
 - Salvar e aplicar as configurações

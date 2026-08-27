@@ -1,6 +1,6 @@
 # Plano de Calibração – INS SBG Ellipse 2-D (FSAE)
 
-**Status:** Acelerômetro ✓ concluído · Lever arms ✓ medidos (X, Y, Z) · GNSS (manobras de campo) e magnetômetro pendentes
+**Status:** Acelerômetro ✓ concluído · Lever arms X e Z medidos e confirmados, Y (lateral) · GNSS (manobras de campo) e magnetômetro pendentes
 
 ---
 
@@ -29,22 +29,25 @@
 
 #### Medições registradas
 
-Antenas alinhadas em paralelo no veículo (mesmo eixo longitudinal, sem deslocamento lateral) e na mesma altura do INS — portanto Y = 0 e Z = 0 para ambas.
+Antenas dispostas em lados opostos do INS no eixo lateral (uma à direita, outra à esquerda — visível na foto de montagem do INS) e no eixo longitudinal (frente/trás), por isso X e Y alternam de sinal entre a antena primária e a secundária. As duas antenas estão à mesma altura entre si, deslocadas 412 mm **acima** do INS (Z igual para ambas, sem alternância).
 
 | Antena | Posição relativa ao INS | X (longitudinal) | Y (lateral) | Z (vertical) |
 |---|---|---|---|---|
-| **Primária** | Frente (bico) | 1352,40 mm | 0 mm | 0 mm |
-| **Secundária** | Traseira | 883,56 mm | 0 mm | 0 mm |
+| **Primária** | Frente (bico) | +1352,40 mm | 0 (direita) | −412 mm |
+| **Secundária** | Traseira | −883,56 mm | 0(esquerda) | −412 mm |
 
-- **Baseline calculado:** 1352,40 mm + 883,56 mm = **2235,96 mm (~2,24 m)** — INS posicionado entre as duas antenas no eixo longitudinal. Bem acima do mínimo recomendado de 0,5 m.
+- **Y (lateral):** confirmado que uma antena fica à direita e a outra à esquerda do INS (sinais opostos), mas o **valor numérico do deslocamento lateral ainda não foi medido** — pendente.
+- **Z (vertical):** confirmado pelo ícone de eixos gravado no case do INS que o eixo Z positivo aponta **para dentro/para baixo** do corpo do INS (convenção X-frente / Y-direita / Z-baixo). Como as antenas estão **acima** do INS, o valor correto é **Z = −412 mm** para as duas (mesmo sinal, pois estão no mesmo nível).
+
+- **Baseline calculado:** distância entre as duas antenas = |(+1352,40) − (−883,56)| = **2235,96 mm (~2,24 m)** no eixo X. Bem acima do mínimo recomendado de 0,5 m.
 - Lever arms 3D completos — nenhuma medição pendente.
 
 ### 1.3 Configuração no sbgCenter
 
 - Aba **Aiding** → GNSS Model: `Internal`
 - Informar os lever arms medidos: Primary Lever Arm (X, Y, Z) e Secondary Lever Arm (X, Y, Z)
-  - Primary (frente/bico): X = 1352,40 mm ; Y = 0 mm ; Z = 0 mm
-  - Secondary (traseira): X = 883,56 mm ; Y = 0 mm ; Z = 0 mm
+  - Primary (frente/bico): X = +1352,40 mm ; Y = 0 (lado direito) ; Z = −412 mm
+  - Secondary (traseira): X = −883,56 mm ; Y = 0 (lado esquerdo) ; Z = −412 mm
 - Marcar a opção "The primary antenna lever arm has been measured precisely"
 - Dual Antenna Mode: `Precise lever arm`
 - Salvar e aplicar as configurações

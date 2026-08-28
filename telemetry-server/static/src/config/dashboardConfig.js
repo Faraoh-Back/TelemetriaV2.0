@@ -10,7 +10,7 @@ export const METRIC_SIGNAL_CARDS = [
     { signalName: 'TORQUE_0B', label: 'Torque 0B',     dataClass: 'torque'      },
     { signalName: 'TORQUE_13A',label: 'Torque 13A',    dataClass: 'torque'      },
     { signalName: 'TORQUE_13B',label: 'Torque 13B',    dataClass: 'torque'      },
-    { signalName: 'Accel_Linear_X',  label: 'Acelerador',    dataClass: 'acceleration', unit: 'm/s²' },
+    { signalName: 'ACCEL_X',  label: 'Acelerador',    dataClass: 'acceleration', unit: 'm/s²' },
     {
         signalName: 'CELL_TEMP_MIN',
         signalNames: CELL_TEMPERATURE_SIGNALS,
@@ -66,11 +66,11 @@ export const PINNED_SIGNALS = METRIC_SIGNAL_CARDS
 export const GAUGE_CONFIG = [
     { signalName: 'RPM_0A',   label: 'RPM 0A',     min: 0, max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
     { signalName: 'RPM_13A',  label: 'RPM 13A',    min: 0, max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
-    { signalName: 'Accel_Linear_X', label: 'Acelerador', min: 0, max: 15,   unit: 'm/s²' },
+    { signalName: 'ACCEL_X', label: 'Acelerador', min: 0, max: 15,   unit: 'm/s²' },
 ]
 
 export const DEFAULT_CHART_LAYOUT = [
     { label: 'RPM Motores',    signals: ['RPM_0A', 'RPM_0B', 'RPM_13A', 'RPM_13B'] },
     { label: 'Torque Motores', signals: ['TORQUE_0A', 'TORQUE_0B', 'TORQUE_13A', 'TORQUE_13B']  },
-    { label: 'Aceleração',     signals: ['Accel_Linear_X', 'Accel_Linear_Y', 'Accel_Linear_Z'] },
+    { label: 'Aceleração',     signals: ['ACCEL_X', 'ACCEL_Y', 'ACCEL_Z'] },
 ]

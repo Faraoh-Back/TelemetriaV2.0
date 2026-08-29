@@ -49,7 +49,6 @@ BO_ 1025 sensores2: 8 Vector__XXX
  SG_ suspaR : 8|8@1+ (1,0) [0|0] "" Vector__XXX
 
 
-
 BO_ 1792 TelemetriaRF: 8 Vector__XXX
  SG_ rf_seq_num : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
  SG_ rf_rssi : 16|8@1- (1,0) [-128|127] "dBm" Vector__XXX

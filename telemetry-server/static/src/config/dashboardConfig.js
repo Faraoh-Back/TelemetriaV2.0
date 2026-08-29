@@ -45,21 +45,140 @@ export const METRIC_SIGNAL_CARDS = [
     },
 ]
 
-export const STATUS_INDICATORS = [
-    { signalName: 'BRAKE', label: 'Freio', kind: 'brake' },
-    { signalName: 'VCU_STATE', label: 'VCU State', kind: 'state' },
+export const STATUS_INDICATOR_GROUPS = [
     {
-        signalName: 'SAFETY_NOT_OK',
-        label: 'Faults',
-        kind: 'faultGroup',
+        id: 'operation',
+        label: 'Operação',
+        tone: 'secondary',
+        indicators: [
+            { signalName: 'BRAKE', label: 'Freio', kind: 'brake' },
+            {
+                signalName: 'VCU_STATE',
+                label: 'VCU',
+                kind: 'state',
+                valueLabels: {
+                    0: 'Inicial',
+                    1: 'Pre-charge',
+                    2: 'Buzzer',
+                    3: 'Operando',
+                    4: 'Erro',
+                },
+                alertValues: [4],
+            },
+            {
+                signalName: 'HV_ON',
+                signalNames: ['HV_ON', 'HV_on'],
+                label: 'HV',
+                kind: 'binary',
+                activeText: 'Ligado',
+                inactiveText: 'Desligado',
+            },
+            {
+                signalName: 'PreCharge_ST',
+                label: 'Pre-charge',
+                kind: 'binary',
+                activeText: 'OK',
+                inactiveText: 'Aguardando',
+            },
+            {
+                signalName: 'AIR_MAIS',
+                signalNames: ['AIR_mais'],
+                label: 'AIR+',
+                kind: 'binary',
+                activeText: 'Fechado',
+                inactiveText: 'Aberto',
+            },
+            {
+                signalName: 'AIR_MENOS',
+                signalNames: ['AIR_menos'],
+                label: 'AIR-',
+                kind: 'binary',
+                activeText: 'Fechado',
+                inactiveText: 'Aberto',
+            },
+            {
+                signalName: 'Buzzer',
+                label: 'Buzzer',
+                kind: 'binary',
+                activeText: 'Ativo',
+                inactiveText: 'Parado',
+            },
+        ],
     },
     {
-        signalName: 'BMS_CELL_ALERTS',
-        label: 'BMS Celulas',
-        kind: 'faultGroup',
-        signals: ['BMS_CellUnderVoltage', 'BMS_CellOverVoltage', 'BMS_CellUnderHeat', 'BMS_CellOverHeat'],
+        id: 'faults',
+        label: 'Faltas',
+        tone: 'critical',
+        indicators: [
+            {
+                signalName: 'SAFETY_NOT_OK',
+                label: 'Safety',
+                kind: 'faultGroup',
+                severity: 'critical',
+                signals: [
+                    { signalName: 'SAFETY_NOT_OK', label: 'Safety' },
+                    { signalName: 'Fault_Safety_OK', label: 'Safety', activeWhen: 1 },
+                    { signalName: 'APPS_RANGE_ERROR', label: 'APPS range' },
+                ],
+            },
+            {
+                signalName: 'ACD_FAULTS',
+                label: 'ACD',
+                kind: 'faultGroup',
+                severity: 'critical',
+                signals: [
+                    { signalName: 'Fault_IMD', label: 'IMD' },
+                    { signalName: 'Fault_BMS', label: 'BMS' },
+                    { signalName: 'Fault_BSPD', label: 'BSPD' },
+                    { signalName: 'Fault_General_Error', label: 'Geral' },
+                    { signalName: 'Fault_PreCharge_Time_Exceeded', label: 'Pre-charge' },
+                    { signalName: 'Fault_BMS_Timeout', label: 'BMS timeout' },
+                    { signalName: 'IMD_OK', label: 'IMD', activeWhen: 0 },
+                    { signalName: 'BMS_PIN_OK', label: 'BMS pin', activeWhen: 0 },
+                    { signalName: 'BSPD_OK', label: 'BSPD', activeWhen: 0 },
+                    { signalName: 'GENERAL_ERROR_OK', label: 'Erro geral', activeWhen: 0 },
+                    { signalName: 'AIRS_OK', label: 'AIRs', activeWhen: 0 },
+                ],
+            },
+            {
+                signalName: 'BMS_FAULTS',
+                label: 'BMS HV',
+                kind: 'faultGroup',
+                severity: 'critical',
+                signals: [
+                    { signalName: 'BMS_Under_voltage', label: 'Subtensão' },
+                    { signalName: 'BMS_Over_voltage', label: 'Sobretensão' },
+                    { signalName: 'BMS_Discharge_OC', label: 'Descarga OC' },
+                    { signalName: 'BMS_Charge_OC', label: 'Carga OC' },
+                    { signalName: 'BMS_Cell_Overheat', label: 'Célula quente' },
+                    { signalName: 'BMS_Leakage', label: 'Fuga' },
+                    { signalName: 'BMS_No_Cell_Comm', label: 'Sem célula' },
+                    { signalName: 'BMS_Pack_Under_Voltage', label: 'Pack baixo' },
+                    { signalName: 'BMS_CellUnderVoltage', label: 'Célula baixa' },
+                    { signalName: 'BMS_CellOverVoltage', label: 'Célula alta' },
+                    { signalName: 'BMS_CellUnderHeat', label: 'Célula fria' },
+                    { signalName: 'BMS_CellOverHeat', label: 'Célula quente' },
+                ],
+            },
+            {
+                signalName: 'LV_FAULTS',
+                label: 'BMS LV',
+                kind: 'faultGroup',
+                severity: 'warning',
+                signals: [
+                    { signalName: 'LV_Under_voltage', label: 'Subtensão' },
+                    { signalName: 'LV_Over_voltage', label: 'Sobretensão' },
+                    { signalName: 'LV_Discharge_OC', label: 'Descarga OC' },
+                    { signalName: 'LV_Charge_OC', label: 'Carga OC' },
+                    { signalName: 'LV_Cell_Overheat', label: 'Célula quente' },
+                    { signalName: 'LV_Pack_Under_Voltage', label: 'Pack baixo' },
+                ],
+            },
+        ],
     },
 ]
+
+export const STATUS_INDICATORS = STATUS_INDICATOR_GROUPS.flatMap((group) => group.indicators)
 
 export const PINNED_SIGNALS = METRIC_SIGNAL_CARDS
 

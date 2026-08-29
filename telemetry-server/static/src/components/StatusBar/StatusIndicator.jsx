@@ -14,8 +14,15 @@ function formatStatusValue(value) {
     return Number(value).toFixed(0)
 }
 
+function getSignalEntry(config) {
+    const names = config.signalNames ?? [config.signalName]
+    return names
+        .map((signalName) => ({ signalName, value: signals[signalName]?.value }))
+        .find(({ value }) => hasValue(value))
+}
+
 function getStateText(config) {
-    const value = signals[config.signalName]?.value
+    const value = getSignalEntry(config)?.value
 
     if (config.kind === 'brake') {
         if (!hasValue(value)) return 'Sem dado'
@@ -23,32 +30,77 @@ function getStateText(config) {
     }
 
     if (config.kind === 'state') {
-        return hasValue(value) ? `Estado ${formatStatusValue(value)}` : 'Sem dado'
+        if (!hasValue(value)) return 'Sem dado'
+        return config.valueLabels?.[Number(value)] ?? `Estado ${formatStatusValue(value)}`
+    }
+
+    if (config.kind === 'binary') {
+        if (!hasValue(value)) return 'Sem dado'
+        return isActive(value)
+            ? (config.activeText ?? 'Ativo')
+            : (config.inactiveText ?? 'Inativo')
     }
 
     return formatStatusValue(value)
 }
 
+function normalizeFaultSignal(signal) {
+    return typeof signal === 'string'
+        ? { signalName: signal }
+        : signal
+}
+
+function isFaultActive(fault) {
+    const value = signals[fault.signalName]?.value
+    if (!hasValue(value)) return false
+
+    return fault.activeWhen != null
+        ? Number(value) === Number(fault.activeWhen)
+        : isActive(value)
+}
+
 function getActiveFaults(config) {
     return (config.signals ?? [])
-        .filter((signalName) => isActive(signals[signalName]?.value))
+        .map(normalizeFaultSignal)
+        .filter(isFaultActive)
 }
 
 function getIndicatorState(config) {
     if (config.kind === 'faultGroup') {
         const activeFaults = getActiveFaults(config)
-        if (activeFaults.length > 0) return 'alert'
-        const hasAnySignal = (config.signals ?? []).some((signalName) => signals[signalName]?.value != null)
+        if (activeFaults.length > 0) return config.severity === 'warning' ? 'warning' : 'critical'
+        const hasAnySignal = (config.signals ?? [])
+            .map(normalizeFaultSignal)
+            .some((fault) => signals[fault.signalName]?.value != null)
         return hasAnySignal ? 'ok' : 'idle'
     }
 
     if (config.kind === 'brake') {
-        const value = signals[config.signalName]?.value
+        const value = getSignalEntry(config)?.value
         if (!hasValue(value)) return 'idle'
         return isActive(value) ? 'active' : 'ok'
     }
 
-    return signals[config.signalName]?.value == null ? 'idle' : 'active'
+    if (config.kind === 'state') {
+        const value = getSignalEntry(config)?.value
+        if (!hasValue(value)) return 'idle'
+        return (config.alertValues ?? []).includes(Number(value)) ? 'critical' : 'active'
+    }
+
+    const value = getSignalEntry(config)?.value
+    if (!hasValue(value)) return 'idle'
+    return isActive(value) ? 'active' : 'ok'
+}
+
+function getFaultLabel(fault) {
+    return fault.label ?? fault.signalName.replace(/^BMS_/, '').replace(/^Fault_/, '').replace(/_/g, ' ')
+}
+
+function getFaultSummary(config, count) {
+    if (count === 0) return 'OK'
+    return config.severity === 'warning'
+        ? `${count} atenção`
+        : `${count} crítico(s)`
 }
 
 function StatusIndicator({ config }) {
@@ -65,12 +117,12 @@ function StatusIndicator({ config }) {
                     fallback={<div class="status-indicator__value">{getStateText(config)}</div>}
                 >
                     <div class="status-indicator__value">
-                        {activeFaults().length > 0 ? `${activeFaults().length} ativo(s)` : 'OK'}
+                        {getFaultSummary(config, activeFaults().length)}
                     </div>
                     <Show when={activeFaults().length > 0}>
                         <div class="status-indicator__faults">
                             <For each={activeFaults()}>
-                                {(signalName) => <span>{signalName.replace(/^BMS_/, '').replace(/_/g, ' ')}</span>}
+                                {(fault) => <span>{getFaultLabel(fault)}</span>}
                             </For>
                         </div>
                     </Show>

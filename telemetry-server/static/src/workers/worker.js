@@ -180,6 +180,35 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
         SAFETY_OK: ['SAFETY_NOT_OK'],
     };
 
+    const BMS_VOLTAGE_RANGE_START = 0x19B50100;
+    const BMS_VOLTAGE_RANGE_END = 0x19B5010B;
+    const BMS_TEMPERATURE_RANGE_START = 0x19B50800;
+    const BMS_TEMPERATURE_RANGE_END = 0x19B5080B;
+    const BMS_GROUPED_VOLTAGE_ID = 0x19B5000B;
+    const BMS_GROUPED_TEMPERATURE_ID = 0x19B5000E;
+
+    function parseTrailingIndex(name) {
+        const idx = Number.parseInt(name.split('_').pop(), 10);
+        return Number.isFinite(idx) ? idx : null;
+    }
+
+    function emitIndexedBmsCell(prefix, idx, value, unit, timestamp, canId, component) {
+        if (idx == null || idx < 0 || idx >= 96) return;
+        emitSignal(`${prefix}_${idx}`, value, unit, timestamp, canId, component);
+    }
+
+    function expandedBmsCellIndex(messageIndex, signalIdx) {
+        if (messageIndex == null || signalIdx == null || signalIdx < 0) return null;
+        return signalIdx >= 8 ? signalIdx : messageIndex * 8 + signalIdx;
+    }
+
+    function groupedBmsCellIndex(groupValue, signalIdx) {
+        if (groupValue == null || signalIdx == null || signalIdx <= 0) return null;
+        const group = Math.max(0, Math.trunc(groupValue));
+        const normalizedGroup = group > 0 ? group - 1 : 0;
+        return normalizedGroup * 7 + (signalIdx - 1);
+    }
+
     function emitSignal(name, value, unit, timestamp, canId, component) {
         getOrCreateBuffer(name).push(timestamp, value);
 
@@ -203,7 +232,7 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
         scheduleSignalFlush();
     }
 
-    function emitSignalWithAliases(name, value, unit, timestamp, canId, component) {
+    function emitSignalWithAliases(name, value, unit, timestamp, canId, component, frameValues) {
         emitSignal(name, value, unit, timestamp, canId, component);
         for (const alias of SIGNAL_ALIASES[name] || []) {
             emitSignal(alias, value, unit, timestamp, canId, component);
@@ -228,27 +257,33 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
             emitSignal('TORQUE_13B', value, 'Nm', timestamp, canId, component);
         }
 
-        // BMS Cell Voltages demultiplexing (0x19B50100 to 0x19B5010B -> vcell_0 to vcell_95)
-        if (canId >= 0x19B50100 && canId <= 0x19B5010B) {
+        // BMS Cell Voltages: supports both expanded IDs and grouped EMUS ID.
+        if (canId >= BMS_VOLTAGE_RANGE_START && canId <= BMS_VOLTAGE_RANGE_END) {
             if (name.startsWith('IndividualCellVoltage_Data_')) {
-                const signalIdx = parseInt(name.split('_').pop(), 10);
-                if (!isNaN(signalIdx)) {
-                    const msgIdx = canId - 0x19B50100;
-                    const cellIdx = msgIdx * 8 + signalIdx;
-                    emitSignal(`vcell_${cellIdx}`, value, 'V', timestamp, canId, component);
-                }
+                const signalIdx = parseTrailingIndex(name);
+                const msgIdx = canId - BMS_VOLTAGE_RANGE_START;
+                emitIndexedBmsCell('vcell', expandedBmsCellIndex(msgIdx, signalIdx), value, 'V', timestamp, canId, component);
+            }
+        } else if (canId === BMS_GROUPED_VOLTAGE_ID) {
+            if (name.startsWith('IndividualCellVoltage_Data_')) {
+                const signalIdx = parseTrailingIndex(name);
+                const cellIdx = groupedBmsCellIndex(frameValues?.get('IndividualCell_Group'), signalIdx);
+                emitIndexedBmsCell('vcell', cellIdx, value, 'V', timestamp, canId, component);
             }
         }
 
-        // BMS Cell Temperatures demultiplexing (0x19B50800 to 0x19B5080B -> tcell_0 to tcell_95)
-        if (canId >= 0x19B50800 && canId <= 0x19B5080B) {
+        // BMS Cell Temperatures: supports both expanded IDs and grouped EMUS ID.
+        if (canId >= BMS_TEMPERATURE_RANGE_START && canId <= BMS_TEMPERATURE_RANGE_END) {
             if (name.startsWith('IndividualCellTemp_Data_')) {
-                const signalIdx = parseInt(name.split('_').pop(), 10);
-                if (!isNaN(signalIdx)) {
-                    const msgIdx = canId - 0x19B50800;
-                    const cellIdx = msgIdx * 8 + signalIdx;
-                    emitSignal(`tcell_${cellIdx}`, value, '°C', timestamp, canId, component);
-                }
+                const signalIdx = parseTrailingIndex(name);
+                const msgIdx = canId - BMS_TEMPERATURE_RANGE_START;
+                emitIndexedBmsCell('tcell', expandedBmsCellIndex(msgIdx, signalIdx), value, '°C', timestamp, canId, component);
+            }
+        } else if (canId === BMS_GROUPED_TEMPERATURE_ID) {
+            if (name.startsWith('IndividualCellTemp_Data_')) {
+                const signalIdx = parseTrailingIndex(name);
+                const cellIdx = groupedBmsCellIndex(frameValues?.get('IndividualCell_Group'), signalIdx);
+                emitIndexedBmsCell('tcell', cellIdx, value, '°C', timestamp, canId, component);
             }
         }
     }
@@ -440,18 +475,25 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
             );
         }
     
-        for (const sig of signals) {
-        const value = decodeSignal(rawData, sig);
-        const name  = sig.n;
-        statsDecodedSignals += 1;
+        const decodedSignals = [];
+        const frameValues = new Map();
 
-        if (debugFrame && shouldDebugSignal(name)) {
-            console.info(
-                `[CAN_FRONT_DEBUG] decode | id=0x${canId.toString(16).toUpperCase()} | signal=${name} | sb=${sig.sb} | len=${sig.len} | order=${sig.bo || 'Intel'} | signed=${sig.signed === true} | factor=${sig.f} | offset=${sig.o} | final=${value} ${sig.u || ''}`
-            );
+        for (const sig of signals) {
+            const value = decodeSignal(rawData, sig);
+            const name  = sig.n;
+            decodedSignals.push({ sig, name, value });
+            frameValues.set(name, value);
+            statsDecodedSignals += 1;
+
+            if (debugFrame && shouldDebugSignal(name)) {
+                console.info(
+                    `[CAN_FRONT_DEBUG] decode | id=0x${canId.toString(16).toUpperCase()} | signal=${name} | sb=${sig.sb} | len=${sig.len} | order=${sig.bo || 'Intel'} | signed=${sig.signed === true} | factor=${sig.f} | offset=${sig.o} | final=${value} ${sig.u || ''}`
+                );
+            }
         }
-    
-        emitSignalWithAliases(name, value, sig.u, timestamp, canId, sig.c);
+
+        for (const { sig, name, value } of decodedSignals) {
+            emitSignalWithAliases(name, value, sig.u, timestamp, canId, sig.c, frameValues);
         }
     
         // Taxa de frames (log a cada 5s)

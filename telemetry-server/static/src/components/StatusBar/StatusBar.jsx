@@ -11,7 +11,7 @@
  */
 
 import { For } from 'solid-js'
-import { METRIC_SIGNAL_CARDS, STATUS_INDICATORS } from '../../config/dashboardConfig.js'
+import { METRIC_SIGNAL_CARDS, STATUS_INDICATOR_GROUPS } from '../../config/dashboardConfig.js'
 import { getSignalColor } from '../../utils/telemetryUtils.js'
 import SignalCard from './SignalCard'
 import StatusIndicator from './StatusIndicator'
@@ -42,11 +42,18 @@ function StatusBar() {
                     )}
                 </For>
 
-                <div class="status-indicator-group">
-                    <For each={STATUS_INDICATORS}>
-                        {(config) => <StatusIndicator config={config} />}
-                    </For>
-                </div>
+                <For each={STATUS_INDICATOR_GROUPS}>
+                    {(group) => (
+                        <section class={`status-indicator-section status-indicator-section--${group.tone}`}>
+                            <div class="status-indicator-section__title">{group.label}</div>
+                            <div class="status-indicator-group">
+                                <For each={group.indicators}>
+                                    {(config) => <StatusIndicator config={config} />}
+                                </For>
+                            </div>
+                        </section>
+                    )}
+                </For>
             </div>
         </div>
     )

@@ -203,7 +203,32 @@ pub async fn init_sqlite(pool: &SqlitePool) -> Result<(), Box<dyn std::error::Er
     .execute(pool)
     .await?;
 
-    info!("✅ SQLite inicializado (histórico persistente + users)");
+    // Tabela de tempos de volta (Photogate)
+    sqlx::query(
+        r#"
+        CREATE TABLE IF NOT EXISTS lap_times (
+            id         INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id INTEGER,
+            lap_number INTEGER NOT NULL,
+            duration   REAL NOT NULL,
+            timestamp  REAL NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    "#,
+    )
+    .execute(pool)
+    .await?;
+
+    sqlx::query(
+        r#"
+        CREATE INDEX IF NOT EXISTS idx_laps_timestamp
+            ON lap_times (timestamp DESC)
+    "#,
+    )
+    .execute(pool)
+    .await?;
+
+    info!("✅ SQLite inicializado (histórico persistente + users + laps)");
     Ok(())
 }
 
@@ -375,6 +400,40 @@ pub async fn migrate_old_data(
         total_migrated
     );
     Ok(total_migrated)
+}
+
+// ==================== HISTÓRICO DE VOLTAS (PHOTOGATE) ====================
+
+pub async fn get_active_session_id(pool: &SqlitePool) -> Option<i64> {
+    sqlx::query_scalar::<_, i64>(
+        "SELECT id FROM telemetry_log_sessions WHERE state = 'active' AND ended_at_unix IS NULL ORDER BY id DESC LIMIT 1"
+    )
+    .fetch_optional(pool)
+    .await
+    .ok()
+    .flatten()
+}
+
+pub async fn save_lap(
+    pool: &SqlitePool,
+    lap_number: i32,
+    duration: f64,
+    timestamp: f64,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let session_id = get_active_session_id(pool).await;
+    sqlx::query(
+        r#"
+        INSERT INTO lap_times (session_id, lap_number, duration, timestamp)
+        VALUES ($1, $2, $3, $4)
+        "#
+    )
+    .bind(session_id)
+    .bind(lap_number)
+    .bind(duration)
+    .bind(timestamp)
+    .execute(pool)
+    .await?;
+    Ok(())
 }
 
 // ==================== MAIN ====================

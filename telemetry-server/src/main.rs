@@ -23,6 +23,7 @@ mod decoder;
 mod ingest;
 mod models;
 mod ntp;
+mod photogate;
 mod track_state;
 mod ws;
 mod unifi;
@@ -244,6 +245,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tokio::spawn(async move {
         ntp::run_ntp_server(NTP_PORT).await;
     });
+
+    // Spawn servidor Photogate :8082
+    {
+        let sqldb = sqlite_pool.clone();
+        let tx = ws_tx.clone();
+        tokio::spawn(async move {
+            photogate::run_photogate_server(8082, sqldb, tx).await;
+        });
+    }
 
     let tcp_listener = TcpListener::bind(format!("0.0.0.0:{}", TCP_PORT)).await?;
     info!("📡 TCP CAN listener em 0.0.0.0:{}", TCP_PORT);

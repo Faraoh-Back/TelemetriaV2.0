@@ -24,11 +24,24 @@ function formatValue(value) {
  * @param {object}  stats
  * @param {Function} source  — memo de useSignalStats: () => { name, value, unit } | null.
  *                             Uma varredura por atualização, compartilhada com as estatísticas.
+ * @param {string}  [totalLabel]
+ * @param {Function} [totalSource]
  * @param {string}  [signalColor]  — cor da paleta do gráfico para este sinal
  */
-function SignalCard({ signalName, label, dataClass = 'default', unit, stats, source, signalColor }) {
+function SignalCard({
+    signalName,
+    label,
+    dataClass = 'default',
+    unit,
+    stats,
+    source,
+    totalLabel,
+    totalSource,
+    signalColor,
+}) {
     const stat = () => stats[signalName]
     const average = () => stat() ? stat().sum / stat().count : null
+    const total = () => totalSource?.()
     const displayUnit = () => {
         if (unit) return unit
         if (dataClass === 'torque') return 'Nm'
@@ -61,7 +74,12 @@ function SignalCard({ signalName, label, dataClass = 'default', unit, stats, sou
                 {source()?.name ?? signalName}
             </div>
 
-            <div class="signal-card__stats">
+            <div
+                classList={{
+                    'signal-card__stats': true,
+                    'signal-card__stats--with-total': Boolean(totalSource),
+                }}
+            >
                 <span class="signal-card__stat">
                     <span class="signal-card__stat-icon">↑</span>
                     <span class="signal-card__stat-value">{formatValue(stat()?.max)}</span>
@@ -74,6 +92,15 @@ function SignalCard({ signalName, label, dataClass = 'default', unit, stats, sou
                     <span class="signal-card__stat-icon">~</span>
                     <span class="signal-card__stat-value">{formatValue(average())}</span>
                 </span>
+                {totalSource && (
+                    <span class="signal-card__stat signal-card__stat--total">
+                        <span class="signal-card__stat-icon">{totalLabel ?? 'total'}</span>
+                        <span class="signal-card__stat-value">
+                            {formatValue(total()?.value)}
+                            <span class="signal-card__stat-unit">{unit ?? total()?.unit ?? ''}</span>
+                        </span>
+                    </span>
+                )}
             </div>
         </div>
     )

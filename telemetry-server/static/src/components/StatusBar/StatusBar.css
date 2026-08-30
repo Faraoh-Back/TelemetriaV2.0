@@ -114,6 +114,10 @@ Correções:
     font-family: var(--mono);
 }
 
+.signal-card__stats--with-total {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .signal-card__stat {
     display: grid;
     justify-items: center;
@@ -133,6 +137,11 @@ Correções:
     text-align: center;
     display: block;
     white-space: nowrap;
+}
+
+.signal-card__stat-unit {
+    margin-left: 2px;
+    color: var(--text2);
 }
 
 /* ── INDICADORES DE ESTADO ───────────────────────────────────────────────── */

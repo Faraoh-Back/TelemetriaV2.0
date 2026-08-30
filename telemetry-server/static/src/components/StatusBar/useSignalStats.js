@@ -80,6 +80,33 @@ function resolveSource(config) {
         : null
 }
 
+function resolveSumSource(config) {
+    const names = config.totalSignalNames
+    if (!names?.length) return null
+
+    let total = 0
+    let count = 0
+    let unit = ''
+
+    for (const name of names) {
+        const entry = signals[name]
+        if (!isFiniteValue(entry?.value)) continue
+
+        total += Number(entry.value)
+        count += 1
+        unit = entry.unit ?? unit
+    }
+
+    if (count === 0) return null
+    if (config.totalRequiredCount && count < config.totalRequiredCount) return null
+
+    return {
+        name: `${count}/${names.length}`,
+        value: total,
+        unit,
+    }
+}
+
 function sameSource(a, b) {
     if (a === b) return true
     if (!a || !b) return false
@@ -99,6 +126,13 @@ export function createSignalSources(signalConfigs) {
             config.signalName,
             createMemo(() => resolveSource(config), null, { equals: sameSource })
         )
+
+        if (config.totalSignalNames?.length) {
+            sources.set(
+                `${config.signalName}:total`,
+                createMemo(() => resolveSumSource(config), null, { equals: sameSource })
+            )
+        }
     }
 
     return sources

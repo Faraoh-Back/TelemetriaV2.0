@@ -37,6 +37,8 @@ function StatusBar() {
                             unit={config.unit}
                             stats={stats}
                             source={sources.get(config.signalName)}
+                            totalLabel={config.totalLabel}
+                            totalSource={sources.get(`${config.signalName}:total`)}
                             signalColor={getSignalColor(index())}
                         />
                     )}

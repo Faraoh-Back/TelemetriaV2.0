@@ -41,6 +41,9 @@ export const METRIC_SIGNAL_CARDS = [
         label: 'Voltagem celulas alta',
         dataClass: 'voltage',
         aggregate: 'max',
+        totalSignalNames: CELL_VOLTAGE_SIGNALS,
+        totalRequiredCount: CELL_VOLTAGE_SIGNALS.length,
+        totalLabel: 'total',
         unit: 'V',
     },
 ]

@@ -37,17 +37,16 @@ BU_:
 
 
 BO_ 1024 Sensores1: 8 Vector__XXX
- SG_ planetariadireita : 0|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ planetariaesquerda : 8|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ senstemp1 : 16|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ planetariadireita : 0|8@1+ (1,0) [0|0] "�C" Vector__XXX
+ SG_ planetariaesquerda : 8|8@1+ (1,0) [0|0] "�C" Vector__XXX
+ SG_ senstemp1 : 16|8@1+ (1,0) [0|0] "�C" Vector__XXX
  SG_ senspres1 : 24|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ senstemp2 : 32|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ senstemp2 : 32|8@1+ (1,0) [0|0] "�C" Vector__XXX
  SG_ senspres2 : 40|8@1+ (1,0) [0|0] "" Vector__XXX
 
-BO_ 1025 sensores2: 8 Vector__XXX
- SG_ freio : 0|8@1+ (1,0) [0|0] "" Vector__XXX
- SG_ suspaR : 8|8@1+ (1,0) [0|0] "" Vector__XXX
-
+BO_ 1026 sensores2: 8 Vector__XXX
+ SG_ freio : 0|8@1+ (1,0) [0|0] "Kg" Vector__XXX
+ SG_ suspaR : 8|8@1+ (1,0) [0|0] "%" Vector__XXX
 
 
 BO_ 1792 TelemetriaRF: 8 Vector__XXX

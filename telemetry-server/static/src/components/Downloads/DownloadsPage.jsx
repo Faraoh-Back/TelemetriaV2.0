@@ -38,6 +38,7 @@ function DownloadsPage(props) {
     let refreshTimer = null
 
     const canDownload = () =>
+        hasPermission(props.session, PERMISSIONS.logsRead) ||
         hasPermission(props.session, PERMISSIONS.logsDownload)
     const hasProcessingLogs = () =>
         logs().some((log) => PROCESSING_STATUSES.has(log.status))

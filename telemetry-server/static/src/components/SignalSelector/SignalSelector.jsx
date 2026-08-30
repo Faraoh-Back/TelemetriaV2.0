@@ -19,7 +19,7 @@
  * para que a tela de Análise monte gráficos customizados ou outras ferramentas.
  */
 
-import { For, Show, createMemo, createSignal } from 'solid-js'
+import { For, Show, createEffect, createMemo, createSignal, untrack } from 'solid-js'
 import { signals } from '../../store.js'
 import { groupSignalsByComponent } from '../../utils/signalGrouping'
 import './SignalSelector.css'
@@ -75,18 +75,43 @@ function SignalRow(props) {
 
 function SignalSelector(props) {
     const [query, setQuery] = createSignal('')
+    const [signalCatalog, setSignalCatalog] = createSignal([])
 
     const selectedSet = createMemo(() => new Set(props.selectedSignals ?? []))
+
+    createEffect(() => {
+        const names = Object.keys(signals)
+
+        setSignalCatalog((current) => {
+            const known = new Map(current.map((signal) => [signal.name, signal]))
+            let changed = current.length !== names.length
+            const next = []
+
+            for (const name of names) {
+                const existing = known.get(name)
+                if (existing) {
+                    next.push(existing)
+                    continue
+                }
+
+                changed = true
+                const entry = untrack(() => signals[name])
+                next.push({
+                    name,
+                    unit: entry?.unit,
+                    component: entry?.component,
+                })
+            }
+
+            if (!changed) return current
+            return next.sort((a, b) => a.name.localeCompare(b.name))
+        })
+    })
 
     const signalEntries = createMemo(() => {
         const normalizedQuery = query().trim().toLowerCase()
 
-        return Object.entries(signals)
-            .map(([name, entry]) => ({
-                name,
-                unit: entry.unit,
-                component: entry.component,
-            }))
+        return signalCatalog()
             .filter(({ name, unit }) => {
                 if (!normalizedQuery) return true
 
@@ -95,11 +120,10 @@ function SignalSelector(props) {
                     (unit ?? '').toLowerCase().includes(normalizedQuery)
                 )
             })
-            .sort((a, b) => a.name.localeCompare(b.name))
     })
 
     const groupedSignals = createMemo(() => groupSignalsByComponent(signalEntries()))
-    const totalSignals = createMemo(() => Object.keys(signals).length)
+    const totalSignals = createMemo(() => signalCatalog().length)
     const selectedCount = createMemo(() => props.selectedSignals?.length ?? 0)
 
     return (

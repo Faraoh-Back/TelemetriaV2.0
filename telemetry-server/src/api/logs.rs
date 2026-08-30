@@ -514,7 +514,17 @@ pub(super) async fn handle_download_log(
         log_stop - log_start
     );
 
-    let rows = match sqlx::query(
+    struct LogDataRow {
+        signal_name: String,
+        value: f64,
+        ts: f64,
+        unit: String,
+    }
+
+    let mut data_rows = Vec::new();
+
+    // 1. Tenta buscar no TimescaleDB (PostgreSQL)
+    let pg_rows = match sqlx::query(
         r#"
         SELECT signal_name, value, EXTRACT(EPOCH FROM time)::float8 as ts, unit
         FROM sensor_data
@@ -529,18 +539,68 @@ pub(super) async fn handle_download_log(
     {
         Ok(r) => r,
         Err(e) => {
-            error!("Erro ao buscar dados para MoTeC: {}", e);
-            send_json(
-                stream,
-                500,
-                r#"{"ok":false,"message":"Erro ao buscar dados"}"#,
-            )
-            .await;
-            return;
+            error!("Erro ao buscar dados no TimescaleDB para MoTeC: {}", e);
+            Vec::new() // Continua para tentar o SQLite
         }
     };
 
-    if rows.is_empty() {
+    for row in pg_rows {
+        let name: String = row.get("signal_name");
+        let value: f64 = row.get("value");
+        let ts: f64 = row.get("ts");
+        let unit: String = row.try_get("unit").ok().flatten().unwrap_or_default();
+        data_rows.push(LogDataRow {
+            signal_name: name,
+            value,
+            ts,
+            unit,
+        });
+    }
+
+    // 2. Se o TimescaleDB não retornou nada, tenta buscar no SQLite
+    if data_rows.is_empty() {
+        info!("⚠️ Nenhum dado no TimescaleDB para a sessao {}. Buscando no SQLite...", session_id);
+        let sqlite_rows = match sqlx::query(
+            r#"
+            SELECT signal_name, value, timestamp as ts, COALESCE(unit, '') as unit
+            FROM historico
+            WHERE timestamp BETWEEN ? AND ?
+            ORDER BY signal_name, timestamp ASC
+            "#,
+        )
+        .bind(log_start)
+        .bind(log_stop)
+        .fetch_all(sqlite_pool)
+        .await
+        {
+            Ok(r) => r,
+            Err(e) => {
+                error!("Erro ao buscar dados no SQLite para MoTeC: {}", e);
+                send_json(
+                    stream,
+                    500,
+                    r#"{"ok":false,"message":"Erro ao buscar dados"}"#,
+                )
+                .await;
+                return;
+            }
+        };
+
+        for row in sqlite_rows {
+            let name: String = row.get("signal_name");
+            let value: f64 = row.get("value");
+            let ts: f64 = row.get("ts");
+            let unit: String = row.get("unit");
+            data_rows.push(LogDataRow {
+                signal_name: name,
+                value,
+                ts,
+                unit,
+            });
+        }
+    }
+
+    if data_rows.is_empty() {
         send_json(
             stream,
             404,
@@ -554,15 +614,15 @@ pub(super) async fn handle_download_log(
     let mut channels: std::collections::HashMap<String, (Vec<f64>, Vec<f64>, String)> =
         std::collections::HashMap::new();
 
-    for row in &rows {
-        let name: String = row.get("signal_name");
-        let value: f64 = row.get("value");
-        let ts: f64 = row.get("ts");
-        let unit: String = row.try_get("unit").ok().flatten().unwrap_or_default();
+    for row in &data_rows {
+        let name = &row.signal_name;
+        let value = row.value;
+        let ts = row.ts;
+        let unit = &row.unit;
 
         let entry = channels
             .entry(name.clone())
-            .or_insert_with(|| (Vec::new(), Vec::new(), unit));
+            .or_insert_with(|| (Vec::new(), Vec::new(), unit.clone()));
         entry.0.push(ts - log_start); // tempo relativo em segundos
         entry.1.push(value);
     }

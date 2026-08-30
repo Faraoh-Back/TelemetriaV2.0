@@ -176,11 +176,9 @@ fn broadcast_laps(ws_tx: &broadcast::Sender<Vec<u8>>, laps: &[LapEntry]) {
 
     let json_msg = json!({
         "type": "laps",
-        "payload": {
-            "lap_count": laps.len() as u32,
-            "best_lap": best_lap,
-            "laps": laps
-        }
+        "lap_count": laps.len() as u32,
+        "best_lap": best_lap,
+        "laps": laps
     });
 
     let _ = ws_tx.send(json_msg.to_string().into_bytes());

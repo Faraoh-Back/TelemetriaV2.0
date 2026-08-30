@@ -76,6 +76,7 @@ pub(super) async fn send_json(stream: &mut TcpStream, status: u16, body: &str) {
         403 => "Forbidden",
         404 => "Not Found",
         409 => "Conflict",
+        422 => "Unprocessable Entity",
         500 => "Internal Server Error",
         _ => "Unknown",
     };

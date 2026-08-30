@@ -2,6 +2,7 @@ import { Show, createEffect, createSignal, onCleanup, onMount } from 'solid-js'
 import {
     downloadTelemetryLog,
     listTelemetryLogs,
+    renameTelemetryLog,
 } from '../../services/logDownloads.js'
 import { PERMISSIONS, hasPermission } from '../../utils/permissions.js'
 import DownloadFilters from './DownloadFilters.jsx'
@@ -35,6 +36,7 @@ function DownloadsPage(props) {
     const [refreshing, setRefreshing] = createSignal(false)
     const [error, setError] = createSignal('')
     const [downloadingId, setDownloadingId] = createSignal(null)
+    const [renamingId, setRenamingId] = createSignal(null)
     let refreshTimer = null
 
     const canDownload = () =>
@@ -82,6 +84,30 @@ function DownloadsPage(props) {
         } finally {
             setDownloadingId(null)
         }
+    }
+
+    async function handleRename(log, name) {
+        const trimmedName = name.trim()
+        if (!trimmedName || trimmedName === log.name) return
+
+        setRenamingId(log.id)
+        setError('')
+
+        try {
+            const item = await renameTelemetryLog(log.id, trimmedName, props.session.token)
+            setLogs((current) =>
+                current.map((entry) =>
+                    entry.id === log.id ? { ...entry, ...(item || {}), name: trimmedName } : entry
+                )
+            )
+        } catch (err) {
+            setError(err.message || 'Nao foi possivel renomear o log.')
+            return false
+        } finally {
+            setRenamingId(null)
+        }
+
+        return true
     }
 
     onMount(() => {
@@ -149,7 +175,9 @@ function DownloadsPage(props) {
                             logs={logs()}
                             canDownload={canDownload()}
                             downloadingId={downloadingId()}
+                            renamingId={renamingId()}
                             onDownload={handleDownload}
+                            onRename={handleRename}
                         />
                     </Show>
                 </Show>

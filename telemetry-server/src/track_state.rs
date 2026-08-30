@@ -309,15 +309,24 @@ impl RealtimeTrackState {
     fn apply_signal(&mut self, signal: &ProcessedSignal) {
         let name = signal.signal_name.trim();
         match name {
-            "Accel_Linear_X" | "ACCEL_LINEAR_X" | "ventor_linear_acc_x" | "VENTOR_LINEAR_ACC_X" => {
+            "Accel_Linear_X"
+            | "ACCEL_LINEAR_X"
+            | "ACCEL_X"
+            | "accel_x"
+            | "ventor_linear_acc_x"
+            | "VENTOR_LINEAR_ACC_X" => {
                 self.acc_x_mps2 = Some(signal.value)
             }
             "Velo_Angular_Z"
             | "VELO_ANGULAR_Z"
+            | "GYRO_Z"
+            | "gyro_z"
             | "ventor_angular_speed_z"
             | "VENTOR_ANGULAR_SPEED_Z" => self.yaw_rate_rps = Some(signal.value),
             "Speed_Linear_X"
             | "SPEED_LINEAR_X"
+            | "VELOCITY_N"
+            | "velocity_n"
             | "ventor_linear_speed_x"
             | "VENTOR_LINEAR_SPEED_X" => {
                 self.speed_x_mps = Some(if signal.unit.eq_ignore_ascii_case("km/h") {
@@ -328,6 +337,8 @@ impl RealtimeTrackState {
             }
             "Speed_Linear_Y"
             | "SPEED_LINEAR_Y"
+            | "VELOCITY_E"
+            | "velocity_e"
             | "ventor_linear_speed_y"
             | "VENTOR_LINEAR_SPEED_Y" => {
                 self.speed_y_mps = Some(if signal.unit.eq_ignore_ascii_case("km/h") {
@@ -738,18 +749,22 @@ fn is_track_signal(name: &str) -> bool {
         name,
         "Accel_Linear_X"
             | "ACCEL_LINEAR_X"
+            | "ACCEL_X"
             | "ventor_linear_acc_x"
             | "VENTOR_LINEAR_ACC_X"
             | "Velo_Angular_Z"
             | "VELO_ANGULAR_Z"
+            | "GYRO_Z"
             | "ventor_angular_speed_z"
             | "VENTOR_ANGULAR_SPEED_Z"
             | "Speed_Linear_X"
             | "SPEED_LINEAR_X"
+            | "VELOCITY_N"
             | "ventor_linear_speed_x"
             | "VENTOR_LINEAR_SPEED_X"
             | "Speed_Linear_Y"
             | "SPEED_LINEAR_Y"
+            | "VELOCITY_E"
             | "ventor_linear_speed_y"
             | "VENTOR_LINEAR_SPEED_Y"
             | "act_Speed A0"
@@ -809,6 +824,24 @@ mod tests {
         assert!((state.x_m - 0.0).abs() < 1e-9);
         assert!((state.distance_m - 20.0).abs() < 1e-9);
         assert!((state.velocity_mps - 10.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn integrates_sbg_ned_velocity_from_dbc_names() {
+        let mut state = RealtimeTrackState::new();
+        state.speed_frame = SpeedFrame::Global;
+
+        state.update(&[
+            signal(0.0, "VELOCITY_N", 3.0),
+            signal(0.0, "VELOCITY_E", 4.0),
+        ]);
+        state.update(&[
+            signal(1.0, "VELOCITY_N", 3.0),
+            signal(1.0, "VELOCITY_E", 4.0),
+        ]);
+
+        assert!((state.velocity_mps - 5.0).abs() < 1e-9);
+        assert!((state.distance_m - 5.0).abs() < 1e-9);
     }
 
     #[test]

@@ -232,11 +232,48 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
         scheduleSignalFlush();
     }
 
+    function emitInsSpeedFromFrame(name, frameValues, timestamp, canId, component) {
+        const legacyFrameReady = name === 'Speed_Linear_Y'
+            && frameValues?.has('Speed_Linear_X')
+            && frameValues?.has('Speed_Linear_Y');
+        const nedFrameReady = name === 'VELOCITY_E'
+            && frameValues?.has('VELOCITY_N')
+            && frameValues?.has('VELOCITY_E');
+
+        if (!legacyFrameReady && !nedFrameReady) return;
+
+        const x = legacyFrameReady
+            ? frameValues.get('Speed_Linear_X')
+            : frameValues.get('VELOCITY_N');
+        const y = legacyFrameReady
+            ? frameValues.get('Speed_Linear_Y')
+            : frameValues.get('VELOCITY_E');
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+        emitSignal('INS_SPEED', Math.hypot(x, y), 'm/s', timestamp, canId, component);
+    }
+
     function emitSignalWithAliases(name, value, unit, timestamp, canId, component, frameValues) {
         emitSignal(name, value, unit, timestamp, canId, component);
         for (const alias of SIGNAL_ALIASES[name] || []) {
             emitSignal(alias, value, unit, timestamp, canId, component);
         }
+
+        if (name === 'ACCEL_X') {
+            emitSignal('Accel_Linear_X', value, unit || 'm/s^2', timestamp, canId, component);
+        } else if (name === 'ACCEL_Y') {
+            emitSignal('Accel_Linear_Y', value, unit || 'm/s^2', timestamp, canId, component);
+        } else if (name === 'ACCEL_Z') {
+            emitSignal('Accel_Linear_Z', value, unit || 'm/s^2', timestamp, canId, component);
+        } else if (name === 'GYRO_Z') {
+            emitSignal('Velo_Angular_Z', value, unit || 'rad/s', timestamp, canId, component);
+        } else if (name === 'VELOCITY_N') {
+            emitSignal('Speed_Linear_X', value, unit || 'm/s', timestamp, canId, component);
+        } else if (name === 'VELOCITY_E') {
+            emitSignal('Speed_Linear_Y', value, unit || 'm/s', timestamp, canId, component);
+        }
+
+        emitInsSpeedFromFrame(name, frameValues, timestamp, canId, component);
 
         // Inverter Speed & Torque dynamic aliases to map to Dashboard config names
         if (name === 'act_Speed_A1') {

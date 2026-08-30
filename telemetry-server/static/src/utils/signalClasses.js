@@ -13,6 +13,7 @@
 
 export const DATA_CLASS_COLORS = {
     rpm: '#dd663f',
+    speed: '#2fb344',
     acceleration: '#3d8ef0',
     temperature: '#e09b2f',
     voltage: '#60a5fa',
@@ -23,6 +24,7 @@ export const DATA_CLASS_COLORS = {
 
 export function inferSignalDataClass(signalName) {
     if (/^act_Speed_/.test(signalName)) return 'rpm'
+    if (/^(INS_SPEED|VELOCITY_|Speed_Linear_)/.test(signalName)) return 'speed'
     if (/acc_/i.test(signalName) || /^Accel_Linear_/.test(signalName) || /^ventor_linear_acc_/.test(signalName)) return 'acceleration'
     if (/Temperature|temp/i.test(signalName)) return 'temperature'
     if (/Voltage|voltage/i.test(signalName)) return 'voltage'

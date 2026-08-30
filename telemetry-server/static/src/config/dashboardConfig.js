@@ -10,6 +10,7 @@ export const METRIC_SIGNAL_CARDS = [
     { signalName: 'TORQUE_0B', label: 'Torque 0B',     dataClass: 'torque'      },
     { signalName: 'TORQUE_13A',label: 'Torque 13A',    dataClass: 'torque'      },
     { signalName: 'TORQUE_13B',label: 'Torque 13B',    dataClass: 'torque'      },
+    { signalName: 'INS_SPEED', label: 'Vel. INS',      dataClass: 'speed',      unit: 'm/s' },
     { signalName: 'ACCEL_X',  label: 'Acelerador',    dataClass: 'acceleration', unit: 'm/s²' },
     {
         signalName: 'CELL_TEMP_MIN',
@@ -129,6 +130,7 @@ export const STATUS_INDICATOR_GROUPS = [
                 label: 'ACD',
                 kind: 'faultGroup',
                 severity: 'critical',
+                sampleMs: 1000,
                 signals: [
                     { signalName: 'Fault_IMD', label: 'IMD' },
                     { signalName: 'Fault_BMS', label: 'BMS' },
@@ -188,11 +190,13 @@ export const PINNED_SIGNALS = METRIC_SIGNAL_CARDS
 export const GAUGE_CONFIG = [
     { signalName: 'RPM_0A',   label: 'RPM 0A',     min: 0, max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
     { signalName: 'RPM_13A',  label: 'RPM 13A',    min: 0, max: 10000, unit: 'rpm', warnMax: 8500, critMax: 9500 },
+    { signalName: 'INS_SPEED', label: 'Vel. INS',  min: 0, max: 40,    unit: 'm/s' },
     { signalName: 'ACCEL_X', label: 'Acelerador', min: 0, max: 15,   unit: 'm/s²' },
 ]
 
 export const DEFAULT_CHART_LAYOUT = [
     { label: 'RPM Motores',    signals: ['RPM_0A', 'RPM_0B', 'RPM_13A', 'RPM_13B'] },
     { label: 'Torque Motores', signals: ['TORQUE_0A', 'TORQUE_0B', 'TORQUE_13A', 'TORQUE_13B']  },
+    { label: 'Velocidade INS', signals: ['INS_SPEED', 'VELOCITY_N', 'VELOCITY_E', 'Speed_Linear_X', 'Speed_Linear_Y'] },
     { label: 'Aceleração',     signals: ['ACCEL_X', 'ACCEL_Y', 'ACCEL_Z'] },
 ]

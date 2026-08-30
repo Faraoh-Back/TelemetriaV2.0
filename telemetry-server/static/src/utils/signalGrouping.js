@@ -64,6 +64,9 @@ const GROUPS = [
         label: 'INS',
         matches: [
             /^ventor_/,
+            /^ACCEL_/,
+            /^GYRO_/,
+            /^VELOCITY_/,
             /^Accel_Linear_/,
             /^Velo_Angular_/,
             /^Speed_Linear_/,

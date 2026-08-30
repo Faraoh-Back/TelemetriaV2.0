@@ -1,4 +1,4 @@
-import { For, Show } from 'solid-js'
+import { For, Show, createSignal } from 'solid-js'
 import DownloadStatusBadge from './DownloadStatusBadge.jsx'
 
 function formatDate(value) {
@@ -54,6 +54,84 @@ function getActionLabel(log, isDownloading, canDownload) {
     return 'Baixar'
 }
 
+function EditableLogName(props) {
+    const [editing, setEditing] = createSignal(false)
+    const [draftName, setDraftName] = createSignal(getLogName(props.log))
+    const isRenaming = () => props.renamingId === props.log.id
+
+    function startEditing() {
+        setDraftName(getLogName(props.log))
+        setEditing(true)
+    }
+
+    function cancelEditing() {
+        setDraftName(getLogName(props.log))
+        setEditing(false)
+    }
+
+    async function saveName() {
+        const nextName = draftName().trim()
+        if (!nextName) return
+
+        const saved = await props.onRename?.(props.log, nextName)
+        if (saved !== false) setEditing(false)
+    }
+
+    function handleKeyDown(event) {
+        if (event.key === 'Enter') saveName()
+        if (event.key === 'Escape') cancelEditing()
+    }
+
+    return (
+        <div class="downloads-log-name-cell">
+            <Show
+                when={editing()}
+                fallback={
+                    <>
+                        <div class="downloads-log-name">{getLogName(props.log)}</div>
+                        <button
+                            class="downloads-icon-button"
+                            type="button"
+                            title="Renomear log"
+                            onClick={startEditing}
+                        >
+                            Renomear
+                        </button>
+                    </>
+                }
+            >
+                <input
+                    class="downloads-name-input"
+                    value={draftName()}
+                    disabled={isRenaming()}
+                    maxLength="80"
+                    aria-label="Nome do log"
+                    onInput={(event) => setDraftName(event.currentTarget.value)}
+                    onKeyDown={handleKeyDown}
+                />
+                <button
+                    class="downloads-icon-button downloads-icon-button--confirm"
+                    type="button"
+                    title="Salvar nome"
+                    disabled={isRenaming() || !draftName().trim()}
+                    onClick={saveName}
+                >
+                    {isRenaming() ? 'Salvando' : 'Salvar'}
+                </button>
+                <button
+                    class="downloads-icon-button"
+                    type="button"
+                    title="Cancelar edicao"
+                    disabled={isRenaming()}
+                    onClick={cancelEditing}
+                >
+                    Cancelar
+                </button>
+            </Show>
+        </div>
+    )
+}
+
 function DownloadLogTable(props) {
     return (
         <div class="downloads-table-wrap">
@@ -80,7 +158,11 @@ function DownloadLogTable(props) {
                             return (
                                 <tr>
                                     <td>
-                                        <div class="downloads-log-name">{getLogName(log)}</div>
+                                        <EditableLogName
+                                            log={log}
+                                            renamingId={props.renamingId}
+                                            onRename={props.onRename}
+                                        />
                                         <Show when={log.metadata?.driver || log.metadata?.vehicle}>
                                             <div class="downloads-log-meta">
                                                 {[log.metadata?.driver, log.metadata?.vehicle]

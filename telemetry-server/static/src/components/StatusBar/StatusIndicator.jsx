@@ -1,4 +1,4 @@
-import { For, Show } from 'solid-js'
+import { For, Show, createEffect, createSignal, onCleanup } from 'solid-js'
 import { signals } from '../../store.js'
 
 function hasValue(value) {
@@ -65,15 +65,19 @@ function getActiveFaults(config) {
         .filter(isFaultActive)
 }
 
+function hasAnyFaultSignal(config) {
+    return (config.signals ?? [])
+        .map(normalizeFaultSignal)
+        .some((fault) => signals[fault.signalName]?.value != null)
+}
+
+function getFaultGroupState(config, activeFaults = getActiveFaults(config)) {
+    if (activeFaults.length > 0) return config.severity === 'warning' ? 'warning' : 'critical'
+    return hasAnyFaultSignal(config) ? 'ok' : 'idle'
+}
+
 function getIndicatorState(config) {
-    if (config.kind === 'faultGroup') {
-        const activeFaults = getActiveFaults(config)
-        if (activeFaults.length > 0) return config.severity === 'warning' ? 'warning' : 'critical'
-        const hasAnySignal = (config.signals ?? [])
-            .map(normalizeFaultSignal)
-            .some((fault) => signals[fault.signalName]?.value != null)
-        return hasAnySignal ? 'ok' : 'idle'
-    }
+    if (config.kind === 'faultGroup') return getFaultGroupState(config)
 
     if (config.kind === 'brake') {
         const value = getSignalEntry(config)?.value
@@ -103,9 +107,43 @@ function getFaultSummary(config, count) {
         : `${count} crítico(s)`
 }
 
+function createFaultSnapshot(config) {
+    const activeFaults = getActiveFaults(config)
+    return {
+        activeFaults,
+        state: getFaultGroupState(config, activeFaults),
+    }
+}
+
 function StatusIndicator({ config }) {
-    const activeFaults = () => getActiveFaults(config)
-    const indicatorState = () => getIndicatorState(config)
+    const [sampledFaultSnapshot, setSampledFaultSnapshot] = createSignal(null)
+    let sampleTimer = null
+
+    createEffect(() => {
+        if (sampleTimer) {
+            clearInterval(sampleTimer)
+            sampleTimer = null
+        }
+
+        setSampledFaultSnapshot(null)
+
+        if (config.kind !== 'faultGroup') return
+
+        const sampleMs = Number(config.sampleMs ?? config.stabilityMs ?? 0)
+        if (!Number.isFinite(sampleMs) || sampleMs <= 0) return
+
+        setSampledFaultSnapshot(createFaultSnapshot(config))
+        sampleTimer = setInterval(() => {
+            setSampledFaultSnapshot(createFaultSnapshot(config))
+        }, sampleMs)
+    })
+
+    onCleanup(() => {
+        if (sampleTimer) clearInterval(sampleTimer)
+    })
+
+    const activeFaults = () => sampledFaultSnapshot()?.activeFaults ?? getActiveFaults(config)
+    const indicatorState = () => sampledFaultSnapshot()?.state ?? getIndicatorState(config)
 
     return (
         <div class={`status-indicator status-indicator--${indicatorState()}`}>

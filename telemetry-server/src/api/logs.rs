@@ -1,10 +1,16 @@
+use serde::Deserialize;
 use sqlx::{sqlite::SqlitePool, Row};
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tracing::{error, info};
 
-use super::http::{api_request_has_permission, send_json};
+use super::http::{api_request_has_permission, parse_json_body, send_json};
 use crate::auth::PERMISSION_LOGS_READ;
+
+#[derive(Deserialize)]
+struct RenameLogRequest {
+    name: String,
+}
 
 // ==================== LISTAGEM ====================
 
@@ -127,6 +133,96 @@ pub(super) async fn handle_list_logs(
     });
 
     send_json(stream, 200, &body.to_string()).await;
+}
+
+// ==================== RENOMEAR ====================
+
+pub(super) async fn handle_rename_log(
+    stream: &mut TcpStream,
+    request: &str,
+    sqlite_pool: &SqlitePool,
+) {
+    if !api_request_has_permission(stream, request, PERMISSION_LOGS_READ).await {
+        return;
+    }
+
+    let target = request
+        .lines()
+        .next()
+        .and_then(|l| l.split_whitespace().nth(1))
+        .unwrap_or("");
+
+    let session_id: i64 = target
+        .trim_start_matches("/telemetry/logs/")
+        .trim_end_matches("/name")
+        .parse()
+        .unwrap_or(0);
+
+    if session_id == 0 {
+        send_json(stream, 400, r#"{"ok":false,"message":"ID invalido"}"#).await;
+        return;
+    }
+
+    let rename_req: RenameLogRequest = match parse_json_body(request) {
+        Ok(r) => r,
+        Err(status) => {
+            send_json(stream, status, r#"{"ok":false,"message":"JSON invalido"}"#).await;
+            return;
+        }
+    };
+
+    let name = rename_req.name.trim();
+    if name.is_empty() {
+        send_json(
+            stream,
+            422,
+            r#"{"ok":false,"message":"Nome nao pode ficar vazio"}"#,
+        )
+        .await;
+        return;
+    }
+    if name.chars().count() > 80 {
+        send_json(
+            stream,
+            422,
+            r#"{"ok":false,"message":"Nome deve ter ate 80 caracteres"}"#,
+        )
+        .await;
+        return;
+    }
+
+    let result = sqlx::query(
+        "UPDATE telemetry_log_sessions SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    )
+    .bind(name)
+    .bind(session_id)
+    .execute(sqlite_pool)
+    .await;
+
+    match result {
+        Ok(done) if done.rows_affected() > 0 => {
+            let body = serde_json::json!({
+                "ok": true,
+                "item": {
+                    "id": session_id,
+                    "name": name,
+                }
+            });
+            send_json(stream, 200, &body.to_string()).await;
+        }
+        Ok(_) => {
+            send_json(
+                stream,
+                404,
+                r#"{"ok":false,"message":"Sessao nao encontrada"}"#,
+            )
+            .await;
+        }
+        Err(e) => {
+            error!("Erro ao renomear sessao {}: {}", session_id, e);
+            send_json(stream, 500, r#"{"ok":false,"message":"Erro interno"}"#).await;
+        }
+    }
 }
 
 // ==================== SIMPLE ZIP WRITER (Sem dependências externas) ====================
@@ -361,8 +457,15 @@ pub(super) async fn handle_download_log(
         if trimmed.is_empty() {
             format!("eracing_sessao_{}", session_id)
         } else {
-            trimmed.chars()
-                .map(|c| if c.is_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+            trimmed
+                .chars()
+                .map(|c| {
+                    if c.is_alphanumeric() || c == '_' || c == '-' {
+                        c
+                    } else {
+                        '_'
+                    }
+                })
                 .collect::<String>()
         }
     };
@@ -374,7 +477,11 @@ pub(super) async fn handle_download_log(
     if ext == "ldx" {
         let xml = generate_ldx_file(session_id, &display_name, &started_at_iso);
         send_file(stream, &filename, "application/xml", xml.as_bytes()).await;
-        info!("✅ .ldx gerado: sessao {} — {} bytes", session_id, xml.len());
+        info!(
+            "✅ .ldx gerado: sessao {} — {} bytes",
+            session_id,
+            xml.len()
+        );
         return;
     }
 
@@ -423,7 +530,12 @@ pub(super) async fn handle_download_log(
         Ok(r) => r,
         Err(e) => {
             error!("Erro ao buscar dados para MoTeC: {}", e);
-            send_json(stream, 500, r#"{"ok":false,"message":"Erro ao buscar dados"}"#).await;
+            send_json(
+                stream,
+                500,
+                r#"{"ok":false,"message":"Erro ao buscar dados"}"#,
+            )
+            .await;
             return;
         }
     };
@@ -864,10 +976,8 @@ mod tests {
         let freq = LD_SAMPLE_RATE_HZ as usize;
         let n = (duration * freq as f64).floor() as usize + 1;
         let num_channels = channels.len() + 1; // +Time
-        let expected = LD_HEAD_SIZE
-            + LD_EVENT_SIZE
-            + num_channels * LD_CHAN_SIZE
-            + num_channels * n * 4;
+        let expected =
+            LD_HEAD_SIZE + LD_EVENT_SIZE + num_channels * LD_CHAN_SIZE + num_channels * n * 4;
         assert_eq!(ld.len(), expected, "tamanho total do .ld divergente");
         assert_eq!(&ld[0..4], &0x40u32.to_le_bytes(), "marker incorreto");
         assert!(ldx.contains("<Layers>\n    <Details>"));

@@ -77,6 +77,18 @@ BO_ 377 SBG_ECAN_MSG_GPS1_HDT: 8 JETSON_SBG
  SG_ PITCH : 32|16@1- (0.01,0) [-327.68|327.67] "deg" Vector__XXX
  SG_ PITCH_ACC : 48|16@1+ (0.01,0) [0|655.35] "deg" Vector__XXX
 
+BO_ 2147483649 INS_01_LEGACY: 8 JETSON_SBG
+ SG_ Accel_Linear_X : 0|16@1- (0.01,0) [-327.68|327.67] "m/s^2" Vector__XXX
+ SG_ Velo_Angular_X : 16|16@1- (0.01,0) [-327.68|327.67] "rad/s" Vector__XXX
+ SG_ Accel_Linear_Y : 32|16@1- (0.01,0) [-327.68|327.67] "m/s^2" Vector__XXX
+ SG_ Velo_Angular_Y : 48|16@1- (0.01,0) [-327.68|327.67] "rad/s" Vector__XXX
+
+BO_ 2147483650 INS_02_LEGACY: 8 JETSON_SBG
+ SG_ Accel_Linear_Z : 0|16@1- (0.01,0) [-327.68|327.67] "m/s^2" Vector__XXX
+ SG_ Velo_Angular_Z : 16|16@1- (0.01,0) [-327.68|327.67] "rad/s" Vector__XXX
+ SG_ Speed_Linear_X : 32|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
+ SG_ Speed_Linear_Y : 48|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
+
 CM_ BO_ 288 "IDs e layout gerados diretamente do codigo sbg_to_can.py (funcao frame_imu_info). Frame STANDARD 11-bit, little-endian.";
 CM_ SG_ 288 STATUS "Hardcoded para 0 no codigo atual - nao reflete dado real do SBG ainda.";
 CM_ BO_ 289 "Gerado a partir de frame_imu_accel().";
@@ -87,5 +99,7 @@ CM_ BO_ 308 "Gerado a partir de frame_ekf_pos(). Range no DBC reflete o clamp do
 CM_ BO_ 311 "Gerado a partir de frame_ekf_vel_ned().";
 CM_ BO_ 373 "Gerado a partir de frame_gps1_pos(). Mesma ressalva de range de 308.";
 CM_ BO_ 377 "Gerado a partir de frame_gps1_hdt().";
+CM_ BO_ 2147483649 "Compatibilidade com pipeline/mock legado INS_01. O parser mascara bit 31, entao este BO_ mapeia CAN ID 0x1.";
+CM_ BO_ 2147483650 "Compatibilidade com pipeline/mock legado INS_02. O parser mascara bit 31, entao este BO_ mapeia CAN ID 0x2.";
 CM_ SG_ 377 TRUE_HEADING_ACC "Hardcoded para 0 no codigo atual.";
 CM_ SG_ 377 PITCH_ACC "Hardcoded para 0 no codigo atual.";

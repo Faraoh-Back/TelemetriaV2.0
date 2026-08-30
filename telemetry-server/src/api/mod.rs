@@ -127,6 +127,8 @@ async fn handle_http_connection(
         http::serve_static_file(&mut stream, first_line).await;
     } else if first_line.starts_with("POST /migrate") {
         migrate::handle_migrate(&mut stream, &request, &pg_pool, &sqlite_pool).await;
+    } else if first_line.starts_with("PATCH /telemetry/logs") && first_line.contains("/name") {
+        logs::handle_rename_log(&mut stream, &request, &sqlite_pool).await;
     } else if first_line.starts_with("GET /telemetry/logs") && first_line.contains("/download") {
         logs::handle_download_log(&mut stream, &request, &sqlite_pool, &pg_pool).await;
     } else if first_line.starts_with("GET /telemetry/logs") {

@@ -30,7 +30,7 @@ async function parseJsonResponse(response) {
 
     if (!response.ok || data.ok === false) {
         const statusMessage =
-            response.status === 404
+            response.status === 404 && !data.message
                 ? 'Rota de logs nao encontrada no backend.'
                 : null
 
@@ -53,6 +53,21 @@ export async function listTelemetryLogs(filters, token) {
         items: Array.isArray(data.items) ? data.items : [],
         nextCursor: data.next_cursor ?? null,
     }
+}
+
+export async function renameTelemetryLog(logId, name, token) {
+    const { apiBase } = getServerConfig()
+    const response = await fetch(`${apiBase}/telemetry/logs/${encodeURIComponent(logId)}/name`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            ...authHeaders(token),
+        },
+        body: JSON.stringify({ name }),
+    })
+    const data = await parseJsonResponse(response)
+
+    return data.item
 }
 
 function getFilenameFromDisposition(disposition) {

@@ -113,8 +113,16 @@ async fn handle_photogate_packet(
 
     let mut st = state.lock().await;
 
-    // Se é a primeira vez que recebemos ou se a volta é menor do que a última registrada,
-    // podemos considerar um início de sessão (por exemplo, volta 1, ou volta inicial do piloto).
+    // Regra prioritária de reset: Se a volta for 1, SEMPRE limpa a lista e inicia o cronômetro
+    if lap_number == 1 {
+        info!("⏱️  Volta 1 iniciada em Ts={:.3} (Início do piloto/Reset)", timestamp);
+        st.last_pass_time = Some(timestamp);
+        st.laps.clear();
+        broadcast_laps(&ws_tx, &st.laps);
+        return;
+    }
+
+    // Se é a primeira vez que recebemos (e não é volta 1) e não temos referência de tempo anterior
     if st.last_pass_time.is_none() {
         info!("⏱️  Sessão Photogate iniciada em Ts={:.3} na Volta (Lap={})", timestamp, lap_number);
         st.last_pass_time = Some(timestamp);
@@ -131,7 +139,7 @@ async fn handle_photogate_packet(
             return;
         }
 
-        // Se o número da volta recebido for menor ou igual à última volta registrada,
+        // Se o número da volta recebido for menor ou igual à última volta registrada (mas não é 1),
         // significa que uma nova corrida/sessão foi iniciada. Resetamos tempos.
         if !st.laps.is_empty() && lap_number <= st.laps.last().unwrap().lap {
             info!("⏱️  Novo piloto ou reinício detectado (Lap {} <= última volta {}). Resetando tempos.", lap_number, st.laps.last().unwrap().lap);

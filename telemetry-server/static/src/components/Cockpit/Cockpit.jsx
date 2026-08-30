@@ -18,7 +18,7 @@ import RaceVideoPanel from './RaceVideoPanel.jsx'
 import TrackMapPanel from './TrackMapPanel.jsx'
 import LapTimePanel from './LapTimePanel.jsx'
 import TorqueDistribution from './TorqueDistribution.jsx'
-import { LAP_TIMING_ENABLED, TRACK_MAP_ENABLED } from '../../config/featureFlags.js'
+import { TRACK_MAP_ENABLED } from '../../config/featureFlags.js'
 import './Cockpit.css'
 
 function Cockpit(props) {
@@ -44,13 +44,14 @@ function Cockpit(props) {
 
                 {/* Com TRACK_MAP_ENABLED=false o painel nem entra na árvore: sem
                     memos de overlay, sem polyline no DOM e sem leitura de trackState. */}
-                <Show when={TRACK_MAP_ENABLED || LAP_TIMING_ENABLED}>
+                <Show when={TRACK_MAP_ENABLED}>
                     <div class="cockpit__lower-grid">
-                        {TRACK_MAP_ENABLED && (
-                            <TrackMapPanel source={trackMapSource()} data={trackMap()} isTelemetryLive={isTelemetryLive()} />
-                        )}
-                        {LAP_TIMING_ENABLED && <LapTimePanel />}
+                        <TrackMapPanel source={trackMapSource()} data={trackMap()} isTelemetryLive={isTelemetryLive()} />
+                        <LapTimePanel />
                     </div>
+                </Show>
+                <Show when={!TRACK_MAP_ENABLED}>
+                    <LapTimePanel />
                 </Show>
             </section>
 

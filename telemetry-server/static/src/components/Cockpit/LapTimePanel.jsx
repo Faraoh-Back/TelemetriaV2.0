@@ -12,19 +12,21 @@ function LapTimePanel() {
         return () => clearTimeout(timer)
     })
 
-    // bestLaps já vem do store ordenado por tempo (mais rápida primeiro), top 5
-    const bestLaps = () => lapState.bestLaps
+    const allLaps = () => lapState.allLaps ?? []
+    const bestLap = () => lapState.bestLap ?? lapState.bestLaps?.[0] ?? null
+    const isBestLap = (entry) =>
+        bestLap() && entry.lap === bestLap().lap && entry.time === bestLap().time
 
     return (
         <section class="lap-time" aria-label="Tempos de volta">
             <header class="cockpit-panel__header">
-                <span>Melhores voltas</span>
-                <strong>{lapState.lapCount > 0 ? `${lapState.lapCount} completadas` : 'aguardando'}</strong>
+                <span>Tempos de volta</span>
+                <strong>{allLaps().length > 0 ? `${allLaps().length} completadas` : 'aguardando'}</strong>
             </header>
 
             <div class="lap-time__body">
                 <Show
-                    when={lapState.lastLapTime}
+                    when={bestLap()}
                     fallback={
                         <div class="lap-time__empty">
                             <span>aguardando primeira volta</span>
@@ -35,20 +37,20 @@ function LapTimePanel() {
                         class="lap-time__last"
                         classList={{ 'lap-time__last--flash': flash() }}
                     >
-                        <span class="lap-time__last-label">Última volta</span>
-                        <span class="lap-time__last-value">{lapState.lastLapTime}</span>
+                        <span class="lap-time__last-label">Melhor volta</span>
+                        <span class="lap-time__last-value">{bestLap().formatted}</span>
                     </div>
                 </Show>
 
-                <Show when={bestLaps().length > 0}>
+                <Show when={allLaps().length > 0}>
                     <div class="lap-time__list">
-                        <For each={bestLaps()}>
-                            {(entry, i) => (
+                        <For each={allLaps()}>
+                            {(entry) => (
                                 <span
                                     class="lap-time__entry"
-                                    classList={{ 'lap-time__entry--best': i() === 0 }}
+                                    classList={{ 'lap-time__entry--best': isBestLap(entry) }}
                                 >
-                                    <span class="lap-time__entry-rank">#{i() + 1}</span>
+                                    <span class="lap-time__entry-rank">#{entry.lap}</span>
                                     <span class="lap-time__entry-lap">volta {entry.lap}</span>
                                     <span class="lap-time__entry-time">{entry.formatted}</span>
                                 </span>

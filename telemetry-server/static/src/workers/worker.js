@@ -517,12 +517,18 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
         'track_quality',
         'track_observations',
     ]);
+    const LAP_MESSAGE_TYPES = new Set([
+        'lap_times',
+        'laps',
+        'track_laps',
+        'lap_update',
+    ]);
 
     function handleTextMessage(text) {
         // Kill switch do mapa: descarta antes do JSON.parse. O payload de
         // `track_map` carrega centenas de pontos — parseá-lo só para jogar fora
         // é exatamente o custo que o kill switch existe para evitar.
-        if (!TRACK_MAP_ENABLED && text.includes('"track_')) return;
+        if (!TRACK_MAP_ENABLED && text.includes('"track_') && !text.includes('"track_laps"')) return;
 
         let payload;
         try {
@@ -533,6 +539,11 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
 
         if (TRACK_MESSAGE_TYPES.has(payload.type)) {
             self.postMessage({ type: 'track', payload });
+            return;
+        }
+
+        if (LAP_MESSAGE_TYPES.has(payload.type)) {
+            self.postMessage({ type: 'laps', payload });
             return;
         }
 

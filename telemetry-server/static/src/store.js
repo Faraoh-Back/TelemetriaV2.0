@@ -25,7 +25,7 @@
 
 import { batch } from 'solid-js'
 import { createStore, reconcile } from 'solid-js/store'
-import { LAP_TIMING_ENABLED, TRACK_MAP_ENABLED } from './config/featureFlags.js'
+import { TRACK_MAP_ENABLED } from './config/featureFlags.js'
 
 // ─── WORKER ──────────────────────────────────────────────────────────────────
 // O Worker fica em src/workers para poder importar os utils do projeto.
@@ -56,6 +56,7 @@ const [lapState, setLapState] = createStore({
     lastLapAt: null,
     allLaps: [],
     bestLaps: [],
+    bestLap: null,
     lapCount: 0,
 })
 
@@ -66,50 +67,74 @@ function formatLapTime(seconds) {
     return `${min}:${sec.padStart(6, '0')}`
 }
 
-// Voltas abaixo deste limiar são descartadas como anomalias
-// (e.g. primeira detecção parcial ao ligar o sistema no meio de uma volta)
-const MIN_LAP_SECONDS = 10
+function readLapSeconds(entry) {
+    if (typeof entry === 'number') return entry
+    if (!entry || typeof entry !== 'object') return null
 
-function updateLapDetection(vehicle, trackLength, timestamp) {
-    if (!vehicle || !trackLength || trackLength <= 0) return
-    if (!Number.isFinite(vehicle.distance_m)) return
-    if (!Number.isFinite(timestamp)) return
+    const candidates = [
+        entry.time,
+        entry.time_sec,
+        entry.time_seconds,
+        entry.duration,
+        entry.duration_sec,
+        entry.duration_seconds,
+        entry.lap_time,
+        entry.lap_time_sec,
+        entry.lap_time_seconds,
+    ]
 
-    const currentLapNumber = Math.floor(vehicle.distance_m / trackLength)
-    const prevLapNumber = lapState.lapCount ?? 0
-    const lapStart = lapState._lapStart
+    const value = candidates.find((candidate) => Number.isFinite(Number(candidate)))
+    return value == null ? null : Number(value)
+}
 
-    if (currentLapNumber > prevLapNumber) {
-        const elapsed = lapStart != null ? timestamp - lapStart : null
-        const isValid = elapsed != null && elapsed >= MIN_LAP_SECONDS
+function readLapNumber(entry, index) {
+    if (!entry || typeof entry !== 'object') return index + 1
 
-        if (isValid) {
-            const formatted = formatLapTime(elapsed)
-            const entry = { lap: currentLapNumber, time: elapsed, formatted }
+    const value = entry.lap ?? entry.lap_number ?? entry.number ?? entry.index
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : index + 1
+}
 
-            const updatedAll = [...lapState.allLaps, entry]
-            const updatedBest = [...lapState.bestLaps, entry]
-                .sort((a, b) => a.time - b.time)
-                .slice(0, 5)
+function normalizeLapEntry(entry, index) {
+    const time = readLapSeconds(entry)
+    if (!Number.isFinite(time)) return null
 
-            setLapState({
-                lastLapTime: formatted,
-                lastLapAt: Date.now(),
-                allLaps: updatedAll,
-                bestLaps: updatedBest,
-                lapCount: currentLapNumber,
-                _lapStart: timestamp,
-            })
-        } else {
-            // Volta inválida: avança o contador mas não registra o tempo
-            setLapState({
-                lapCount: currentLapNumber,
-                _lapStart: timestamp,
-            })
-        }
-    } else if (currentLapNumber === prevLapNumber && !lapStart) {
-        setLapState({ _lapStart: timestamp })
+    return {
+        lap: readLapNumber(entry, index),
+        time,
+        formatted: entry?.formatted ?? entry?.display ?? formatLapTime(time),
     }
+}
+
+function normalizeBackendLaps(payload) {
+    const rawLaps = payload.laps ?? payload.lap_times ?? payload.times ?? payload.items ?? []
+    const laps = Array.isArray(rawLaps)
+        ? rawLaps.map(normalizeLapEntry).filter(Boolean)
+        : []
+
+    const bestFromPayload = payload.best_lap ?? payload.bestLap ?? payload.best
+    const bestLap = normalizeLapEntry(bestFromPayload, 0) ||
+        laps.reduce((best, lap) => (!best || lap.time < best.time ? lap : best), null)
+
+    return { laps, bestLap }
+}
+
+function applyBackendLapTimes(payload) {
+    const { laps, bestLap } = normalizeBackendLaps(payload)
+    if (!laps.length && !bestLap) return
+
+    const allLaps = laps.length ? laps : [bestLap]
+    const lastLap = allLaps[allLaps.length - 1] ?? null
+    const bestLaps = [...allLaps].sort((a, b) => a.time - b.time).slice(0, 5)
+
+    setLapState({
+        lastLapTime: lastLap?.formatted ?? null,
+        lastLapAt: Date.now(),
+        allLaps,
+        bestLaps,
+        bestLap: bestLap ?? bestLaps[0] ?? null,
+        lapCount: Number(payload.lap_count ?? payload.lapCount ?? allLaps.length),
+    })
 }
 
 const [telemetrySession, setTelemetrySession] = createStore({
@@ -188,13 +213,6 @@ const [telemetrySession, setTelemetrySession] = createStore({
                     vehicle: data.payload.vehicle ?? null,
                     timestamp: data.payload.timestamp ?? null,
                 })
-                if (LAP_TIMING_ENABLED) {
-                    updateLapDetection(
-                        data.payload.vehicle,
-                        trackState.track?.length_m,
-                        Number(data.payload.timestamp),
-                    )
-                }
             } else if (data.payload?.type === 'track_path') {
                 setTrackState({
                     path: data.payload.path ?? null,
@@ -211,6 +229,10 @@ const [telemetrySession, setTelemetrySession] = createStore({
                     timestamp: data.payload.timestamp ?? null,
                 })
             }
+            break
+
+            case 'laps':
+            applyBackendLapTimes(data.payload)
             break
         }
     }
@@ -300,6 +322,7 @@ const [telemetrySession, setTelemetrySession] = createStore({
             lastLapAt: null,
             allLaps: [],
             bestLaps: [],
+            bestLap: null,
             lapCount: 0,
         })
         worker.postMessage({ cmd: 'resetTelemetryData' })

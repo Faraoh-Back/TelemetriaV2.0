@@ -15,8 +15,6 @@
 // seguido de `npm run build` (o dashboard é servido de `dist/`).
 export const TRACK_MAP_ENABLED = false
 
-// LAP_TIMING_ENABLED depende do mapa: a cronometragem é 100% derivada das
-// mensagens `track_*` — ela divide `vehicle.distance_m` (vindo de `track_pose`)
-// pelo comprimento da pista (vindo de `track_map`). Fica como flag própria para
-// permitir desligar só a volta num servidor com o mapa ativo.
+// Mantido apenas para recursos visuais do mapa. A lista de voltas exibida no
+// Cockpit vem do backend via WebSocket, não é mais calculada pelo frontend.
 export const LAP_TIMING_ENABLED = false

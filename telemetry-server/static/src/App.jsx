@@ -378,6 +378,7 @@ function App() {
                                   label="Seleção customizada"
                                 signals={selectedSignals()}
                                 windowSeconds={windowSeconds()}
+                                multiAxis={selectedSignals().length > 1}
                                 relativeTime
                                 relativeStartTimestamp={telemetrySession.startTimestamp}
                               />

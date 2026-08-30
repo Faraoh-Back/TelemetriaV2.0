@@ -114,6 +114,7 @@ function MotecChart(props) {
     let resizeObserver = null
     let isInitializing = false
     let isDisposed = false
+    let chartConfigKey = null
 
     /**
      * Hook de dados.
@@ -177,6 +178,7 @@ function MotecChart(props) {
         signals: sigNames,
         cursorSync,
         relativeTime: props.relativeTime ?? false,
+        multiAxis: props.multiAxis ?? false,
         })
 
         /**
@@ -196,6 +198,7 @@ function MotecChart(props) {
         [alignedTs, ...valueArrays],
         containerRef
         )
+        chartConfigKey = getChartConfigKey()
 
         return true
     }
@@ -212,6 +215,14 @@ function MotecChart(props) {
      * trocamos os dados usando chart.setData().
      */
     async function updateOrCreateChart() {
+        if (chart && chartConfigKey !== getChartConfigKey()) {
+        chart.destroy()
+        chart = null
+        setHasChartData(false)
+        await ensureChart()
+        return
+        }
+
         if (!chart) {
         await ensureChart()
         return
@@ -277,6 +288,7 @@ function MotecChart(props) {
         props.windowSeconds
         props.relativeTime
         props.relativeStartTimestamp
+        props.multiAxis
 
         /**
          * Apenas acessar a propriedade já registra
@@ -336,6 +348,14 @@ function MotecChart(props) {
         chart = null
         }
     })
+
+    function getChartConfigKey() {
+        return [
+        (props.signals ?? []).join('|'),
+        props.relativeTime ? 'relative' : 'absolute',
+        props.multiAxis ? 'multi' : 'single',
+        ].join('::')
+    }
 
     /**
      * ==========================================================================

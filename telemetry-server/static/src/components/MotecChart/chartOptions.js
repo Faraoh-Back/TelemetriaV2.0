@@ -116,17 +116,19 @@ export function buildUPlotOptions({
             xAxis,
             ...signals.map((_, i) => {
                 const color = getSignalColor(i)
+                const showAxis = i < 3
 
                 return {
                     scale: `y${i}`,
                     side: 3,
-                    size: 48,
+                    show: showAxis,
+                    size: showAxis ? 42 : 0,
                     values: (_u, ticks) =>
                         ticks.map((v) =>
                             v == null ? '' : Number(v).toFixed(0)
                         ),
-                    stroke: color,
-                    ticks: { stroke: color },
+                    stroke: showAxis ? color : 'transparent',
+                    ticks: { stroke: showAxis ? color : 'transparent' },
                     grid: {
                         show: i === 0,
                         stroke: 'rgba(255,255,255,0.06)',

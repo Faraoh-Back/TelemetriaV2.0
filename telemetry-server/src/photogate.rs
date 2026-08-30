@@ -1,10 +1,10 @@
 use std::sync::Arc;
-use tokio::io::AsyncReadExt;
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::UdpSocket;
 use tokio::sync::broadcast;
 use tracing::{error, info, warn};
 use serde_json::json;
 use sqlx::SqlitePool;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 // Format representing a lap entry to send to the frontend
 #[derive(serde::Serialize, Clone, Debug)]
@@ -34,131 +34,134 @@ pub async fn run_photogate_server(
     sqlite_pool: SqlitePool,
     ws_tx: broadcast::Sender<Vec<u8>>,
 ) {
-    let listener = match TcpListener::bind(format!("0.0.0.0:{}", port)).await {
-        Ok(l) => l,
+    let socket = match UdpSocket::bind(format!("0.0.0.0:{}", port)).await {
+        Ok(s) => s,
         Err(e) => {
-            error!("❌ Falha ao iniciar listener do Photogate na porta {}: {:?}", port, e);
+            error!("❌ Falha ao iniciar socket UDP do Photogate na porta {}: {:?}", port, e);
             return;
         }
     };
-    info!("📡 Photogate listener ativo em 0.0.0.0:{}", port);
+    info!("📡 Photogate UDP listener ativo em 0.0.0.0:{}", port);
 
-    // Use a shared state protected by a Mutex (assuming a single active session)
     let state = Arc::new(tokio::sync::Mutex::new(PhotogateState::new()));
+    let mut buf = [0u8; 1024];
 
     loop {
-        match listener.accept().await {
-            Ok((socket, addr)) => {
-                info!("⏱️  Dispositivo Photogate conectado: {}", addr);
+        match socket.recv_from(&mut buf).await {
+            Ok((len, addr)) => {
+                if len != 20 {
+                    warn!("Photogate: pacote UDP de tamanho inválido ({} bytes) de {}. Esperado: 20 bytes.", len, addr);
+                    continue;
+                }
+
+                // Copy payload
+                let mut payload = [0u8; 20];
+                payload.copy_from_slice(&buf[0..20]);
+
                 let pool = sqlite_pool.clone();
                 let tx = ws_tx.clone();
                 let state_clone = state.clone();
+
                 tokio::spawn(async move {
-                    handle_photogate_connection(socket, addr, pool, tx, state_clone).await;
+                    handle_photogate_packet(payload, addr, pool, tx, state_clone).await;
                 });
             }
             Err(e) => {
-                error!("Erro ao aceitar conexão no Photogate listener: {:?}", e);
+                error!("Erro ao receber dados no socket UDP: {:?}", e);
             }
         }
     }
 }
 
-async fn handle_photogate_connection(
-    mut socket: TcpStream,
+async fn handle_photogate_packet(
+    payload: [u8; 20],
     addr: std::net::SocketAddr,
     sqlite_pool: SqlitePool,
     ws_tx: broadcast::Sender<Vec<u8>>,
     state: Arc<tokio::sync::Mutex<PhotogateState>>,
 ) {
-    loop {
-        let mut len_buf = [0u8; 4];
-        match socket.read_exact(&mut len_buf).await {
-            Ok(_) => {}
-            Err(_) => {
-                warn!("🔌 Dispositivo Photogate desconectado: {}", addr);
-                break;
-            }
+    // Parse:
+    // ID (4B, uint32, little-endian)
+    // Timestamp (8B, float64, little-endian)
+    // CAN PAYLOAD (8B, dados brutos)
+    let sensor_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
+    let mut timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
+    let can_payload = &payload[12..20];
+
+    // Fallback if the timestamp is near zero (placeholder value from physical sensor)
+    let now_sec = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs_f64();
+        
+    if timestamp < 1_000_000.0 {
+        timestamp = now_sec;
+    }
+
+    // Parse lap count from raw CAN payload as u32 from the first 4 bytes.
+    let lap_number = u32::from_le_bytes(can_payload[0..4].try_into().unwrap()) as i32;
+
+    info!(
+        "⏱️  Photogate UDP: de={}, ID=0x{:X}, Ts={:.3}, Lap={}",
+        addr, sensor_id, timestamp, lap_number
+    );
+
+    if lap_number <= 0 {
+        warn!("Photogate: número de volta inválido ({}) recebido. Ignorando.", lap_number);
+        return;
+    }
+
+    let mut st = state.lock().await;
+
+    // Se é a primeira vez que recebemos ou se a volta é menor do que a última registrada,
+    // podemos considerar um início de sessão (por exemplo, volta 1, ou volta inicial do piloto).
+    if st.last_pass_time.is_none() {
+        info!("⏱️  Sessão Photogate iniciada em Ts={:.3} na Volta (Lap={})", timestamp, lap_number);
+        st.last_pass_time = Some(timestamp);
+        st.laps.clear();
+        broadcast_laps(&ws_tx, &st.laps);
+        return;
+    }
+
+    // Se st.last_pass_time já existe:
+    if let Some(prev_time) = st.last_pass_time {
+        let duration = timestamp - prev_time;
+        if duration <= 2.0 { // Debounce de 2 segundos para evitar leituras duplicadas
+            warn!("Photogate: tempo de volta muito curto ({:.3}s). Ignorando (provável debounce).", duration);
+            return;
         }
 
-        let len = u32::from_le_bytes(len_buf) as usize;
-        if len != 20 {
-            error!("Photogate: tamanho de pacote inválido (len={}) de {} — desconectando", len, addr);
-            break;
-        }
-
-        let mut payload = [0u8; 20];
-        match socket.read_exact(&mut payload).await {
-            Ok(_) => {}
-            Err(e) => {
-                warn!("Photogate: erro ao ler payload de {}: {}", addr, e);
-                break;
-            }
-        }
-
-        // Parse:
-        // ID (4B, uint32, little-endian)
-        // Timestamp (8B, float64, little-endian)
-        // CAN PAYLOAD (8B, dados brutos)
-        let sensor_id = u32::from_le_bytes(payload[0..4].try_into().unwrap());
-        let timestamp = f64::from_le_bytes(payload[4..12].try_into().unwrap());
-        let can_payload = &payload[12..20];
-
-        // Parse lap count from raw CAN payload as u32 from the first 4 bytes.
-        let lap_number = u32::from_le_bytes(can_payload[0..4].try_into().unwrap()) as i32;
-
-        info!("⏱️  Photogate: ID=0x{:X}, Ts={:.3}, Lap={}", sensor_id, timestamp, lap_number);
-
-        if lap_number <= 0 {
-            warn!("Photogate: número de volta inválido ({}) recebido. Ignorando.", lap_number);
-            continue;
-        }
-
-        let mut st = state.lock().await;
-
-        if lap_number == 1 {
-            // Volta 1: início do piloto, ponto de partida.
-            info!("⏱️  Volta 1 iniciada em Ts={:.3} (Início do piloto)", timestamp);
-            st.last_pass_time = Some(timestamp);
+        // Se o número da volta recebido for menor ou igual à última volta registrada,
+        // significa que uma nova corrida/sessão foi iniciada. Resetamos tempos.
+        if !st.laps.is_empty() && lap_number <= st.laps.last().unwrap().lap {
+            info!("⏱️  Novo piloto ou reinício detectado (Lap {} <= última volta {}). Resetando tempos.", lap_number, st.laps.last().unwrap().lap);
             st.laps.clear();
-
-            // Envia evento de reset/atualização inicial das voltas para o frontend
+            st.last_pass_time = Some(timestamp);
             broadcast_laps(&ws_tx, &st.laps);
-        } else {
-            // Volta > 1: piloto completou a volta anterior (lap_number - 1).
-            if let Some(prev_time) = st.last_pass_time {
-                let duration = timestamp - prev_time;
-                if duration <= 1.0 {
-                    warn!("Photogate: tempo de volta muito curto ({:.3}s). Ignorando (provável debounce).", duration);
-                    continue;
-                }
-
-                let completed_lap = lap_number - 1;
-                st.last_pass_time = Some(timestamp);
-
-                let formatted = format_lap_time(duration);
-                let entry = LapEntry {
-                    lap: completed_lap,
-                    time: duration,
-                    formatted: formatted.clone(),
-                };
-                st.laps.push(entry);
-
-                info!("⏱️  Volta {} completada: {} ({:.3}s)", completed_lap, formatted, duration);
-
-                // Salva no banco de dados SQLite
-                if let Err(e) = crate::db::save_lap(&sqlite_pool, completed_lap, duration, timestamp).await {
-                    error!("❌ Erro ao salvar volta no banco de dados: {:?}", e);
-                }
-
-                // Envia para o frontend via WebSocket
-                broadcast_laps(&ws_tx, &st.laps);
-            } else {
-                // Caso o servidor tenha reiniciado/conectado no meio e recebido Volta > 1 sem ter visto a Volta 1
-                warn!("Photogate: recebida Volta {}, mas não há registro da passagem inicial (Volta 1). Iniciando cronômetro agora.", lap_number);
-                st.last_pass_time = Some(timestamp);
-            }
+            return;
         }
+
+        st.last_pass_time = Some(timestamp);
+
+        // A volta completada é a volta anterior
+        let completed_lap = lap_number - 1;
+        let formatted = format_lap_time(duration);
+        let entry = LapEntry {
+            lap: completed_lap,
+            time: duration,
+            formatted: formatted.clone(),
+        };
+        st.laps.push(entry);
+
+        info!("⏱️  Volta {} completada: {} ({:.3}s)", completed_lap, formatted, duration);
+
+        // Salva no banco de dados SQLite
+        if let Err(e) = crate::db::save_lap(&sqlite_pool, completed_lap, duration, timestamp).await {
+            error!("❌ Erro ao salvar volta no banco de dados: {:?}", e);
+        }
+
+        // Envia para o frontend via WebSocket
+        broadcast_laps(&ws_tx, &st.laps);
     }
 }
 

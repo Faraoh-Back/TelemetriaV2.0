@@ -67,9 +67,19 @@ BO_ 311 SBG_ECAN_MSG_EKF_VEL_NED: 6 JETSON_SBG
  SG_ VELOCITY_E : 16|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
  SG_ VELOCITY_D : 32|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
 
+BO_ 313 SBG_ECAN_MSG_EKF_VEL_BODY: 6 JETSON_SBG
+ SG_ VELOCITY_X : 0|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
+ SG_ VELOCITY_Y : 16|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
+ SG_ VELOCITY_Z : 32|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
+
 BO_ 373 SBG_ECAN_MSG_GPS1_POS: 8 JETSON_SBG
  SG_ LATITUDE : 0|32@1- (1E-7,0) [-214.7483648|214.7483647] "deg" Vector__XXX
  SG_ LONGITUDE : 32|32@1- (1E-7,0) [-214.7483648|214.7483647] "deg" Vector__XXX
+
+BO_ 369 SBG_ECAN_MSG_GPS1_VEL: 6 JETSON_SBG
+ SG_ GPS1_VEL_N : 0|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
+ SG_ GPS1_VEL_E : 16|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
+ SG_ GPS1_VEL_D : 32|16@1- (0.01,0) [-327.68|327.67] "m/s" Vector__XXX
 
 BO_ 377 SBG_ECAN_MSG_GPS1_HDT: 8 JETSON_SBG
  SG_ TRUE_HEADING : 0|16@1+ (0.01,0) [0|655.35] "deg" Vector__XXX
@@ -97,6 +107,8 @@ CM_ BO_ 304 "Gerado a partir de frame_ekf_info().";
 CM_ BO_ 306 "Gerado a partir de frame_ekf_euler().";
 CM_ BO_ 308 "Gerado a partir de frame_ekf_pos(). Range no DBC reflete o clamp do codigo (int32 completo); faixa fisica real de lat/lon e -90/90 e -180/180.";
 CM_ BO_ 311 "Gerado a partir de frame_ekf_vel_ned().";
+CM_ BO_ 313 "SBG_ECAN_MSG_EKF_VEL_BODY (0x139): velocidade INS no frame do veiculo, conforme protocolo CAN SBG.";
+CM_ BO_ 369 "SBG_ECAN_MSG_GPS1_VEL (0x171): velocidade GNSS NED do modulo 1, conforme protocolo CAN SBG.";
 CM_ BO_ 373 "Gerado a partir de frame_gps1_pos(). Mesma ressalva de range de 308.";
 CM_ BO_ 377 "Gerado a partir de frame_gps1_hdt().";
 CM_ BO_ 2147483649 "Compatibilidade com pipeline/mock legado INS_01. O parser mascara bit 31, entao este BO_ mapeia CAN ID 0x1.";

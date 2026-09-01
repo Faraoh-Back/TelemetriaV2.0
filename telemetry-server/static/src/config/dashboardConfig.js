@@ -197,6 +197,6 @@ export const GAUGE_CONFIG = [
 export const DEFAULT_CHART_LAYOUT = [
     { label: 'RPM Motores',    signals: ['RPM_0A', 'RPM_0B', 'RPM_13A', 'RPM_13B'] },
     { label: 'Torque Motores', signals: ['TORQUE_0A', 'TORQUE_0B', 'TORQUE_13A', 'TORQUE_13B']  },
-    { label: 'Velocidade INS', signals: ['INS_SPEED', 'VELOCITY_N', 'VELOCITY_E', 'Speed_Linear_X', 'Speed_Linear_Y'] },
+    { label: 'Velocidade INS', signals: ['INS_SPEED', 'VELOCITY_N', 'VELOCITY_E', 'VELOCITY_X', 'VELOCITY_Y', 'GPS1_VEL_N', 'GPS1_VEL_E', 'Speed_Linear_X', 'Speed_Linear_Y'] },
     { label: 'Aceleração',     signals: ['ACCEL_X', 'ACCEL_Y', 'ACCEL_Z'] },
 ]

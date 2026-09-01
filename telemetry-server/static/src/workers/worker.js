@@ -239,15 +239,30 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
         const nedFrameReady = name === 'VELOCITY_E'
             && frameValues?.has('VELOCITY_N')
             && frameValues?.has('VELOCITY_E');
+        const bodyFrameReady = name === 'VELOCITY_Y'
+            && frameValues?.has('VELOCITY_X')
+            && frameValues?.has('VELOCITY_Y');
+        const gpsFrameReady = name === 'GPS1_VEL_E'
+            && frameValues?.has('GPS1_VEL_N')
+            && frameValues?.has('GPS1_VEL_E');
 
-        if (!legacyFrameReady && !nedFrameReady) return;
+        if (!legacyFrameReady && !nedFrameReady && !bodyFrameReady && !gpsFrameReady) return;
 
-        const x = legacyFrameReady
-            ? frameValues.get('Speed_Linear_X')
-            : frameValues.get('VELOCITY_N');
-        const y = legacyFrameReady
-            ? frameValues.get('Speed_Linear_Y')
-            : frameValues.get('VELOCITY_E');
+        let x;
+        let y;
+        if (legacyFrameReady) {
+            x = frameValues.get('Speed_Linear_X');
+            y = frameValues.get('Speed_Linear_Y');
+        } else if (nedFrameReady) {
+            x = frameValues.get('VELOCITY_N');
+            y = frameValues.get('VELOCITY_E');
+        } else if (bodyFrameReady) {
+            x = frameValues.get('VELOCITY_X');
+            y = frameValues.get('VELOCITY_Y');
+        } else {
+            x = frameValues.get('GPS1_VEL_N');
+            y = frameValues.get('GPS1_VEL_E');
+        }
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) return;
         emitSignal('INS_SPEED', Math.hypot(x, y), 'm/s', timestamp, canId, component);
@@ -270,6 +285,14 @@ import { TRACK_MAP_ENABLED } from '../config/featureFlags.js'
         } else if (name === 'VELOCITY_N') {
             emitSignal('Speed_Linear_X', value, unit || 'm/s', timestamp, canId, component);
         } else if (name === 'VELOCITY_E') {
+            emitSignal('Speed_Linear_Y', value, unit || 'm/s', timestamp, canId, component);
+        } else if (name === 'VELOCITY_X') {
+            emitSignal('Speed_Linear_X', value, unit || 'm/s', timestamp, canId, component);
+        } else if (name === 'VELOCITY_Y') {
+            emitSignal('Speed_Linear_Y', value, unit || 'm/s', timestamp, canId, component);
+        } else if (name === 'GPS1_VEL_N') {
+            emitSignal('Speed_Linear_X', value, unit || 'm/s', timestamp, canId, component);
+        } else if (name === 'GPS1_VEL_E') {
             emitSignal('Speed_Linear_Y', value, unit || 'm/s', timestamp, canId, component);
         }
 
